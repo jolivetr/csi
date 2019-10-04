@@ -1934,7 +1934,7 @@ class gps(SourceInv):
             return
 
         # Get the corresponding values
-        vec = fault.polysol[self.name]
+        vec = fault.polysol[self.name][transformation]
 
         # Compute the synthetics
         tmpsynth = np.dot(orb, vec)
@@ -1984,13 +1984,13 @@ class gps(SourceInv):
         # All done
         return
 
-    def removeTransformation(self, fault, custom=False):
+    def removeTransformation(self, fault, custom=False, verbose=False):
         '''
         Removes the transformation that is stored in a fault.
         '''
 
         # Compute the transformation
-        self.computeTransformation(fault, custom=custom)
+        self.computeTransformation(fault, custom=custom, verbose=False)
 
         # Do the correction
         self.vel_enu -= self.transformation

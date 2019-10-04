@@ -1472,8 +1472,7 @@ class insar(SourceInv):
 
         # Print Something
         if verbose:
-            params = fault.polysol[self.name].tolist()
-            print('Correcting insar {} from polynomial function: {}'.format(self.name, tuple(p for p in params)))
+            print('Correcting insar {} from polynomial function'.format(self.name))
         # Correct
         self.vel -= self.orbit
         # Correct Custom

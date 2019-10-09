@@ -1472,7 +1472,7 @@ class insar(SourceInv):
 
         # Print Something
         if verbose:
-            print('Correcting insar {} from polynomial function: {}'.format(self.name))
+            print('Correcting insar {} from polynomial function'.format(self.name))
         # Correct
         self.vel -= self.orbit
         # Correct Custom

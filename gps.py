@@ -1984,13 +1984,13 @@ class gps(SourceInv):
         # All done
         return
 
-    def removeTransformation(self, fault, custom=False):
+    def removeTransformation(self, fault, custom=False, verbose=False):
         '''
         Removes the transformation that is stored in a fault.
         '''
 
         # Compute the transformation
-        self.computeTransformation(fault, custom=custom)
+        self.computeTransformation(fault, custom=custom, verbose=False)
 
         # Do the correction
         self.vel_enu -= self.transformation

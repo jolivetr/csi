@@ -679,7 +679,7 @@ class imagecovariance(object):
         # Plot the data?
         if plotData:
             plt.figure(figure+1)
-            self.image.plot(figure=figure+1, show=False)
+            self.image.plot(figure=figure+1, show=False, drawCoastlines=False)
             #if hasattr(self, 'selectedZones'):
             #    for zone in self.selectedZones:
             #        x = [zone[0], zone[0], zone[1], zone[1], zone[0]]

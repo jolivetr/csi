@@ -624,10 +624,10 @@ class gps(SourceInv):
         dic['Length'] = length
         dic['Width'] = width
         dic['Box'] = np.array(boxll)
-        dic['Parallel Velocity'] = np.array(Vacros)
-        dic['Parallel Error'] = np.array(Eacros)
-        dic['Normal Velocity'] = np.array(Valong)
-        dic['Normal Error'] = np.array(Ealong)
+        dic['Normal Velocity'] = np.array(Vacros)
+        dic['Normal Error'] = np.array(Eacros)
+        dic['Parallel Velocity'] = np.array(Valong)
+        dic['Parallel Error'] = np.array(Ealong)
         dic['Vertical Velocity'] = np.array(Vup)
         dic['Vertical Error'] = np.array(Eup)
         dic['Distance'] = np.array(Dalong)
@@ -745,8 +745,8 @@ class gps(SourceInv):
             bb[i,1] = y
         bb[4,0] = bb[0,0]
         bb[4,1] = bb[0,1]
-        self.fig.carte.plot(bb[:,0], bb[:,1], '.k', zorder=40)
-        self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=40)
+        self.fig.carte.plot(bb[:,0], bb[:,1], '.k', zorder=0)
+        self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=0)
 
         # open a figure
         fig = plt.figure()
@@ -1934,7 +1934,7 @@ class gps(SourceInv):
             return
 
         # Get the corresponding values
-        vec = fault.polysol[self.name]
+        vec = fault.polysol[self.name][transformation]
 
         # Compute the synthetics
         tmpsynth = np.dot(orb, vec)

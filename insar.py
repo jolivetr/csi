@@ -1472,8 +1472,7 @@ class insar(SourceInv):
 
         # Print Something
         if verbose:
-            params = fault.polysol[self.name].tolist()
-            print('Correcting insar {} from polynomial function: {}'.format(self.name, tuple(p for p in params)))
+            print('Correcting insar {} from polynomial function: {}'.format(self.name))
         # Correct
         self.vel -= self.orbit
         # Correct Custom
@@ -2479,7 +2478,7 @@ class insar(SourceInv):
             bb[i,1] = b[i,1]
         bb[-1,0] = bb[0,0]
         bb[-1,1] = bb[0,1]
-        self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=40)
+        self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=0)
 
         # open a figure
         fig = plt.figure()

@@ -361,19 +361,25 @@ class geodeticplot(object):
 
         # Draw and get the line object
         self.carte.add_feature(self.coastlines)
-        if drawOnFault:
-            segments = []
-            for geom in self.coastlines.geometries():
-                for poly in geom:
-                    x = np.array(poly.exterior.xy[0])
-                    y = np.array(poly.exterior.xy[1])
-                    segments.append(np.vstack((x,y,np.zeros(x.shape))).T)
-            if len(segments)>0:
-                cote = art3d.Line3DCollection(segments)
-                cote.set_edgecolor(landcolor)
-                cote.set_linestyle(linestyle)
-                cote.set_linewidth(linewidth)
-                self.faille.add_collection3d(cote)
+        ##### NOT WORKING YET ####
+        #if drawOnFault:
+        #    segments = []
+        #    if type(self.coastlines.geometries()) is not list:
+        #        geoms = [self.coastlines.geometries()]
+        #    else:
+        #        geoms = self.coastlines.geometries()
+        #    for geom in geoms:
+        #        for poly in geom:
+        #            x = np.array(poly.exterior.xy[0])
+        #            y = np.array(poly.exterior.xy[1])
+        #            segments.append(np.vstack((x,y,np.zeros(x.shape))).T)
+        #    if len(segments)>0:
+        #        cote = art3d.Line3DCollection(segments)
+        #        cote.set_edgecolor(landcolor)
+        #        cote.set_linestyle(linestyle)
+        #        cote.set_linewidth(linewidth)
+        #        self.faille.add_collection3d(cote)
+        ##### NOT WORKING YET ####
 
         # Draw countries
         if drawCountries:
@@ -381,23 +387,25 @@ class geodeticplot(object):
                                                           linewidth=linewidth/2., edgecolor='k', facecolor='lightgray', 
                                                           alpha=0.6, zorder=zorder)
             self.carte.add_feature(self.countries)
-            if drawOnFault:
-                segments = []
-                if type(self.countries.geometries()) is not list:
-                    geoms = [self.countries.geometries()]
-                else:
-                    geoms = self.countries.geometries()
-                for geom in geoms:
-                    for poly in geom:
-                        x = np.array(poly.exterior.xy[0])
-                        y = np.array(poly.exterior.xy[1])
-                        segments.append(np.vstack((x,y,np.zeros(x.shape))).T)
-                if len(segments)>0:
-                    border = art3d.Line3DCollection(segments)
-                    border.set_edgecolor(None)
-                    border.set_linestyle(linestyle)
-                    border.set_linewidth(linewidth/2.)
-                    self.faille.add_collection3d(border)
+            ##### NOT WORKING YET ####
+            #if drawOnFault:
+            #    segments = []
+            #    if type(self.countries.geometries()) is not list:
+            #        geoms = [self.countries.geometries()]
+            #    else:
+            #        geoms = self.countries.geometries()
+            #    for geom in geoms:
+            #        for poly in geom:
+            #            x = np.array(poly.exterior.xy[0])
+            #            y = np.array(poly.exterior.xy[1])
+            #            segments.append(np.vstack((x,y,np.zeros(x.shape))).T)
+            #    if len(segments)>0:
+            #        border = art3d.Line3DCollection(segments)
+            #        border.set_edgecolor(None)
+            #        border.set_linestyle(linestyle)
+            #        border.set_linewidth(linewidth/2.)
+            #        self.faille.add_collection3d(border)
+            ##### NOT WORKING YET ####
 
         # Parallels
         lmin,lmax = self.latmin, self.latmax

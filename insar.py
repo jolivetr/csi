@@ -826,9 +826,18 @@ class insar(SourceInv):
                     finx = netcdf.netcdf_file(los[0])
                     finy = netcdf.netcdf_file(los[1])
                     finz = netcdf.netcdf_file(los[2])
-                losx = np.array(finx.variables['z'][:,:]).flatten()
-                losy = np.array(finy.variables['z'][:,:]).flatten()
-                losz = np.array(finz.variables['z'][:,:]).flatten()
+                if len(finx.variables['z'].shape)==1:
+                    noflat=True;
+                else:
+                    noflat=False;
+                if noflat:
+                    losx = np.array(finx.variables['z'][:])
+                    losy = np.array(finy.variables['z'][:])
+                    losz = np.array(finz.variables['z'][:])
+                else:
+                    losx = np.array(finx.variables['z'][:,:]).flatten()
+                    losy = np.array(finy.variables['z'][:,:]).flatten()
+                    losz = np.array(finz.variables['z'][:,:]).flatten()
                 # Remove NaNs?
                 if not keepnans:
                     losx = losx[u]

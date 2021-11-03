@@ -17,8 +17,6 @@ import cartopy.io.shapereader as shpreader
 import shapely.geometry as sgeom
 from shapely.ops import unary_union
 from shapely.prepared import prep
-import shapely.speedups
-shapely.speedups.enable()
 
 # Personals
 from .SourceInv import SourceInv
@@ -2831,7 +2829,7 @@ class insar(SourceInv):
 
     def plot(self, faults=None, figure=None, gps=None, norm=None, data='data', show=True, 
              drawCoastlines=True, expand=0.2, edgewidth=1, figsize=None, markersize=1.,
-             plotType='scatter', cmap='jet', alpha=1., box=None, titleyoffset=1.1,
+             plotType='scatter', cmap='jet', alpha=1., box=None, titleyoffset=1.05,
              landcolor='lightgrey', seacolor=None, shadedtopo=None, title=True,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel=''):
         '''

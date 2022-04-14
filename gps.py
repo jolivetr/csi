@@ -1826,11 +1826,6 @@ class gps(SourceInv):
             * None
         '''
 
-        # Initialize the variables
-        GssE = None; GdsE = None; GtsE = None; GcpE = None
-        GssN = None; GdsN = None; GtsN = None; GcpN = None
-        GssU = None; GdsU = None; GtsU = None; GcpU = None
-
         # Check components
         east  = False
         north = False
@@ -1841,69 +1836,152 @@ class gps(SourceInv):
         if vertical and np.isnan(self.vel_enu[:,2]).any():
             raise ValueError('vertical can only be true if all stations have vertical components')
 
-        # Get the 3 components
-        try:
-            Gss = G['strikeslip']
-        except:
-            Gss = None
-        try:
-            Gds = G['dipslip']
-        except: 
-            Gds = None
-        try:
-            Gts = G['tensile']
-        except:
-            Gts = None
-        try: 
-            Gcp = G['coupling']
-        except:
-            Gcp = None
+        nd = self.vel_enu.shape[0]
 
-        # Get the values
-        if Gss is not None:
-            N = 0
-            if east:
-                GssE = Gss[range(0,self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if north:
-                GssN = Gss[range(N,N+self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if vertical:
-                GssU = Gss[range(N,N+self.vel_enu.shape[0]),:]
-        if Gds is not None:
-            N = 0
-            if east:
-                GdsE = Gds[range(0,self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if north:
-                GdsN = Gds[range(N,N+self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if vertical:
-                GdsU = Gds[range(N,N+self.vel_enu.shape[0]),:]
-        if Gts is not None:
-            N = 0
-            if east:
-                GtsE = Gts[range(0,self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if north:
-                GtsN = Gts[range(N,N+self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if vertical:
-                GtsU = Gts[range(N,N+self.vel_enu.shape[0]),:]
-        if Gcp is not None:
-            N = 0
-            if east:
-                GcpE = Gcp[range(0,self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if north:
-                GcpN = Gcp[range(N,N+self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if vertical:
-                GcpU = Gcp[range(N,N+self.vel_enu.shape[0]),:]
+        if fault.type=="Fault":
 
-        # set the GFs
-        fault.setGFs(self, strikeslip=[GssE, GssN, GssU], dipslip=[GdsE, GdsN, GdsU],
-                    tensile=[GtsE, GtsN, GtsU], coupling=[GcpE, GcpN, GcpU], vertical=vertical)
+            # Initialize the variables
+            GssE = None; GdsE = None; GtsE = None; GcpE = None
+            GssN = None; GdsN = None; GtsN = None; GcpN = None
+            GssU = None; GdsU = None; GtsU = None; GcpU = None
+
+            # Get the 3 components
+            try:
+                Gss = G['strikeslip']
+            except:
+                Gss = None
+            try:
+                Gds = G['dipslip']
+            except: 
+                Gds = None
+            try:
+                Gts = G['tensile']
+            except:
+                Gts = None
+            try: 
+                Gcp = G['coupling']
+            except:
+                Gcp = None
+
+            # Get the values
+            if Gss is not None:
+                N = 0
+                if east:
+                    GssE = Gss[range(0,nd),:]
+                    N += nd
+                if north:
+                    GssN = Gss[range(N,N+nd),:]
+                    N += nd
+                if vertical:
+                    GssU = Gss[range(N,N+nd),:]
+            if Gds is not None:
+                N = 0
+                if east:
+                    GdsE = Gds[range(0,nd),:]
+                    N += nd
+                if north:
+                    GdsN = Gds[range(N,N+nd),:]
+                    N += nd
+                if vertical:
+                    GdsU = Gds[range(N,N+nd),:]
+            if Gts is not None:
+                N = 0
+                if east:
+                    GtsE = Gts[range(0,nd),:]
+                    N += nd
+                if north:
+                    GtsN = Gts[range(N,N+nd),:]
+                    N += nd
+                if vertical:
+                    GtsU = Gts[range(N,N+nd),:]
+            if Gcp is not None:
+                N = 0
+                if east:
+                    GcpE = Gcp[range(0,nd),:]
+                    N += nd
+                if north:
+                    GcpN = Gcp[range(N,N+nd),:]
+                    N += nd
+                if vertical:
+                    GcpU = Gcp[range(N,N+nd),:]
+
+            # set the GFs
+            fault.setGFs(self, strikeslip=[GssE, GssN, GssU], dipslip=[GdsE, GdsN, GdsU],
+                        tensile=[GtsE, GtsN, GtsU], coupling=[GcpE, GcpN, GcpU], vertical=vertical)
+
+        elif fault.type=='Pressure':
+
+            # Initialize
+            GpE = None; GpN = None; GpU = None
+            GdvxE = None; GdvxN = None; GdvxU = None
+            GdvyE = None; GdvyN = None; GdvyU = None
+            GdvzE = None; GdvzN = None; GdvzU = None
+
+            # Tries
+            try:
+                Gp = G['pressure']
+            except:
+                Gp = None
+            try:
+                Gdvx = G['pressureDVx']
+            except:
+                Gdvx = None
+            try:
+                Gdvy = G['pressureDVy']
+            except:
+                Gdvy = None
+            try:
+                Gdvz = G['pressureDVz']
+            except:
+                Gdvz = None
+
+            # Order
+            if Gp is not None:
+                N = 0
+                if east:
+                    GpE = Gp[:nd,:]
+                    N += nd
+                if north:
+                    GpN = Gp[N:N+nd,:]
+                    N += nd
+                if vertical:
+                    GpU = Gp[N:N+nd,:]
+            if Gdvx is not None:
+                N = 0
+                if east:
+                    GdvxE = Gdvx[:nd,:]
+                    N += nd
+                if north:
+                    GdvxN = Gdvx[N:N+nd,:]
+                    N += nd
+                if vertical:
+                    GdvxU = Gdvx[N:N+nd,:]
+            if Gdvy is not None:
+                N = 0
+                if east:
+                    GdvyE = Gdvy[:nd,:]
+                    N += nd
+                if north:
+                    GdvyN = Gdvy[N:N+nd,:]
+                    N += nd
+                if vertical:
+                    GdvyU = Gdvy[N:N+nd,:]
+            if Gdvz is not None:
+                N = 0
+                if east:
+                    GdvzE = Gdvz[:nd,:]
+                    N += nd
+                if north:
+                    GdvzN = Gdvz[N:N+nd,:]
+                    N += nd
+                if vertical:
+                    GdvzU = Gdvz[N:N+nd,:]
+
+            # Organize
+            fault.setGFs(self, deltapressure=[GpE, GpN, GpU], 
+                               GDVx=[GdvxE, GdvxN, GdvxU] , GDVy=[GdvyE, GdvyN, GdvyU], 
+                               GDVz =[GdvzE, GdvzN, GdvzU], 
+                               vertical=vertical)
 
         # All done
         return
@@ -2742,62 +2820,121 @@ class gps(SourceInv):
             # Get the good part of G
             G = fault.G[self.name]
 
-            if ('s' in direction) and ('strikeslip' in G.keys()):
-                Gs = G['strikeslip']
-                Ss = fault.slip[:,0]
-                ss_synth = np.dot(Gs,Ss)
-                N = 0
-                if east:
-                    self.synth[:,0] += ss_synth[0:Nd]
-                    N += Nd
-                if north:
-                    self.synth[:,1] += ss_synth[N:N+Nd]
-                    N += Nd
-                if vertical:
-                    # if ss_synth.size > 2*Nd and east and north:
-                    self.synth[:,2] += ss_synth[N:N+Nd]
-            if ('d' in direction) and ('dipslip' in G.keys()):
-                Gd = G['dipslip']
-                Sd = fault.slip[:,1]
-                ds_synth = np.dot(Gd, Sd)
-                N = 0
-                if east:
-                    self.synth[:,0] += ds_synth[0:Nd]
-                    N += Nd
-                if north:
-                    self.synth[:,1] += ds_synth[N:N+Nd]
-                    N += Nd
-                if vertical:
-                    #if ds_synth.size > 2*Nd and east and north:
-                    self.synth[:,2] += ds_synth[N:N+Nd]
-            if ('t' in direction) and ('tensile' in G.keys()):
-                Gt = G['tensile']
-                St = fault.slip[:,2]
-                op_synth = np.dot(Gt, St)
-                N = 0
-                if east:                
-                    self.synth[:,0] += op_synth[0:Nd]
-                    N += Nd
-                if north:
-                    self.synth[:,1] += op_synth[N:N+Nd]
-                    N += Nd
-                if vertical:
-                    #if op_synth.size > 2*Nd and east and north:
-                    self.synth[:,2] += op_synth[N:N+Nd]
-            if ('c' in direction) and ('coupling' in G.keys()):
-                Gc = G['coupling']
-                Sc = fault.coupling
-                dc_synth = np.dot(Gc,Sc)
-                N = 0
-                if east:
-                    self.synth[:,0] += dc_synth[N:Nd]
-                    N += Nd
-                if north:
-                    self.synth[:,1] += dc_synth[N:N+Nd]
-                    N += Nd
-                if vertical:
-                    #if dc_synth.size > 2*Nd and east and north:
-                    self.synth[:,2] += dc_synth[N:N+Nd]
+            if fault.type=="Fault":
+
+                if ('s' in direction) and ('strikeslip' in G.keys()):
+                    Gs = G['strikeslip']
+                    Ss = fault.slip[:,0]
+                    ss_synth = np.dot(Gs,Ss)
+                    N = 0
+                    if east:
+                        self.synth[:,0] += ss_synth[0:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += ss_synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        # if ss_synth.size > 2*Nd and east and north:
+                        self.synth[:,2] += ss_synth[N:N+Nd]
+                if ('d' in direction) and ('dipslip' in G.keys()):
+                    Gd = G['dipslip']
+                    Sd = fault.slip[:,1]
+                    ds_synth = np.dot(Gd, Sd)
+                    N = 0
+                    if east:
+                        self.synth[:,0] += ds_synth[0:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += ds_synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        #if ds_synth.size > 2*Nd and east and north:
+                        self.synth[:,2] += ds_synth[N:N+Nd]
+                if ('t' in direction) and ('tensile' in G.keys()):
+                    Gt = G['tensile']
+                    St = fault.slip[:,2]
+                    op_synth = np.dot(Gt, St)
+                    N = 0
+                    if east:                
+                        self.synth[:,0] += op_synth[0:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += op_synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        #if op_synth.size > 2*Nd and east and north:
+                        self.synth[:,2] += op_synth[N:N+Nd]
+                if ('c' in direction) and ('coupling' in G.keys()):
+                    Gc = G['coupling']
+                    Sc = fault.coupling
+                    dc_synth = np.dot(Gc,Sc)
+                    N = 0
+                    if east:
+                        self.synth[:,0] += dc_synth[N:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += dc_synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        #if dc_synth.size > 2*Nd and east and north:
+                        self.synth[:,2] += dc_synth[N:N+Nd]
+
+            elif fault.type == "Pressure":
+
+                if fault.source in {"Mogi", "Yang"}:
+                    Gp = G['pressure']
+                    Sp = fault.deltapressure/fault.mu
+                    synth = Gp*Sp
+                    N = 0
+                    if east:
+                        self.synth[:,0] += synth[N:Nd].squeeze()
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += synth[N:N+Nd].squeeze()
+                        N += Nd
+                    if vertical:
+                        self.synth[:,2] += synth[N:N+Nd].squeeze()
+
+                elif fault.source==("pCDM"):
+                    Gdx = G['pressureDVx']
+                    Sxp = fault.DVx/fault.scale
+                    synthx = np.dot(Gdx,Sxp)
+                    Gdy = G['pressureDVy']
+                    Syp = fault.DVy/fault.scale
+                    synthy = np.dot(Gdy, Syp)
+                    Gdz = G['pressureDVz']
+                    Szp = fault.DVz/fault.scale
+                    synthz = np.dot(Gdz, Szp)
+                    N = 0
+                    if east:
+                        self.synth[:,0] += synthx[N:N+Nd]
+                        self.synth[:,0] += synthy[N:N+Nd]
+                        self.synth[:,0] += synthz[N:N+Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += synthx[N:N+Nd]
+                        self.synth[:,1] += synthy[N:N+Nd]
+                        self.synth[:,1] += synthz[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        self.synth[:,2] += synthx[N:N+Nd]
+                        self.synth[:,2] += synthy[N:N+Nd]
+                        self.synth[:,2] += synthz[N:N+Nd]
+                        N += Nd
+
+                elif fault.source==("CDM"):
+                    Gp = G['pressure']
+                    Sp = fault.deltaopening
+                    synth = Gp*Sp
+                    N = 0
+                    if east:
+                        self.synth[:,0] += synth[N:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        self.synth[:,2] += synth[N:N+Nd]
 
             if custom:
                 Gc = G['custom']
@@ -2829,7 +2966,7 @@ class gps(SourceInv):
                         if len(gpsref)==3:
                             self.synth += gpsref[2]
 
-        # All done
+    # All done
         return
 
 

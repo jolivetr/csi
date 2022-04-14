@@ -325,6 +325,7 @@ class multifaultsolve(object):
             elif fault.type=="Pressure":
                 #Prepare the table
                 if self.verbose:
+                    print('-----------------')
                     print('{:30s}||{:12s}||{:12s}'.format('Fault Name', 'Pressure', 'Extra Parms'))
                 # Initialize the values
                 dp = 'None'
@@ -511,7 +512,6 @@ class multifaultsolve(object):
                 st = 0
                 if fault.source in {"Mogi", "Yang"}:
                     se = st + 1
-                    print(np.asscalar(fault.mpost[st:se]*fault.mu))
                     fault.deltapressure = np.asscalar(fault.mpost[st:se]*fault.mu)
                     st += 1
                 elif fault.source=="pCDM":
@@ -524,13 +524,11 @@ class multifaultsolve(object):
                     se = st + 1
                     fault.DVz = np.asscalar(fault.mpost[st:se]*fault.scale)
                     st += 1
-                    print("Total potency scaled by", fault.scale)
 
                     if fault.DVtot is None:
                         fault.computeTotalpotency()
                 elif fault.source=="CDM":
                     se = st + 1
-                    print(np.asscalar(fault.mpost[st:se]*fault.mu))
                     fault.deltaopening = np.asscalar(fault.mpost[st:se])
                     st += 1
 

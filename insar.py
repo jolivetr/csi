@@ -17,8 +17,8 @@ import cartopy.io.shapereader as shpreader
 import shapely.geometry as sgeom
 from shapely.ops import unary_union
 from shapely.prepared import prep
-import shapely.speedups
-shapely.speedups.enable()
+#import shapely.speedups
+#shapely.speedups.enable()
 
 # Personals
 from .SourceInv import SourceInv
@@ -1327,6 +1327,7 @@ class insar(SourceInv):
             # set the GFs
             fault.setGFs(self, strikeslip=[GssLOS], dipslip=[GdsLOS], tensile=[GtsLOS],
                         coupling=[GcpLOS], vertical=True)
+
         elif fault.type=="Pressure":
             try:
                 GpLOS = G['pressure']
@@ -1345,7 +1346,9 @@ class insar(SourceInv):
             except:
                 GdvzLOS = None
 
-            fault.setGFs(self, deltapressure=[GpLOS], GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], vertical=True)
+            fault.setGFs(self, deltapressure=[GpLOS], 
+                               GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], 
+                               vertical=True)
 
         # All done
         return
@@ -1732,7 +1735,6 @@ class insar(SourceInv):
                 if fault.source in {"Mogi", "Yang"}:
                     Gp = G['pressure']
                     Sp = fault.deltapressure/fault.mu
-                    print("Scaling by pressure", fault.deltapressure )
                     losdp_synth = Gp*Sp
                     self.synth += losdp_synth
 

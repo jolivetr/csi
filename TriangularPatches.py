@@ -2563,7 +2563,6 @@ class TriangularPatches(Fault):
             * slip          : What slip to plot
             * equiv         : useless. For consitency between fault objects
             * show          : Show me
-            * axesscaling   : Scale the axis
             * Norm          : colorbar min and max values
             * linewidth     : Line width in points
             * plot_on_2d    : Plot on a map as well

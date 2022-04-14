@@ -17,8 +17,8 @@ import cartopy.io.shapereader as shpreader
 import shapely.geometry as sgeom
 from shapely.ops import unary_union
 from shapely.prepared import prep
-import shapely.speedups
-shapely.speedups.enable()
+#import shapely.speedups
+#shapely.speedups.enable()
 
 # Personals
 from .SourceInv import SourceInv
@@ -874,9 +874,16 @@ class insar(SourceInv):
                     finx = netcdf.netcdf_file(los[0])
                     finy = netcdf.netcdf_file(los[1])
                     finz = netcdf.netcdf_file(los[2])
-                losx = np.array(finx.variables['z'][:,:]).flatten()
-                losy = np.array(finy.variables['z'][:,:]).flatten()
-                losz = np.array(finz.variables['z'][:,:]).flatten()
+                # check file organization (assume same for all LOS)    
+                if len(finx.variables['z'].shape)==1:  # 1-d array
+                    losx = np.array(finx.variables['z'][:])
+                    losy = np.array(finy.variables['z'][:])
+                    losz = np.array(finz.variables['z'][:])
+                else:
+                    # 2-d array has to be flattened
+                    losx = np.array(finx.variables['z'][:,:]).flatten()
+                    losy = np.array(finy.variables['z'][:,:]).flatten()
+                    losz = np.array(finz.variables['z'][:,:]).flatten()
                 # Remove NaNs?
                 if not keepnans:
                     losx = losx[u]
@@ -1320,6 +1327,7 @@ class insar(SourceInv):
             # set the GFs
             fault.setGFs(self, strikeslip=[GssLOS], dipslip=[GdsLOS], tensile=[GtsLOS],
                         coupling=[GcpLOS], vertical=True)
+
         elif fault.type=="Pressure":
             try:
                 GpLOS = G['pressure']
@@ -1338,7 +1346,9 @@ class insar(SourceInv):
             except:
                 GdvzLOS = None
 
-            fault.setGFs(self, deltapressure=[GpLOS], GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], vertical=True)
+            fault.setGFs(self, deltapressure=[GpLOS], 
+                               GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], 
+                               vertical=True)
 
         # All done
         return
@@ -1725,7 +1735,6 @@ class insar(SourceInv):
                 if fault.source in {"Mogi", "Yang"}:
                     Gp = G['pressure']
                     Sp = fault.deltapressure/fault.mu
-                    print("Scaling by pressure", fault.deltapressure )
                     losdp_synth = Gp*Sp
                     self.synth += losdp_synth
 

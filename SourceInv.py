@@ -145,18 +145,46 @@ class SourceInv(object):
         self.proj2utm = Transformer.from_crs(self.wgs, self.utm, always_xy=True) 
         self.proj2wgs = Transformer.from_crs(self.utm, self.wgs, always_xy=True)
 
+        # Set Geod
+        self.geod = pp.Geod(ellps=ellps)
+
         # Set utmzone
         self.code = utm_crs_list[0].code
         self.utmzone = utmzone
         self.lon0 = lon0
         self.lat0 = lat0
+        self.ellps = ellps
         
-        # Set Geod
-        self.geod = pp.Geod(ellps=ellps)
-
         # All done
         return        
     # ----------------------------------------------------------------------
+
+    
+    # ----------------------------------------------------------------------
+    # Unset the utmzone
+    def unset_utmzone(self):
+        '''
+        Unsets the UTM zone. Basically, TransformerLocal object (pyproj) cannot
+        be pickled. Therefore, if one wants to pickle the fault object (which is
+        important for deepcopy or multiprocessing), one needs to delete the proj
+        instance before. This is a temporary hack until proj fixes the bug.
+
+        I raised a bug issue in the pyproj github project (issue #1058)
+        '''
+
+        # delete objects 
+        del self.proj2utm
+        del self.proj2wgs
+        del self.utm
+        del self.wgs
+        del self.geod
+
+        # Make sure clean up is done
+        import gc
+        gc.collect()
+
+        # All done
+        return
 
     # ----------------------------------------------------------------------
     # Checks that longitude is between 0 and 360 (kind of useless)

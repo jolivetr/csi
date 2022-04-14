@@ -279,14 +279,14 @@ class Pressure(SourceInv):
                 if stdh5 is not None:
                     slp = np.std(samples[:])
 
-                elif add_volume is "volume":
+                elif add_volume == "volume":
                     if self.source in {"Mogi", "Yang"}:
                         if self.deltapressure is not None:
                             self.pressure2volume()
                             slp = self.deltavolume*scale
                             print("Converting pressure to volume, scaled by", self.deltapressure, self.deltavolume, scale)
 
-                    elif self.source is "pCDM":
+                    elif self.source == "pCDM":
                         if None not in {self.DVx, self.DVy, self.DVz}:
                             if self.DVtot is None:
                                 self.computeTotalpotency()
@@ -297,13 +297,13 @@ class Pressure(SourceInv):
 
                             print("Total potency scaled by", scale)
 
-                    elif self.source is "CDM":
+                    elif self.source == "CDM":
                         if self.deltaopening is not None:
                             self.opening2potency()
                             slp = self.deltapotency*scale
                             print("Converting from opening to potency, scaled by", scale)
 
-                elif add_volume is "pressure":
+                elif add_volume == "pressure":
                     if self.source in {"Mogi", "Yang"}:
                         if self.deltapressure not in {0.0, None}:
                             slp = self.deltapressure*scale
@@ -377,7 +377,7 @@ class Pressure(SourceInv):
 
         # Loop over the file
         # Assert it works
-        assert A[0].split()[0] is '>', 'Reformat your file...'
+        assert A[0].split()[0] == '>', 'Reformat your file...'
         # Get the slip value
         if not donotreadvolume:
             if len(A[0].split())>3:
@@ -513,7 +513,7 @@ class Pressure(SourceInv):
 
 
 
-        if self.source is "pCDM":
+        if self.source == "pCDM":
             # Read the files and reshape the GFs
             Gdvx = None; Gdvy = None; Gdvz = None
             if DVx is not None:
@@ -629,6 +629,8 @@ class Pressure(SourceInv):
         # Compute the Green's functions
         if method in ('volume'):
             G = self.homogeneousGFs(data, vertical=vertical, verbose=verbose)
+        else:
+            assert False, 'Not implemented: method must be volume'
 
         # Separate the Green's functions for each type of data set
         data.setGFsInFault(self, G, vertical=vertical)
@@ -670,7 +672,7 @@ class Pressure(SourceInv):
 
         # Create the dictionary
 
-        if self.source is "pCDM":
+        if self.source == "pCDM":
             G = {'pressureDVx':[], 'pressureDVy':[], 'pressureDVz':[]}
 
             # Create the matrices to hold the whole thing
@@ -692,11 +694,11 @@ class Pressure(SourceInv):
             G = {'pressure':[]}
 
             # Create the matrices to hold the whole thing
-            Gdp = np.zeros((3, len(data.x)))
+            Gdp = np.zeros((3, len(data.x), 1))
 
             dp = self.pressure2dis(data, delta="volume", volume=VLM)
             # Store them
-            Gdp[:,:] = dp.T
+            Gdp[:,:,0] = dp.T
 
         # Build the dictionary
         G = self._buildGFsdict(data, Gdp, vertical=vertical)
@@ -1049,7 +1051,7 @@ class Pressure(SourceInv):
 
         Npo = 0
         #Solve for just the deltaPressure parameter
-        if self.source is "pCDM":
+        if self.source == "pCDM":
             Nps = 3
         else:
             Nps = 1
@@ -1120,12 +1122,12 @@ class Pressure(SourceInv):
 
             # for sp in sliplist:
             #Nclocal = self.G[data.name]['pressure'].shape[0]
-            if self.source is "pCDM":
-                Glocal[:,0] = self.G[data.name]['pressureDVx'] #???
-                Glocal[:,1] = self.G[data.name]['pressureDVy'] #???
-                Glocal[:,2] = self.G[data.name]['pressureDVz'] #???
+            if self.source == "pCDM":
+                Glocal[:,0] = self.G[data.name]['pressureDVx'].squeeze() #???
+                Glocal[:,1] = self.G[data.name]['pressureDVy'].squeeze() #???
+                Glocal[:,2] = self.G[data.name]['pressureDVz'].squeeze() #???
             else:
-                Glocal[:,0] = self.G[data.name]['pressure'] #???
+                Glocal[:,0] = self.G[data.name]['pressure'].squeeze() #???
 
             #ec += Nclocal
 
@@ -1222,7 +1224,7 @@ class Pressure(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def builddummyCm(self, extra_params=None, user_Cm=None, verbose=True):
+    def buildCm(self, sigma, extra_params=None, user_Cm=None, verbose=True):
         '''
         Builds a dummy model covariance matrix using user-defined value.
 
@@ -1241,17 +1243,22 @@ class Pressure(SourceInv):
         if verbose:
             print ("---------------------------------")
             print ("---------------------------------")
-            print ("Assembling the dummy Cm matrix ")
+            print ("Assembling the Cm matrix ")
 
 
         # Creates the principal Cm matrix
-        if self.source is "pCDM":
+        if self.source == "pCDM":
             Nps = 3
         else:
             Nps = 1
         if extra_params is not None:
             Npe = len(extra_params)
+        else:
+            Npe = 0
+
+        # Check
         Cm = np.eye(Nps+Npe, Nps+Npe)
+        Cm[:Nps,:Nps] *= sigma
 
         # Put the extra values
         st = 0
@@ -1265,7 +1272,7 @@ class Pressure(SourceInv):
 
         # Store Cm into self
         self.Cm = Cm
-        print(Cm)
+
         # All done
         return
     # ----------------------------------------------------------------------
@@ -1292,11 +1299,13 @@ class Pressure(SourceInv):
         if not vertical:
             Ncomp = 2
             Gdp = Gdp[:2,:,:]
-            Nparm = Gdp.shape[2]
-            Npoints = Gdp.shape[1]
+        
+        # Size 
+        Nparm = Gdp.shape[2]
+        Npoints = Gdp.shape[1]
 
         # Get some size info
-        if self.source is "pCDM":
+        if self.source == "pCDM":
             Npoints = Gdp[0].shape[1]
         else:
             Npoints = Gdp.shape[1]
@@ -1304,7 +1313,7 @@ class Pressure(SourceInv):
 
         # Check format
         if data.dtype in ['gps', 'opticorr', 'multigps']:
-            if self.source is "pCDM":
+            if self.source == "pCDM":
                 Gdvx = Gdp[0].reshape((Ndata, Nparm))
                 Gdvy = Gdp[1].reshape((Ndata, Nparm))
                 Gdvz = Gdp[2].reshape((Ndata, Nparm))
@@ -1312,7 +1321,7 @@ class Pressure(SourceInv):
                 # Flat arrays with e, then n, then u (optional)
                 Gdp = Gdp.reshape((Ndata, Nparm))
         elif data.dtype in ('insar', 'insartimeseries'):
-            if self.source is "pCDM":
+            if self.source == "pCDM":
                 # If InSAR, do the dot product with the los
                 Gdvx_los = []
                 Gdvy_los = []
@@ -1332,7 +1341,7 @@ class Pressure(SourceInv):
 
 
         # Create the dictionary
-        if self.source is "pCDM":
+        if self.source == "pCDM":
             G = {'pressureDVx':[], 'pressureDVy':[], 'pressureDVz':[]}
             # Reshape the Green's functions
             G['pressureDVx'] = Gdvx
@@ -1447,7 +1456,7 @@ class Pressure(SourceInv):
         sys.stdout.write('\r Calculating Greens functions for source of type {}'.format(self.source))
         sys.stdout.flush()
         # Get the surface displacement due to the slip on this patch
-        if self.source is "pCDM":
+        if self.source == "pCDM":
             u1,u2,u3 = self.pressure2dis(self.sim)
             self.sim.vel_enu += u1
             self.sim.vel_enu += u2

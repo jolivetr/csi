@@ -683,9 +683,9 @@ class Pressure(SourceInv):
             dvx, dvy, dvz = self.pressure2dis(data, delta="volume", volume=VLM)
 
             # Store them
-            Gdvx[:,:] = dvx.T
-            Gdvy[:,:] = dvy.T
-            Gdvz[:,:] = dvz.T
+            Gdvx[:,:] = dvx.T/self.scale
+            Gdvy[:,:] = dvy.T/self.scale
+            Gdvz[:,:] = dvz.T/self.scale
 
             Gdp = [Gdvx, Gdvy, Gdvz]
 
@@ -698,7 +698,7 @@ class Pressure(SourceInv):
 
             dp = self.pressure2dis(data, delta="volume", volume=VLM)
             # Store them
-            Gdp[:,:,0] = dp.T
+            Gdp[:,:,0] = dp.T/self.mu
 
         # Build the dictionary
         G = self._buildGFsdict(data, Gdp, vertical=vertical)

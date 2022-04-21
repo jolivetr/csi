@@ -1734,22 +1734,18 @@ class insar(SourceInv):
                 G = fault.G[self.name]
                 if fault.source in {"Mogi", "Yang"}:
                     Gp = G['pressure']
-                    Sp = fault.deltapressure/fault.mu
-                    losdp_synth = Gp*Sp
+                    losdp_synth = Gp*fault.deltapressure
                     self.synth += losdp_synth
 
                 elif fault.source==("pCDM"):
                     Gdx = G['pressureDVx']
-                    Sxp = fault.DVx/fault.scale
-                    lossx_synth = np.dot(Gdx,Sxp)
+                    lossx_synth = np.dot(Gdx,fault.DVx)
                     self.synth += lossx_synth
                     Gdy = G['pressureDVy']
-                    Syp = fault.DVy/fault.scale
-                    lossy_synth = np.dot(Gdy, Syp)
+                    lossy_synth = np.dot(Gdy, fault.DVy)
                     self.synth += lossy_synth
                     Gdz = G['pressureDVz']
-                    Szp = fault.DVz/fault.scale
-                    lossz_synth = np.dot(Gdz, Szp)
+                    lossz_synth = np.dot(Gdz, fault.DVz)
                     self.synth += lossz_synth
 
                 elif fault.source==("CDM"):

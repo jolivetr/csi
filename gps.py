@@ -2883,8 +2883,7 @@ class gps(SourceInv):
 
                 if fault.source in {"Mogi", "Yang"}:
                     Gp = G['pressure']
-                    Sp = fault.deltapressure/fault.mu
-                    synth = Gp*Sp
+                    synth = Gp*fault.deltapressure
                     N = 0
                     if east:
                         self.synth[:,0] += synth[N:Nd].squeeze()
@@ -2897,14 +2896,11 @@ class gps(SourceInv):
 
                 elif fault.source==("pCDM"):
                     Gdx = G['pressureDVx']
-                    Sxp = fault.DVx/fault.scale
-                    synthx = np.dot(Gdx,Sxp)
+                    synthx = np.dot(Gdx,fault.DVx)
                     Gdy = G['pressureDVy']
-                    Syp = fault.DVy/fault.scale
-                    synthy = np.dot(Gdy, Syp)
+                    synthy = np.dot(Gdy, fault.DVy)
                     Gdz = G['pressureDVz']
-                    Szp = fault.DVz/fault.scale
-                    synthz = np.dot(Gdz, Szp)
+                    synthz = np.dot(Gdz, fault.DVz)
                     N = 0
                     if east:
                         self.synth[:,0] += synthx[N:N+Nd]
@@ -2924,8 +2920,7 @@ class gps(SourceInv):
 
                 elif fault.source==("CDM"):
                     Gp = G['pressure']
-                    Sp = fault.deltaopening
-                    synth = Gp*Sp
+                    synth = Gp*fault.deltaopening
                     N = 0
                     if east:
                         self.synth[:,0] += synth[N:Nd]

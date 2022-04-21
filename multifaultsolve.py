@@ -512,17 +512,17 @@ class multifaultsolve(object):
                 st = 0
                 if fault.source in {"Mogi", "Yang"}:
                     se = st + 1
-                    fault.deltapressure = np.asscalar(fault.mpost[st:se]*fault.mu)
+                    fault.deltapressure = np.asscalar(fault.mpost[st:se])
                     st += 1
                 elif fault.source=="pCDM":
                     se = st + 1
-                    fault.DVx = np.asscalar(fault.mpost[st:se]*fault.scale)
+                    fault.DVx = np.asscalar(fault.mpost[st:se])
                     st += 1
                     se = st + 1
-                    fault.DVy = np.asscalar(fault.mpost[st:se]*fault.scale)
+                    fault.DVy = np.asscalar(fault.mpost[st:se])
                     st += 1
                     se = st + 1
-                    fault.DVz = np.asscalar(fault.mpost[st:se]*fault.scale)
+                    fault.DVz = np.asscalar(fault.mpost[st:se])
                     st += 1
 
                     if fault.DVtot is None:

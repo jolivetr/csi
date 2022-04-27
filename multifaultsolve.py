@@ -148,14 +148,135 @@ class multifaultsolve(object):
             print('Number of parameters: {}'.format(self.Np))
 
         # Describe which parameters are what
-        self.describeParams(faults)
+        self.describeParams()
+
+        # All done
+        return
+
+    def equalizeParams(self, iparams, Cm=None):
+        '''
+        This is a step to force parameters to be equal. Effectively, since the 
+        problem is linear, we sum columns of G to have a single parameter. The 
+        parameter in question is set at the end of G. 
+        Cm is modified so that it has 1 on the idagonal or what is provided in Cm
+        
+        The original G is saved as Goriginal. The original Cm is in Cmoriginal.
+        The method distributem accounts for such modification by restoring G and Cm
+        and the mpost vector according to the original problem.
+
+        iparams is a list of list of groups of parameters:
+            iparams = [ [1,2,3,19,39], [23, 24]]
+
+        Args:
+            * iparams: List of lists
+
+        Kwargs:
+            * Cm     : List of covariances
+        '''
+
+        # Problem must be assembled first, otherwise it is a mess
+        assert self.ready, 'Must assemble the problem first'
+
+        # Save original problem
+        self.Goriginal = copy.deepcopy(self.G)
+        self.Cmoriginal = copy.deepcopy(self.Cm)
+
+        # Check format of iparams
+        if type(iparams[0]) is not list:
+            iparams = [iparams]
+        for ipar in iparams:
+            assert type(ipar) is list, 'Elements of iparams must be lists'
+            for i in ipar: assert type(i) in (int, np.int64), 'Indexes in iparams must be int: {}'.format(type(i))
+
+        # Remove the columns in G
+        allpars = [i for ipar in iparams for i in ipar]
+        self.G = np.delete(self.G, allpars, axis=1)
+        self.paramTypes = np.delete(self.paramTypes, allpars)
+        self.Cm = np.delete(self.Cm, allpars, axis=1)
+        self.Cm = np.delete(self.Cm, allpars, axis=0)
+
+        # Iterate over the columns of G
+        self.equalized = {}
+        for i, ipar in enumerate(iparams):
+            p = np.array([None for i in range(len(self.paramTypes)+1)])
+            p[:-1] = self.paramTypes 
+            p[-1] = ('Equalized', ipar)
+            self.paramTypes = p
+            self.equalized[self.G.shape[1]] = ipar
+            newG = np.zeros((self.G.shape[0], self.G.shape[1]+1))
+            newG[:self.G.shape[0], :self.G.shape[1]] = self.G
+            newG[:,-1] = self.Goriginal[:,ipar].sum(axis=1)
+            self.G = newG
+            Cmnew = np.zeros((self.Cm.shape[0]+1,self.Cm.shape[1]+1))
+            Cmnew[:self.Cm.shape[0],:self.Cm.shape[0]] = self.Cm
+            if Cm is not None:
+                Cmnew[-1,-1] = Cm[i]
+            else:
+                Cmnew[-1,-1] = 1.
+            self.Cm = Cmnew
+
+        # Build mapping between mnew and mpost
+        eye = np.eye(self.Goriginal.shape[1])
+        eye = np.delete(eye, allpars, axis=1)
+        eye[allpars,:] = 0.
+        mapping = np.zeros((self.Goriginal.shape[1], self.G.shape[1]))
+        mapping[:,:eye.shape[1]] = eye
+        for eq in self.equalized:
+            ipar = self.equalized[eq]
+            mapping[ipar,eq] = 1.
+        self.equalized['map'] = mapping
+
+        # Change things
+        self.Np = self.G.shape[1]
+
+        # Change the parameter description thing
+        self.paramDescription = {}
+        couples,inverse = np.unique(self.paramTypes, return_inverse=True)
+        for icouple,couple in enumerate(couples):
+            uu = np.flatnonzero(inverse==icouple)
+            if len(uu)>0:
+                if 'Equalized' not in couple:
+                    fault = couple[0]
+                    component = couple[1]
+                    if fault not in self.paramDescription: self.paramDescription[fault] = {}
+                    ss = '{:12s}'.format('{:4d} - {:4d}'.format(uu[0], uu[-1]+1))
+                    self.paramDescription[fault][component] = ss
+                else:
+                    if 'Equalized' not in self.paramDescription: self.paramDescription['Equalized'] = []
+                    self.paramDescription['Equalized'].append([uu[0], couple[1]])
+
+        # All done
+        return 
+
+    def unequalizeParams(self):
+        '''
+        Restores the shape of G and Cm and organizes mpost accordingly whem the 
+        problem has been altered by equalizedParams.
+        '''
+
+        # Check
+        assert hasattr(self, 'equalized'), 'Cannot unequalize if equalizedParams was not used'
+
+        # Restore G
+        self.G = copy.deepcopy(self.Goriginal)
+        del self.Goriginal 
+        self.Cm = copy.deepcopy(self.Cmoriginal)
+        del self.Cmoriginal 
+
+        # Reorganize mpost
+        msave = copy.deepcopy(self.mpost)
+        self.mpost = self.equalized['map'].dot(msave)
+        self.Np = len(self.mpost)
+
+        # Parameter Description
+        self.makeParamDescription()
 
         # All done
         return
 
     def strongConstraint(self, iparams, cov=1e-6):
         '''
-        Adds a bunch of lines to force the parameters {iparams} to 
+        Adds a bunch of lines to force the parameters {iparams} to
         be equal, within {cov}. Effectively, it adds a line of +1 and -1
         to the parameters so that all {iparams} are equal to the first one.
         The equality will fall within {cov} as this number is set as the diagonal
@@ -242,16 +363,103 @@ class multifaultsolve(object):
         # All done
         return s
 
-    def describeParams(self, faults):
+    def describeParams(self, redo=True):
         '''
-        Prints to screen  which parameters are what...
-
-        Args:
-            * faults: list of faults
+        Print the parameter description.
 
         Returns:
             * None
         '''
+
+        # Create the parameter description
+        if redo:
+            self.makeParamDescription()
+
+        # Get the faults
+        faults = self.faults
+
+        if self.verbose:
+            print('Parameter Description ----------------------------------')
+
+        # Loop over the param description
+        for fault in self.paramDescription:
+
+            description = self.paramDescription[fault]
+
+            if ('Strike Slip' in description) or ('Dip Slip' in description) or ('Tensile' in description) or ('Coupling' in description) or ('Extra Parameters' in description):
+
+                #Prepare the table
+                if self.verbose:
+                    print('-----------------')
+                    print('{:30s}||{:12s}||{:12s}||{:12s}||{:12s}||{:12s}'.format('Fault Name', 'Strike Slip', 'Dip Slip', 'Tensile', 'Coupling', 'Extra Parms'))
+
+                # Get info
+                if 'Strike Slip' in description:
+                    ss = description['Strike Slip']
+                else:
+                    ss = 'None'
+                if 'Dip Slip' in description:
+                    ds = description['Dip Slip']
+                else:
+                    ds = 'None'
+                if 'Tensile Slip' in description:
+                    ts = description['Tensile Slip']
+                else:
+                    ts = 'None'
+                if 'Coupling' in description:
+                    cp = description['Coupling']
+                else:
+                    cp = 'None'
+                if 'Extra Parameters' in description:
+                    op = description['Extra Parameters']
+                else:
+                    op = 'None'
+
+                # print things
+                if self.verbose:
+                    print('{:30s}||{:12s}||{:12s}||{:12s}||{:12s}||{:12s}'.format(fault, ss, ds, ts, cp, op))
+
+            elif 'Pressure' in description:
+
+                #Prepare the table
+                if self.verbose:
+                    print('-----------------')
+                    print('{:30s}||{:12s}||{:12s}'.format('Fault Name', 'Pressure', 'Extra Parms'))
+
+                # Get info
+                if 'Pressure' in description:
+                    dp = description['Pressure']
+                else:
+                    dp = 'None'
+                if 'Extra Parameters' in description:
+                    op = description['Extra Parameters']
+                else:
+                    op = 'None'
+
+                # print things
+                if self.verbose:
+                    print('{:30s}||{:12s}||{:12s}'.format(fault, dp, op))
+    
+
+        if 'Equalized' in self.paramDescription:
+            for case in self.paramDescription['Equalized']:
+                new,old = case
+                if self.verbose:
+                    print('-----------------') 
+                    print('Equalized parameter indexes: {} --> {}'.format(old,new))
+
+        # all done
+        return
+
+    def makeParamDescription(self):
+        '''
+        Store what parameters mean
+
+        Returns:
+            * None
+        '''
+
+        faults = self.faults
 
         # initialize the counters
         ns = 0
@@ -261,6 +469,9 @@ class multifaultsolve(object):
         # Store that somewhere
         self.paramDescription = {}
 
+        # Make a list of parameter types
+        self.paramTypes = np.array([None for i in range(self.Np)])
+
         # Loop over the faults
         for fault in faults:
 
@@ -268,10 +479,6 @@ class multifaultsolve(object):
             nfs = copy.deepcopy(ns)
 
             if fault.type=="Fault" or fault.type=='transformation':
-                #Prepare the table
-                if self.verbose:
-                    print('-----------------')
-                    print('{:30s}||{:12s}||{:12s}||{:12s}||{:12s}||{:12s}'.format('Fault Name', 'Strike Slip', 'Dip Slip', 'Tensile', 'Coupling', 'Extra Parms'))
                 # Initialize the values
                 ss = 'None'
                 ds = 'None'
@@ -282,18 +489,22 @@ class multifaultsolve(object):
                 if 's' in fault.slipdir:
                     ne += fault.slip.shape[0]
                     ss = '{:12s}'.format('{:4d} - {:4d}'.format(ns,ne))
+                    for i in range(ns,ne): self.paramTypes[i] = (fault.name, 'Strike Slip')
                     ns += fault.slip.shape[0]
                 if 'd' in fault.slipdir:
                     ne += fault.slip.shape[0]
                     ds = '{:12s}'.format('{:4d} - {:4d}'.format(ns, ne))
+                    for i in range(ns,ne): self.paramTypes[i] = (fault.name, 'Dip Slip')
                     ns += fault.slip.shape[0]
                 if 't' in fault.slipdir:
                     ne += fault.slip.shape[0]
                     ts = '{:12s}'.format('{:4d} - {:4d}'.format(ns, ne))
+                    for i in range(ns,ne): self.paramTypes[i] = (fault.name, 'Tensile')
                     ns += fault.slip.shape[0]
                 if 'c' in fault.slipdir:
                     ne += fault.slip.shape[0]
                     cp = '{:12s}'.format('{:4d} - {:4d}'.format(ns, ne))
+                    for i in range(ns,ne): self.paramTypes[i] = (fault.name, 'Coupling')
                     ns += fault.slip.shape[0]
 
                 # How many slip parameters
@@ -301,20 +512,17 @@ class multifaultsolve(object):
                     nSlip = ne
 
                 # conditions on orbits (the rest is orbits)
-                np = ne - nfs
-                no = fault.Gassembled.shape[1] - np
+                npo = ne - nfs
+                no = fault.Gassembled.shape[1] - npo
                 if no>0:
                     ne += no
                     op = '{:12s}'.format('{:4d} - {:4d}'.format(ns, ne))
+                    for i in range(ns,ne): self.paramTypes[i] = (fault.name, 'Extra Parameters')
                     ns += no
                 else:
                     op = 'None'
 
-                # print things
-                if self.verbose:
-                    print('{:30s}||{:12s}||{:12s}||{:12s}||{:12s}||{:12s}'.format(fault.name, ss, ds, ts, cp, op))
-
-                # Store details
+                # Store 
                 self.paramDescription[fault.name] = {}
                 self.paramDescription[fault.name]['Strike Slip'] = ss
                 self.paramDescription[fault.name]['Dip Slip'] = ds
@@ -323,45 +531,39 @@ class multifaultsolve(object):
                 self.paramDescription[fault.name]['Extra Parameters'] = op
 
             elif fault.type=="Pressure":
-                #Prepare the table
-                if self.verbose:
-                    print('-----------------')
-                    print('{:30s}||{:12s}||{:12s}'.format('Fault Name', 'Pressure', 'Extra Parms'))
+
                 # Initialize the values
                 dp = 'None'
                 if fault.source=="pCDM":
                     ne += 3
                     dp = '{:12s}'.format('{:4d} - {:4d}'.format(ns,ne))
+                    for i in range(ns,ne): self.paramTypes[i] = (fault.name, 'Pressure')
                     ns += 3 #fault.slip.shape[0]
                 else:
                     ne += 1
                     dp = '{:12s}'.format('{:4d} - {:4d}'.format(ns,ne))
+                    for i in range(ns,ne): self.paramTypes[i] = (fault.name, 'Pressure')
                     ns += 1 #fault.slip.shape[0]
-
 
                 # How many slip parameters
                 if ne>nSlip:
                     nSlip = ne
 
                 # conditions on orbits (the rest is orbits)
-                np = ne - nfs
-                no = fault.Gassembled.shape[1] - np
+                npo = ne - nfs
+                no = fault.Gassembled.shape[1] - npo
                 if no>0:
                     ne += no
                     op = '{:12s}'.format('{:4d} - {:4d}'.format(ns, ne))
+                    for i in range(ns,ne): self.paramTypes[i] = (fault.name, 'Extra Parameters')
                     ns += no
                 else:
                     op = 'None'
 
-                # print things
-                if self.verbose:
-                    print('{:30s}||{:12s}||{:12s}'.format(fault.name, dp, op))
-
-                # Store details
+                # Store 
                 self.paramDescription[fault.name] = {}
-                self.paramDescription[fault.name]['pressure'] = dp
+                self.paramDescription[fault.name]['Pressure'] = dp
                 self.paramDescription[fault.name]['Extra Parameters'] = op
-
 
         # Store the number of slip parameters
         self.nSlip = nSlip
@@ -799,8 +1001,6 @@ class multifaultsolve(object):
         Err = d - np.dot( G, mpost )
         # Store m_post
         self.mpost = mpost
-        print ("Compute cost function")
-        print(np.sum(Err**2))
         mu = 22.5e9
         Mw_thresh = 10
         if self.type=="Fault":

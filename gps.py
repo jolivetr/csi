@@ -12,6 +12,8 @@ import os
 import copy
 import sys
 
+import shapely.geometry as geom
+
 # Personals
 from .SourceInv import SourceInv
 from .gpstimeseries import gpstimeseries
@@ -816,9 +818,6 @@ class gps(SourceInv):
         # Grab the profile
         prof = self.profiles[name]
 
-        # import shapely
-        import shapely.geometry as geom
-        
         # Build a linestring with the profile center
         Lp = geom.LineString(prof['EndPoints'])
 
@@ -1585,28 +1584,8 @@ class gps(SourceInv):
             * None
         '''
 
-        # Import stuff
-        import shapely.geometry as geom
-
-        # Check something 
-        if faults.__class__ is not list:
-            faults = [faults]
-
-        # Build a line object with the fault
-        mll = []
-        for f in faults:
-            xf = f.xf
-            yf = f.yf
-            mll.append(np.vstack((xf,yf)).T.tolist())
-        Ml = geom.MultiLineString(mll)
-
-        # Build the distance map
-        d = []
-        for i in range(len(self.x)):
-            p = [self.x[i], self.y[i]]
-            PP = geom.Point(p)
-            d.append(Ml.distance(PP))
-        d = np.array(d)
+        # Compute the distance to the fault or faults
+        d = self.distance2fault(faults)
 
         # Find the close ones
         u = np.where(d>=dis)[0].tolist()
@@ -1629,8 +1608,28 @@ class gps(SourceInv):
             * None
         '''
 
-        # Import stuff
-        import shapely.geometry as geom
+        # Compute the distance to the fault or faults
+        d = self.distance2fault(faults)
+
+        # Find the close ones
+        u = np.where(d<=dis)[0].tolist()
+        
+        # reject them
+        self.reject_stations(self.station[u].tolist())
+
+        # All done
+        return
+
+    def distance2fault(self, faults):
+        ''' 
+        Computes the distance between the GPS stations and a list of faults.
+
+        Args:
+            * faults    : list of faults
+
+        Return:
+            * d         : distance
+        '''
 
         # Check something 
         if faults.__class__ is not list:
@@ -1650,16 +1649,8 @@ class gps(SourceInv):
             p = [self.x[i], self.y[i]]
             PP = geom.Point(p)
             d.append(Ml.distance(PP))
-        d = np.array(d)
 
-        # Find the close ones
-        u = np.where(d<=dis)[0].tolist()
-        
-        # reject them
-        self.reject_stations(self.station[u].tolist())
-
-        # All done
-        return
+        return np.array(d)
 
     def reject_stations(self, station):
         '''

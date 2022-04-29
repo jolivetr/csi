@@ -629,6 +629,8 @@ class Pressure(SourceInv):
         # Compute the Green's functions
         if method in ('volume'):
             G = self.homogeneousGFs(data, vertical=vertical, verbose=verbose)
+        elif method in ('empty'):
+            G = self.emptyGFs(data, vertical=vertical, verbose=verbose)
         else:
             assert False, 'Not implemented: method must be volume'
 
@@ -711,6 +713,46 @@ class Pressure(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
+    def emptyGFs(self, data, vertical=True, slipdir='sd', verbose=True):
+        ''' 
+        Build zero GFs.
+
+        Args:
+            * data          : Data object (gps, insar, optical, ...)
+
+        Kwargs:
+            * vertical      : If True, will produce green's functions for the vertical displacements in a gps object.
+            * slipdir       : Direction of slip along the patches. Can be any combination of s (strikeslip), d (dipslip), t (tensile) and c (coupling)
+            * verbose       : Writes stuff to the screen (overwrites self.verbose)
+
+        Returns:
+            * G             : Dictionnary of GFs
+        '''
+
+        if self.source == "pCDM":
+
+            raise NotImplementedError
+
+        else:
+
+            # Create the matrices to hold the whole thing
+            if data.dtype in ('insar', 'surfaceslip'):
+                x = len(data.vel)
+            elif data.dtype in ('opticor'):
+                x = data.vel.shape[0] * 2
+            elif data.dtype in ('gps'):
+                if vertical:
+                    x = data.vel_enu.shape[0]*3
+                else:
+                    x = data.vel_enu.shape[0]*2
+        
+            G = {'pressure': np.zeros((x,1))}
+
+        # All done
+        return G
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
     def setGFs(self, data, deltapressure=[None, None, None], GDVx=[None, None, None],GDVy=[None, None, None],GDVz=[None, None, None],
                            vertical=False, synthetic=False):
         '''
@@ -739,7 +781,7 @@ class Pressure(SourceInv):
         '''
 
         # Get the number of data per point
-        if data.dtype == 'insar' or data.dtype == 'tsunami':
+        if data.dtype in ('insar', 'tsunami', 'surfaceslip'):
             data.obs_per_station = 1
         elif data.dtype in ('gps', 'multigps'):
             data.obs_per_station = 0
@@ -764,7 +806,7 @@ class Pressure(SourceInv):
 
         # Initializes the data vector
         if not synthetic:
-            if data.dtype == 'insar':
+            if data.dtype in ('insar', 'surfaceslip'):
                 self.d[data.name] = data.vel
                 vertical = True # Always true for InSAR
             elif data.dtype == 'tsunami':
@@ -1120,13 +1162,12 @@ class Pressure(SourceInv):
             # Fill Glocal --- difference between Glocal and big G?
             ec = 0
 
-            # for sp in sliplist:
-            #Nclocal = self.G[data.name]['pressure'].shape[0]
             if self.source == "pCDM":
                 Glocal[:,0] = self.G[data.name]['pressureDVx'].squeeze() #???
                 Glocal[:,1] = self.G[data.name]['pressureDVy'].squeeze() #???
                 Glocal[:,2] = self.G[data.name]['pressureDVz'].squeeze() #???
             else:
+                print(Glocal.shape, self.G[data.name]['pressure'].shape)
                 Glocal[:,0] = self.G[data.name]['pressure'].squeeze() #???
 
             #ec += Nclocal
@@ -1278,7 +1319,6 @@ class Pressure(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-
     def _buildGFsdict(self, data, Gdp, vertical=True):
         '''
         Some ordering of the Gfs to make the computation routines simpler.

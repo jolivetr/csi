@@ -54,7 +54,7 @@ class Fault(SourceInv):
             print ("---------------------------------")
             print ("Initializing fault {}".format(self.name))
         self.verbose = verbose
-
+        
         self.type = "Fault"
 
         # Specify the type of patch
@@ -990,6 +990,12 @@ class Fault(SourceInv):
         **********************
         '''
 
+        # If the data set is surfaceslip, that's where we build the GFs
+        if data.dtype == 'surfaceslip' and method not in ('empty'):
+            G = self.surfaceGFs(data, slipdir=slipdir)
+            data.setGFsInFault(self, G, vertical=vertical)
+            return
+
         # Chech something
         if self.patchType == 'triangletent':
             assert method == 'edks', 'Homogeneous case not implemented for {} faults'.format(self.patchType)
@@ -1025,6 +1031,7 @@ class Fault(SourceInv):
                 vertical = True
 
         # Compute the Green's functions
+        # G will be none if data type is not insar, gps, multigps, opticor or tsunami
         if method in ('okada', 'Okada', 'OKADA', 'ok92', 'meade', 'Meade', 'MEADE'):
             G = self.homogeneousGFs(data, vertical=vertical, slipdir=slipdir, verbose=verbose, convergence=convergence)
         elif method in ('edks', 'EDKS', 'pyedks', 'pythonedks'):
@@ -1032,12 +1039,138 @@ class Fault(SourceInv):
                 G = self.edksGFs(data, vertical=vertical, slipdir=slipdir, verbose=verbose, convergence=convergence, method='fortran')
             else:
                 G = self.edksGFs(data, vertical=vertical, slipdir=slipdir, verbose=verbose, convergence=convergence, method='python')
+        elif method in ('empty'):
+            G = self.emptyGFs(data, vertical=vertical, slipdir=slipdir, verbose=verbose)
 
         # Separate the Green's functions for each type of data set
         data.setGFsInFault(self, G, vertical=vertical)
 
         # All done
         return
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def surfaceGFs(self, data, slipdir='sd', verbose=True):
+        '''
+        Build the GFs for the surface slip case.
+        We assume the data are within the bounds of the fault.
+
+        Args:
+            * data      : surfaceslip data ojbect
+
+        Kwargs:
+            * slipdir   : any combinatino of s and d. default: 'sd'
+            * verbose   : Default True
+        '''
+
+        # Check
+        assert data.dtype == 'surfaceslip', 'Only works for surfaceslip data type: {}'.format(data.dtype)
+
+        # Number of parameters
+        if self.patchType == 'triangletent':
+            n = len(self.tent)
+        else:
+            raise NotImplementedError
+
+        # Initialize
+        Gss = None; Gds = None
+        if 's' in slipdir: Gss = np.zeros((len(data.vel), n))
+        if 'd' in slipdir: Gds = np.zeros((len(data.vel), n))
+
+        # Find points at the surface
+        if self.patchType == 'triangletent':
+            # get the index of the points
+            zeroD = np.flatnonzero(np.array([tent[2] for tent in self.tent])==0.)
+            if len(zeroD)==0: 
+                print('No surface patches.')
+                return None
+            # Get their positions
+            x = np.array([tent[0] for tent in self.tent])[zeroD]
+            y = np.array([tent[1] for tent in self.tent])[zeroD]
+            strike = self.getStrikes()[zeroD]
+            # Iterate over the data points
+            for i, (lon, lat) in enumerate(zip(data.lon, data.lat)):
+                xd,yd = self.ll2xy(lon, lat)
+                dis = np.sqrt((x-xd)**2 + (y-yd)**2)
+                i1,i2 = np.argsort(dis)[:2]
+                d1 = dis[i1]
+                d2 = dis[i2]
+                if 's' in slipdir:
+                    Gss[i,zeroD[i1]] = d1/(d1+d2); Gss[i,zeroD[i2]] = d2/(d1+d2)
+                if 'd' in slipdir:
+                    Gds[i,zeroD[i1]] = d1/(d1+d2); Gds[i,zeroD[i2]] = d2/(d1+d2)
+                if data.los is not None:
+                    los = data.los[i]
+                    if 's' in slipdir:
+                        v1 = np.array([-1.*np.sin(strike[i1]), np.cos(strike[i1]), 0])
+                        v2 = np.array([-1.*np.sin(strike[i2]), np.cos(strike[i2]), 0])
+                        Gss[i,zeroD[i1]] *= v1.dot(los)
+                        Gss[i,zeroD[i2]] *= v2.dot(los)
+                    if 'd' in slipdir:
+                        v1 = np.array([0., 0., 1.])
+                        v2 = np.array([0., 0., 1.])
+                        Gds[i,zeroD[i1]] *= v1.dot(los)
+                        Gds[i,zeroD[i2]] *= v2.dot(los)
+        else:
+            raise NotImplementedError
+
+        # Build the dictionnary
+        G = {'strikeslip':Gss, 'dipslip':Gds}
+
+        # All done
+        return G
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def emptyGFs(self, data, vertical=True, slipdir='sd', verbose=True):
+        ''' 
+        Build zero GFs.
+
+        Args:
+            * data          : Data object (gps, insar, optical, ...)
+
+        Kwargs:
+            * vertical      : If True, will produce green's functions for the vertical displacements in a gps object.
+            * slipdir       : Direction of slip along the patches. Can be any combination of s (strikeslip), d (dipslip), t (tensile) and c (coupling)
+            * verbose       : Writes stuff to the screen (overwrites self.verbose)
+
+        Returns:
+            * G             : Dictionnary of GFs
+        '''
+
+        # Create the dictionary
+        G = {'strikeslip':None, 'dipslip':None, 'tensile':None, 'coupling':None}
+
+        # Get shape
+        if self.patchType == 'triangletent':
+            nm = len(self.tent)
+        else:
+            nm = len(self.patch)
+
+        # Get shape
+        if data.dtype in ('insar', 'surfaceslip'):
+            nd = len(data.vel)
+        elif data.dtype in ('opticor'):
+            nd = data.vel.shape[0]*2
+        elif data.dtype in ('gps'):
+            nd = data.vel_enu.shape[0]
+            if vertical:
+                nd *= 3
+            else:
+                nd *= 2
+
+        # Build dictionnary
+        if 's' in slipdir:
+            G['strikeslip'] = np.zeros((nd,nm))
+        if 'd' in slipdir:
+            G['dipslip'] = np.zeros((nd,nm))
+        if 't' in slipdir:
+            G['tensile'] = np.zeros((nd,nm))
+        if 'c' in slipdir:
+            G['coupling'] = np.zeros((nd,nm))
+
+        # All done
+        return G
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -1062,6 +1195,9 @@ class Fault(SourceInv):
         Returns:
             * G             : Dictionary of the built Green's functions
         '''
+
+        if data.dtype not in ('insar', 'gps', 'opticor', 'tsunami', 'multigps'):
+            return None
 
         # Check that we are not in this case
         assert self.patchType != 'triangletent',\
@@ -1095,9 +1231,6 @@ class Fault(SourceInv):
             SLP.append(1.0)
         else:                           # Else
             SLP.append(0.0)
-
-        # Create the dictionary
-        G = {'strikeslip':[], 'dipslip':[], 'tensile':[], 'coupling':[]}
 
         # Create the matrices to hold the whole thing
         Gss = np.zeros((3, len(data.x), len(self.patch)))
@@ -1269,6 +1402,9 @@ class Fault(SourceInv):
         Returns:
             * G             : Dictionary of the built Green's functions
         '''
+
+        if data.dtype not in ('insar', 'gps', 'opticor', 'tsunami', 'multigps'):
+            return None
 
         # Print
         if verbose:
@@ -1596,7 +1732,7 @@ class Fault(SourceInv):
         '''
 
         # Get the number of data per point
-        if data.dtype == 'insar' or data.dtype == 'tsunami':
+        if data.dtype in ('insar', 'tsunami', 'surfaceslip'):
             data.obs_per_station = 1
         elif data.dtype in ('gps', 'multigps'):
             data.obs_per_station = 0
@@ -1627,6 +1763,8 @@ class Fault(SourceInv):
             elif data.dtype == 'tsunami':
                 self.d[data.name] = data.d
                 vertical = True
+            elif data.dtype == 'surfaceslip':
+                self.d[data.name] = data.vel
             elif data.dtype in ('gps', 'multigps'):
                 if vertical:
                     self.d[data.name] = data.vel_enu.T.flatten()

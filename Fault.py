@@ -1090,15 +1090,20 @@ class Fault(SourceInv):
             strike = self.getStrikes()[zeroD]
             # Iterate over the data points
             for i, (lon, lat) in enumerate(zip(data.lon, data.lat)):
+                # Get the two closest points
                 xd,yd = self.ll2xy(lon, lat)
                 dis = np.sqrt((x-xd)**2 + (y-yd)**2)
                 i1,i2 = np.argsort(dis)[:2]
                 d1 = dis[i1]
                 d2 = dis[i2]
-                if 's' in slipdir:
-                    Gss[i,zeroD[i1]] = d1/(d1+d2); Gss[i,zeroD[i2]] = d2/(d1+d2)
-                if 'd' in slipdir:
-                    Gds[i,zeroD[i1]] = d1/(d1+d2); Gds[i,zeroD[i2]] = d2/(d1+d2)
+                # Check that the data point is between the two fault points
+                v1 = np.array([xd-x[i1], yd-y[i1]]); v1 /= np.linalg.norm(v1)
+                v2 = np.array([xd-x[i2], yd-y[i2]]); v2 /= np.linalg.norm(v2)
+                if sum(np.abs((np.arctan2(v1[1],v1[0])*180/np.pi, np.arctan2(v2[1],v2[0])*180/np.pi))) > 90.: # If the point is between the two, then interpolate
+                    if 's' in slipdir:
+                        Gss[i,zeroD[i1]] = d2/(d1+d2); Gss[i,zeroD[i2]] = d1/(d1+d2)
+                    if 'd' in slipdir:
+                        Gds[i,zeroD[i1]] = d2/(d1+d2); Gds[i,zeroD[i2]] = d1/(d1+d2)
                 if data.los is not None:
                     los = data.los[i]
                     if 's' in slipdir:

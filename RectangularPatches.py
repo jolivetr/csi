@@ -2315,6 +2315,8 @@ class RectangularPatches(Fault):
                 lon = lon.flatten()
                 lat = lat.flatten()
             elif (box is not None):
+                if len(box)>4:
+                    npoints= box[4]
                 lon = np.linspace(box[0], box[1], npoints)
                 lat = np.linspace(box[2], box[3], npoints)
                 lon, lat = np.meshgrid(lon,lat)

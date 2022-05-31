@@ -17,6 +17,8 @@ import cartopy.io.shapereader as shpreader
 import shapely.geometry as sgeom
 from shapely.ops import unary_union
 from shapely.prepared import prep
+#import shapely.speedups
+#shapely.speedups.enable()
 
 # Personals
 from .SourceInv import SourceInv
@@ -1325,6 +1327,7 @@ class insar(SourceInv):
             # set the GFs
             fault.setGFs(self, strikeslip=[GssLOS], dipslip=[GdsLOS], tensile=[GtsLOS],
                         coupling=[GcpLOS], vertical=True)
+
         elif fault.type=="Pressure":
             try:
                 GpLOS = G['pressure']
@@ -1343,7 +1346,9 @@ class insar(SourceInv):
             except:
                 GdvzLOS = None
 
-            fault.setGFs(self, deltapressure=[GpLOS], GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], vertical=True)
+            fault.setGFs(self, deltapressure=[GpLOS], 
+                               GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], 
+                               vertical=True)
 
         # All done
         return
@@ -1729,23 +1734,18 @@ class insar(SourceInv):
                 G = fault.G[self.name]
                 if fault.source in {"Mogi", "Yang"}:
                     Gp = G['pressure']
-                    Sp = fault.deltapressure/fault.mu
-                    print("Scaling by pressure", fault.deltapressure )
-                    losdp_synth = Gp*Sp
+                    losdp_synth = Gp*fault.deltapressure
                     self.synth += losdp_synth
 
                 elif fault.source==("pCDM"):
                     Gdx = G['pressureDVx']
-                    Sxp = fault.DVx/fault.scale
-                    lossx_synth = np.dot(Gdx,Sxp)
+                    lossx_synth = np.dot(Gdx,fault.DVx)
                     self.synth += lossx_synth
                     Gdy = G['pressureDVy']
-                    Syp = fault.DVy/fault.scale
-                    lossy_synth = np.dot(Gdy, Syp)
+                    lossy_synth = np.dot(Gdy, fault.DVy)
                     self.synth += lossy_synth
                     Gdz = G['pressureDVz']
-                    Szp = fault.DVz/fault.scale
-                    lossz_synth = np.dot(Gdz, Szp)
+                    lossz_synth = np.dot(Gdz, fault.DVz)
                     self.synth += lossz_synth
 
                 elif fault.source==("CDM"):

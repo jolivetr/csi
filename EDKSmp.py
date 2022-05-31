@@ -11,6 +11,7 @@ import os
 import struct 
 import sys
 import numpy as np
+import copy
 import multiprocessing as mp
 
 # Scipy
@@ -101,7 +102,7 @@ class pointdropper(mp.Process):
     def __init__(self, fault, queue, charArea, istart, iend):
 
         # Save the fault
-        self.fault = fault
+        self.fault = copy.deepcopy(fault)
         self.charArea = charArea
         self.istart = istart
         self.iend = iend

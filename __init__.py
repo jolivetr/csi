@@ -50,6 +50,7 @@ from .tsunami import tsunami
 from .insartimeseries import insartimeseries
 from .gpstimeseries import gpstimeseries
 from .timeseries import timeseries
+from .surfaceslip import surfaceslip
 
 ## Green's functions
 from . import okadafull

@@ -118,7 +118,7 @@ class transformation(SourceInv):
         for data, transformation in zip(datas, transformations):
             
             # Check something
-            assert data.dtype in ('insar', 'gps', 'tsunami', 'multigps', 'opticorr'), \
+            assert data.dtype in ('insar', 'gps', 'tsunami', 'multigps', 'opticorr', 'surfaceslip'), \
                     'Unknown data type {}'.format(data.dtype)
 
             # Check the GFs
@@ -142,7 +142,7 @@ class transformation(SourceInv):
                 self.G[data.name][trans] = T
 
             # Set data in the GFs
-            if data.dtype == 'insar':
+            if data.dtype in ('insar', 'surfaceslip'):
                 self.d[data.name] = data.vel
             elif data.dtype == 'tsunami':
                 self.d[data.name] = data.d

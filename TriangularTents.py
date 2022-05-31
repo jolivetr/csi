@@ -197,6 +197,10 @@ class TriangularTents(TriangularPatches):
         # Delete the vertex and the patch, if needed
         self.deletevertex(tent, checkPatch=True, checkSlip=False)
 
+        # Rebuild architecture
+        self.buildAdjacencyMap(verbose=False)
+        self.vertices2tents()
+
         # All done
         return
     # ----------------------------------------------------------------------

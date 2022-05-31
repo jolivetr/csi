@@ -22,7 +22,7 @@ class Mogi(Pressure):
 
     # ----------------------------------------------------------------------
     # Initialize class
-    def __init__(self, name, x0=None, y0=None, z0=None, ax=None, ay=None, az=None, dip=None, strike=None, plunge=None, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
+    def __init__(self, name, x0=None, y0=None, z0=None, a=None, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
         '''
         Sub-class implementing Mogi pressure objects.
 
@@ -34,20 +34,20 @@ class Mogi(Pressure):
         Kwargs:
             * x0, y0       : Center of pressure source in lat/lon or utm
             * z0           : Depth
-            * ax, ay, az   : semi-axes of the Mogi source, should be equal.
-            * dip          : 0 for mogi
-            * strike       : 0 for mogi
-            * plunge       : 0 for mogi
+            * ax           : semi-axes of the Mogi source, should be equal.
             * ellps        : ellipsoid (optional, default='WGS84')
         '''
 
         # Base class init
-        super(Mogi,self).__init__(name, x0=x0, y0=y0, z0=z0, ax=ax, ay=ay, az=az, dip=dip, strike=strike, plunge=plunge, utmzone=utmzone, ellps=ellps, lon0=lon0, lat0=lat0, verbose=verbose)
+        super(Mogi,self).__init__(name, x0=x0, y0=y0, z0=z0, ax=a, ay=a, az=a, 
+                                        dip=0, strike=0, plunge=0,
+                                        utmzone=utmzone, ellps=ellps, 
+                                        lon0=lon0, lat0=lat0, verbose=verbose)
         self.source = "Mogi"
         self.deltapressure  = None  # Dimensionless pressure
         self.deltavolume = None
-        if None not in {x0, y0, z0, ax}:
-            self.createShape(x0, y0, z0, ax)
+        if None not in {x0, y0, z0, a}:
+            self.createShape(x0, y0, z0, a)
             print("Defining source parameters")
 
         return

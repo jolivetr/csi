@@ -629,6 +629,10 @@ class Pressure(SourceInv):
         # Compute the Green's functions
         if method in ('volume'):
             G = self.homogeneousGFs(data, vertical=vertical, verbose=verbose)
+        elif method in ('empty'):
+            G = self.emptyGFs(data, vertical=vertical, verbose=verbose)
+        else:
+            assert False, 'Not implemented: method must be volume'
 
         # Separate the Green's functions for each type of data set
         data.setGFsInFault(self, G, vertical=vertical)
@@ -681,9 +685,9 @@ class Pressure(SourceInv):
             dvx, dvy, dvz = self.pressure2dis(data, delta="volume", volume=VLM)
 
             # Store them
-            Gdvx[:,:] = dvx.T
-            Gdvy[:,:] = dvy.T
-            Gdvz[:,:] = dvz.T
+            Gdvx[:,:] = dvx.T/self.scale
+            Gdvy[:,:] = dvy.T/self.scale
+            Gdvz[:,:] = dvz.T/self.scale
 
             Gdp = [Gdvx, Gdvy, Gdvz]
 
@@ -692,17 +696,57 @@ class Pressure(SourceInv):
             G = {'pressure':[]}
 
             # Create the matrices to hold the whole thing
-            Gdp = np.zeros((3, len(data.x)))
+            Gdp = np.zeros((3, len(data.x), 1))
 
             dp = self.pressure2dis(data, delta="volume", volume=VLM)
             # Store them
-            Gdp[:,:] = dp.T
+            Gdp[:,:,0] = dp.T/self.mu
 
         # Build the dictionary
         G = self._buildGFsdict(data, Gdp, vertical=vertical)
         if verbose:
             print(' ')
 
+
+        # All done
+        return G
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def emptyGFs(self, data, vertical=True, slipdir='sd', verbose=True):
+        ''' 
+        Build zero GFs.
+
+        Args:
+            * data          : Data object (gps, insar, optical, ...)
+
+        Kwargs:
+            * vertical      : If True, will produce green's functions for the vertical displacements in a gps object.
+            * slipdir       : Direction of slip along the patches. Can be any combination of s (strikeslip), d (dipslip), t (tensile) and c (coupling)
+            * verbose       : Writes stuff to the screen (overwrites self.verbose)
+
+        Returns:
+            * G             : Dictionnary of GFs
+        '''
+
+        if self.source == "pCDM":
+
+            raise NotImplementedError
+
+        else:
+
+            # Create the matrices to hold the whole thing
+            if data.dtype in ('insar', 'surfaceslip'):
+                x = len(data.vel)
+            elif data.dtype in ('opticor'):
+                x = data.vel.shape[0] * 2
+            elif data.dtype in ('gps'):
+                if vertical:
+                    x = data.vel_enu.shape[0]*3
+                else:
+                    x = data.vel_enu.shape[0]*2
+        
+            G = {'pressure': np.zeros((x,1))}
 
         # All done
         return G
@@ -737,7 +781,7 @@ class Pressure(SourceInv):
         '''
 
         # Get the number of data per point
-        if data.dtype == 'insar' or data.dtype == 'tsunami':
+        if data.dtype in ('insar', 'tsunami', 'surfaceslip'):
             data.obs_per_station = 1
         elif data.dtype in ('gps', 'multigps'):
             data.obs_per_station = 0
@@ -762,7 +806,7 @@ class Pressure(SourceInv):
 
         # Initializes the data vector
         if not synthetic:
-            if data.dtype == 'insar':
+            if data.dtype in ('insar', 'surfaceslip'):
                 self.d[data.name] = data.vel
                 vertical = True # Always true for InSAR
             elif data.dtype == 'tsunami':
@@ -1118,14 +1162,13 @@ class Pressure(SourceInv):
             # Fill Glocal --- difference between Glocal and big G?
             ec = 0
 
-            # for sp in sliplist:
-            #Nclocal = self.G[data.name]['pressure'].shape[0]
             if self.source == "pCDM":
-                Glocal[:,0] = self.G[data.name]['pressureDVx'] #???
-                Glocal[:,1] = self.G[data.name]['pressureDVy'] #???
-                Glocal[:,2] = self.G[data.name]['pressureDVz'] #???
+                Glocal[:,0] = self.G[data.name]['pressureDVx'].squeeze() #???
+                Glocal[:,1] = self.G[data.name]['pressureDVy'].squeeze() #???
+                Glocal[:,2] = self.G[data.name]['pressureDVz'].squeeze() #???
             else:
-                Glocal[:,0] = self.G[data.name]['pressure'] #???
+                print(Glocal.shape, self.G[data.name]['pressure'].shape)
+                Glocal[:,0] = self.G[data.name]['pressure'].squeeze() #???
 
             #ec += Nclocal
 
@@ -1222,7 +1265,7 @@ class Pressure(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def builddummyCm(self, extra_params=None, user_Cm=None, verbose=True):
+    def buildCm(self, sigma, extra_params=None, user_Cm=None, verbose=True):
         '''
         Builds a dummy model covariance matrix using user-defined value.
 
@@ -1241,7 +1284,7 @@ class Pressure(SourceInv):
         if verbose:
             print ("---------------------------------")
             print ("---------------------------------")
-            print ("Assembling the dummy Cm matrix ")
+            print ("Assembling the Cm matrix ")
 
 
         # Creates the principal Cm matrix
@@ -1251,7 +1294,12 @@ class Pressure(SourceInv):
             Nps = 1
         if extra_params is not None:
             Npe = len(extra_params)
+        else:
+            Npe = 0
+
+        # Check
         Cm = np.eye(Nps+Npe, Nps+Npe)
+        Cm[:Nps,:Nps] *= sigma
 
         # Put the extra values
         st = 0
@@ -1265,13 +1313,12 @@ class Pressure(SourceInv):
 
         # Store Cm into self
         self.Cm = Cm
-        print(Cm)
+
         # All done
         return
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-
     def _buildGFsdict(self, data, Gdp, vertical=True):
         '''
         Some ordering of the Gfs to make the computation routines simpler.
@@ -1292,8 +1339,10 @@ class Pressure(SourceInv):
         if not vertical:
             Ncomp = 2
             Gdp = Gdp[:2,:,:]
-            Nparm = Gdp.shape[2]
-            Npoints = Gdp.shape[1]
+        
+        # Size 
+        Nparm = Gdp.shape[2]
+        Npoints = Gdp.shape[1]
 
         # Get some size info
         if self.source == "pCDM":

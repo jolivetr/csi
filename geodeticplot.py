@@ -1528,7 +1528,7 @@ class geodeticplot(object):
             * cblabel       : Write something next to the colorbar.
             * data      : plot either 'data' or 'synth' or 'res' or 'err'.
             * plotType  : Can be 'decimate' or 'scatter'
-            * los       : [lon, lat, length, fontsize (default=16), mutation_scale (default=90)] 
+            * los       : [lon, lat, length, fontsize (default=16), mutation_scale (default=90), 'flip'] 
             * decim     : In case plotType='scatter', decimates the data by a factor decim.
             * edgewidth : width of the patches in case plotTtype is decimate
             * zorder    : order of the plot in matplotlib
@@ -1662,6 +1662,7 @@ class geodeticplot(object):
             xt = x1-loslength*dx/2.5
             yt = y1-loslength*dy/2.5
             angle = np.arctan2(dy,dx)*180./np.pi + 180.
+            if los[5] == 'flip': angle+=180.
             lon1,lat1 = insar.xy2ll(x1,y1)
             lon2,lat2 = insar.xy2ll(x2,y2)
             lont,latt = insar.xy2ll(xt,yt)

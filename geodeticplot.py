@@ -669,7 +669,7 @@ class geodeticplot(object):
 
     def faultpatches(self, fault, slip='strikeslip', norm=None, colorbar=True,
                      cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
-                     plot_on_2d=False, revmap=False, linewidth=1.0, cmap='jet',
+                     plot_on_2d=False, revmap=False, linewidth=1.0, cmap='jet', offset=None,
                      alpha=1.0, factor=1.0, zorder=3, edgecolor='slip', colorscale='normal'):
         '''
         Plot the fualt patches
@@ -721,6 +721,10 @@ class geodeticplot(object):
             vmin=norm[0]
             vmax=norm[1]
 
+        # Potential offset of the fault wrt. its true position 
+        if offset is None:
+            offset = [0., 0., 0.]
+
         # set z axis
         try:
             self.setzaxis(fault.depth+5., zticklabels=fault.z_patches)
@@ -746,9 +750,9 @@ class geodeticplot(object):
             y = []
             z = []
             for i in range(ncorners):
-                x.append(fault.patchll[p][i][0])
-                y.append(fault.patchll[p][i][1])
-                z.append(-1.0*fault.patchll[p][i][2])
+                x.append(fault.patchll[p][i][0]+offset[0])
+                y.append(fault.patchll[p][i][1]+offset[1])
+                z.append(-1.0*fault.patchll[p][i][2]+offset[2])
             verts = []
             for xi,yi,zi in zip(x,y,z):
                 #if xi<0.: xi += 360.
@@ -774,8 +778,8 @@ class geodeticplot(object):
                 x = []
                 y = []
                 for i in range(ncorners):
-                    x.append(patch[i][0])
-                    y.append(patch[i][1])
+                    x.append(patch[i][0]+offset[0])
+                    y.append(patch[i][1]+offset[1])
                 verts = []
                 for xi,yi in zip(x,y):
                     #if xi<0.: xi += 360.
@@ -1508,7 +1512,7 @@ class geodeticplot(object):
 
     def insar(self, insar, norm=None, colorbar=True, markersize=1,
                     cbaxis=[0.2,0.2,0.1,0.01], cborientation='horizontal', cblabel='',
-                    data='data', plotType='scatter', cmap='jet',
+                    data='data', plotType='scatter', cmap='jet', los=None,
                     decim=1, zorder=3, edgewidth=1, alpha=1.):
         '''
         Plot an insar object
@@ -1524,6 +1528,7 @@ class geodeticplot(object):
             * cblabel       : Write something next to the colorbar.
             * data      : plot either 'data' or 'synth' or 'res' or 'err'.
             * plotType  : Can be 'decimate' or 'scatter'
+            * los       : [lon, lat, length, fontsize (default=16), mutation_scale (default=90)] 
             * decim     : In case plotType='scatter', decimates the data by a factor decim.
             * edgewidth : width of the patches in case plotTtype is decimate
             * zorder    : order of the plot in matplotlib
@@ -1635,6 +1640,40 @@ class geodeticplot(object):
         # plot colorbar
         if colorbar:
             self.addColorbar(d, scalarMap, cbaxis, cborientation, self.figCarte, cblabel=cblabel) 
+
+        # Plot LOS
+        if los is not None:
+            lonl = los[0]
+            latl = los[1]
+            loslength= los[2]
+            if los[3] is not None:
+                fontsize = los[3]
+            else:
+                fontsize = 16
+            if los[4] is not None:
+                mutscale = los[4]
+            else:
+                mutscale = 90.
+            x1,y1 = insar.ll2xy(lonl,latl)
+            dx = np.nanmean(insar.los[:,0])
+            dy = np.nanmean(insar.los[:,1])
+            x2 = x1-loslength*dx
+            y2 = y1-loslength*dy
+            xt = x1-loslength*dx/2.5
+            yt = y1-loslength*dy/2.5
+            angle = np.arctan2(dy,dx)*180./np.pi + 180.
+            lon1,lat1 = insar.xy2ll(x1,y1)
+            lon2,lat2 = insar.xy2ll(x2,y2)
+            lont,latt = insar.xy2ll(xt,yt)
+            self.carte.annotate("LOS", xy=(lont, latt),
+                                fontweight='bold', rotation=angle, fontsize=fontsize, 
+                                ha='center', va='center',
+                                zorder=11)
+            self.carte.annotate("", xy=(lon2, lat2), xytext=(lon1, lat1), 
+                                arrowprops=dict(arrowstyle="simple", mutation_scale=mutscale, 
+                                                     facecolor='white', edgecolor='k'),
+                                zorder=10)
+
 
         # All done
         return

@@ -45,7 +45,8 @@ class faultpostproc(SourceInv):
 
         # Initialize the data set 
         self.name = name
-        self.fault = copy.deepcopy(fault) # we don't want to modify original fault slip
+# no longer works        self.fault = copy.deepcopy(fault) # we don't want to modify original fault slip
+        self.fault = fault
         self.patchDepths = None
         self.MTs = None
 
@@ -561,7 +562,8 @@ class faultpostproc(SourceInv):
         inds   = np.argsort(V)
         S      = S[:,inds]
         S[:,2] = np.cross(S[:,0],S[:,1])
-        V1 = copy.deepcopy(S)
+# no longer works        V1 = copy.deepcopy(S)
+        V1 = S
 
         # Angles
         angles = []
@@ -573,13 +575,15 @@ class faultpostproc(SourceInv):
             inds   = np.argsort(V)                        
             S      = S[:,inds]         
             S[:,2] = np.cross(S[:,0],S[:,1])
-            V2 = copy.deepcopy(S)
+#            V2 = copy.deepcopy(S)
+            V2 = S
             # Calculate theta
             th = np.arccos((np.trace(np.dot(V1,V2.transpose()))-1.)/2.)
             # find the good value
             for j in range(3):
                 k       = (j+1)%3
-                V3      = copy.deepcopy(V2)
+#                V3      = copy.deepcopy(V2)
+                V3 = V2
                 V3[:,j] = -V3[:,j]
                 V3[:,k] = -V3[:,k]
                 x       = np.arccos((np.trace(np.dot(V1,V3.transpose()))-1.)/2.) 

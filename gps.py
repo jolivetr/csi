@@ -3647,7 +3647,7 @@ class gps(SourceInv):
         return
 
     def plot(self, faults=None, figure=135, name=False, legendscale=10., scale=None, figsize=None,
-            plot_los=False, drawCoastlines=True, expand=0.2, show=True,
+            plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True,
             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
             landcolor='lightgrey', seacolor=None, shadedtopo=None,
             vertical=False, verticalsize=[30], box=None,
@@ -3725,7 +3725,7 @@ class gps(SourceInv):
             fig.gpsverticals(self, colorbar=True, data=data, markersize=verticalsize, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, alpha=alpha)
 
         # Plot GPS velocities
-        fig.gps(self, data=data, name=name, 
+        fig.gps(self, data=data, name=name, error=error,
                       legendscale=legendscale, scale=scale, 
                       color=color, alpha=alpha)
 

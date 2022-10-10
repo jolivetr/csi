@@ -714,24 +714,24 @@ class multifaultsolve(object):
                 st = 0
                 if fault.source in {"Mogi", "Yang"}:
                     se = st + 1
-                    fault.deltapressure = np.asscalar(fault.mpost[st:se])
+                    fault.deltapressure = fault.mpost[st:se].item()
                     st += 1
                 elif fault.source=="pCDM":
                     se = st + 1
-                    fault.DVx = np.asscalar(fault.mpost[st:se])
+                    fault.DVx = fault.mpost[st:se].item()
                     st += 1
                     se = st + 1
-                    fault.DVy = np.asscalar(fault.mpost[st:se])
+                    fault.DVy = fault.mpost[st:se].item()
                     st += 1
                     se = st + 1
-                    fault.DVz = np.asscalar(fault.mpost[st:se])
+                    fault.DVz = fault.mpost[st:se].item()
                     st += 1
 
                     if fault.DVtot is None:
                         fault.computeTotalpotency()
                 elif fault.source=="CDM":
                     se = st + 1
-                    fault.deltaopening = np.asscalar(fault.mpost[st:se])
+                    fault.deltaopening = fault.mpost[st:se].item()
                     st += 1
 
             # Get the polynomial/orbital/helmert values if they exist

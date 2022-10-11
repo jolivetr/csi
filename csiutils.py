@@ -26,6 +26,34 @@ months = {'JAN': 1,
 #----------------------------------------------------------------
 # A routine to write netcdf files
 
+def lonlatMapping(lon, lat, z, increments=None, nSamples=None, dryRun=False, noValues=np.nan):
+    '''
+    Maps z onto a regular lon lat grid.
+    '''
+
+    # Check
+    if nSamples is not None:
+        if type(nSamples) is int:
+            nSamples = [nSamples, nSamples]
+        dlon = (lon.max()-lon.min())/nSamples[0]
+        dlat = (lat.max()-lat.min())/nSamples[1]
+    if increments is not None:
+        dlon, dlat = increments
+
+    # Resample on a regular grid
+    olon, olat = np.meshgrid(np.arange(lon.min(), lon.max(), dlon),
+                             np.arange(lat.min(), lat.max(), dlat))
+
+    # Interpolate
+    if dryRun:
+        oZ = None
+    else:
+        interpZ = sciint.LinearNDInterpolator(np.vstack((lon, lat)).T, z, fill_value=noValues)
+        oZ = interpZ(olon, olat)
+
+    # All done
+    return olon, olat, oZ
+
 def write2netCDF(filename, lon, lat, z, increments=None, nSamples=None, 
         title='CSI product', name='z', scale=1.0, offset=0.0, mask=None,
         xyunits=['Lon', 'Lat'], units='None', interpolation=True, verbose=True, 
@@ -57,28 +85,16 @@ def write2netCDF(filename, lon, lat, z, increments=None, nSamples=None,
     '''
 
     if interpolation:
-
-        # Check
-        if nSamples is not None:
-            if type(nSamples) is int:
-                nSamples = [nSamples, nSamples]
-            dlon = (lon.max()-lon.min())/nSamples[0]
-            dlat = (lat.max()-lat.min())/nSamples[1]
-        if increments is not None:
-            dlon, dlat = increments
-
-        # Resample on a regular grid
-        olon, olat = np.meshgrid(np.arange(lon.min(), lon.max(), dlon),
-                                 np.arange(lat.min(), lat.max(), dlat))
+        olon, olat, oZ = lonlatMapping(lon, lat, z, increments=increments, nSamples=nSamples)
     else:
-        # Get lon lat
+        oZ = z
         olon = lon
         olat = lat
-        if increments is not None:
-            dlon, dlat = increments
-        else:
-            dlon = olon[0,1]-olon[0,0]
-            dlat = olat[1,0]-olat[0,0]
+    if increments is not None:
+        dlon, dlat = increments
+    else:
+        dlon = olon[0,1]-olon[0,0]
+        dlat = olat[1,0]-olat[0,0]
 
     # Create a file
     fid = netcdf(filename,'w')
@@ -118,14 +134,6 @@ def write2netCDF(filename, lon, lat, z, increments=None, nSamples=None,
     fid.variables['y_range'][1] = olat[-1,0]
     fid.variables['spacing'][1] = dlat
     
-    if interpolation:
-        # Interpolate
-        interpZ = sciint.LinearNDInterpolator(np.vstack((lon, lat)).T, z, fill_value=noValues)
-        oZ = interpZ(olon, olat)
-    else:
-        # Get values
-        oZ = z
-
     # Masking?
     if mask is not None:
         

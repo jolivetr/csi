@@ -197,6 +197,10 @@ class TriangularTents(TriangularPatches):
         # Delete the vertex and the patch, if needed
         self.deletevertex(tent, checkPatch=True, checkSlip=False)
 
+        # Rebuild architecture
+        self.buildAdjacencyMap(verbose=False)
+        self.vertices2tents()
+
         # All done
         return
     # ----------------------------------------------------------------------
@@ -462,8 +466,14 @@ class TriangularTents(TriangularPatches):
         # Assert
         assert not ( (increments is None) and (nSamples is None) ), 'Specify increments or nSamples...'
 
+        # Lon lat limits
+        lonmin = np.min([t[0] for t in self.tentll])
+        lonmax = np.max([t[0] for t in self.tentll])
+        latmin = np.min([t[1] for t in self.tentll])
+        latmax = np.max([t[1] for t in self.tentll])
+
         # Get the sources
-        gp = geoplot(figure=None)
+        gp = geoplot(figure=None, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax)
         lon, lat, z, s = gp.faultTents(self, slip=slip, method='scatter',
                                             npoints=npoints)
         gp.close()
@@ -527,17 +537,17 @@ class TriangularTents(TriangularPatches):
 
             # Select the string for the color
             if add_slip is not None:
-                if add_slip is 'strikeslip':
+                if add_slip=='strikeslip':
                     if stdh5 is not None:
                         slp = np.std(samples[:,tIndex])
                     else:
                         slp = self.slip[tIndex,0]*scale
-                elif add_slip is 'dipslip':
+                elif add_slip=='dipslip':
                     if stdh5 is not None:
                         slp = np.std(samples[:,tIndex+nPatches])
                     else:
                         slp = self.slip[tIndex,1]*scale
-                elif add_slip is 'total':
+                elif add_slip=='total':
                     if stdh5 is not None:
                         slp = np.std(samples[:,tIndex]**2 + samples[:,tIndex+nPatches]**2)
                     else:
@@ -584,13 +594,13 @@ class TriangularTents(TriangularPatches):
         if values is not None:
             # string type
             if type(values) is str:
-                if values is 'depth':
+                if values=='depth':
                     values = np.array([self.getTentInfo(t)[2] for t in self.tent])
-                elif values is 'strike':
+                elif values=='strike':
                     values = np.array([self.getTentInfo(t)[3] for t in self.tent])
-                elif values is 'dip':
+                elif values=='dip':
                     values = np.array([self.getTentInfo(t)[4] for t in self.tent])
-                elif values is 'index':
+                elif values=='index':
                     values = np.array([np.float(self.getTentindex(t)) for t in self.tent])
                 self.slip[:,0] = values
             # Numpy array 
@@ -626,7 +636,7 @@ class TriangularTents(TriangularPatches):
         '''
 
         # Assert 
-        assert distance is 'center', 'No other method implemented than center'
+        assert distance=='center', 'No other method implemented than center'
 
         # Check
         if self.N_slip==None:
@@ -644,6 +654,49 @@ class TriangularTents(TriangularPatches):
 
         # All done
         return Distances
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def distancesMatrix(self, distance='center', lim=None):
+        '''
+        Returns two matrices of the distances between Nodes.
+        One along horizontal dimensions, the other along the vertical axis
+
+        Kwargs:
+            * distance  : distance estimation mode
+
+                 - center : distance between the centers of the patches.
+                 - no other method is implemented for now.
+
+            * lim       : if not None, list of two float, the first one is the distance above which d=lim[1].
+
+        Returns:
+            * distance  : 2d array
+        '''
+
+        # Assert 
+        assert distance=='center', 'No other method implemented than center'
+
+        # Check
+        if self.N_slip==None:
+            self.N_slip = self.slip.shape[0]
+
+        # Loop
+        HDistances = np.zeros((self.N_slip, self.N_slip))
+        VDistances = np.zeros((self.N_slip, self.N_slip))
+        for i in range(self.N_slip):
+            v1 = self.Vertices[i]
+            for j in range(self.N_slip):
+                if j == i:
+                    continue
+                v2 = self.Vertices[j]
+                HDistances[i,j] = np.sqrt( (v1[0]-v2[0])**2 + (v1[1]-v2[1])**2 )
+                HDistances[j,i] = HDistances[i,j]
+                VDistances[i,j] = np.sqrt( (v1[2]-v2[2])**2 )
+                VDistances[j,i] = VDistances[i,j]
+
+        # All done
+        return HDistances,VDistances
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -1203,7 +1256,7 @@ class TriangularTents(TriangularPatches):
                     ez = -1.0 * ez
 
                 # Conversion to geographical coordinates
-                lone,late = self.putm(ex*1000.,ey*1000.,inverse=True)
+                lone,late = self.xy2ll(ex,ey)
 
                 # Write the > sign to the file
                 fout.write('> \n')
@@ -1308,40 +1361,11 @@ class TriangularTents(TriangularPatches):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def cumdistance(self, discretized=False):
-        '''
-        Computes the distance between the first point of the fault and every other
-        point, when you walk along the fault.
-
-        Kwargs:
-            * discretized           : if True, use the discretized fault trace
-        '''
-
-        # Get the x and y positions
-        if discretized:
-            x = self.xi
-            y = self.yi
-        else:
-            x = self.xf
-            y = self.yf
-
-        # initialize
-        dis = np.zeros((x.shape[0]))
-
-        # Loop
-        for i in np.arange(1,x.shape[0]):
-            d = np.sqrt((x[i]-x[i-1])**2 + (y[i]-y[i-1])**2)
-            dis[i] = dis[i-1] + d
-
-        # all done
-        return dis
-    # ----------------------------------------------------------------------
-
-    # ----------------------------------------------------------------------
-    def plot(self, figure=134, slip='total', equiv=False, 
+    def plot(self, figure=134, slip='total', equiv=False, figsize=(None, None),
              show=True, axesscaling=True, norm=None, linewidth=1.0, plot_on_2d=True, 
-             method='scatter', npoints=10, colorbar=True, cmap='jet',
-             drawCoastlines=True, expand=0.2, vertIndex=False):
+             method='scatter', npoints=10, cmap='jet',
+             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
+             drawCoastlines=False, expand=0.2, vertIndex=False, savefig=False):
         '''
         Plot the available elements of the fault.
         
@@ -1375,16 +1399,22 @@ class TriangularTents(TriangularPatches):
         latmax = np.max([p[:,1] for p in self.patchll])+expand
 
         # Create a figure
-        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax)
+        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize)
 
         # Draw the coastlines
         if drawCoastlines:
-            fig.drawCoastlines(drawLand=False, parallels=5, meridians=5, drawOnFault=True)
+            fig.drawCoastlines(parallels=None, meridians=None, drawOnFault=True)
 
         # Draw the fault
-        x, y, z, slip = fig.faultTents(self, slip=slip, norm=norm, colorbar=colorbar, 
+        x, y, z, slipval = fig.faultTents(self, slip=slip, norm=norm, colorbar=colorbar, 
+                cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
                 plot_on_2d=plot_on_2d, npoints=npoints, cmap=cmap,
                 method=method, vertIndex=vertIndex)
+
+        # Savefigs?
+        if savefig:
+            prefix = self.name.replace(' ','_')
+            fig.savefig('{}_{}_meanslip{}'.format(prefix,slip,round(np.nanmean(slipval),3)), ftype='eps')
 
         # show
         if show:
@@ -1392,6 +1422,9 @@ class TriangularTents(TriangularPatches):
             if plot_on_2d:
                 showFig.append('map')
             fig.show(showFig=showFig)
+
+        # Keep that in mind
+        self.fig = fig
 
         # All done
         return x, y, z, slip
@@ -1447,7 +1480,7 @@ class TriangularTents(TriangularPatches):
         # Get Vertices
         vertices = self.Vertices
 
-        if method is 'scipy':
+        if method=='scipy':
             
             # create the interpolator
             try:
@@ -1462,7 +1495,7 @@ class TriangularTents(TriangularPatches):
             # Interpolate
             Slip = self.slipInter(X, Y, Z)
         
-        elif method is 'manual':
+        elif method=='manual':
 
             # Compute the slip value at each subpoint
             for iPatch in range(len(self.patch)):

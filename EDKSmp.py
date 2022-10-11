@@ -11,6 +11,7 @@ import os
 import struct 
 import sys
 import numpy as np
+import copy
 import multiprocessing as mp
 
 # Scipy
@@ -101,7 +102,7 @@ class pointdropper(mp.Process):
     def __init__(self, fault, queue, charArea, istart, iend):
 
         # Save the fault
-        self.fault = fault
+        self.fault = copy.deepcopy(fault)
         self.charArea = charArea
         self.istart = istart
         self.iend = iend
@@ -311,21 +312,7 @@ def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
 
     # All done
     if returnSplittedPatches:
-        from .TriangularPatches import TriangularPatches as trianglePatches
-        splitFault = trianglePatches('Splitted {}'.format(fault.name), 
-                                     utmzone=fault.utmzone, 
-                                     lon0=fault.lon0,
-                                     lat0=fault.lat0,
-                                     ellps=fault.ellps,
-                                     verbose=verbose)
-        # set up patches
-        splitFault.patch = [np.array(p) for p in allSplitted]
-        splitFault.patch2ll()
-        # Patches 2 vertices
-        splitFault.setVerticesFromPatches()
-        # Depth
-        splitFault.setdepth()
-        return Ids, Xs, Ys, Zs, Strikes, Dips, Areas, splitFault
+        return Ids, Xs, Ys, Zs, Strikes, Dips, Areas, allSplitted
     else:
         return Ids, Xs, Ys, Zs, Strikes, Dips, Areas
 # ----------------------------------------------------------------------
@@ -446,13 +433,13 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
      
     # read sum_layered output Greens function
     # ux
-    ux = np.fromfile(file_dux, 'f').reshape((nrec, Np), order='FORTRAN')
+    ux = np.fromfile(file_dux, 'f').reshape((nrec, Np), order='F')
 
     # uy
-    uy = np.fromfile(file_duy, 'f').reshape((nrec, Np), order='FORTRAN')
+    uy = np.fromfile(file_duy, 'f').reshape((nrec, Np), order='F')
  
     # uz
-    uz = np.fromfile(file_duz, 'f').reshape((nrec, Np), order='FORTRAN')
+    uz = np.fromfile(file_duz, 'f').reshape((nrec, Np), order='F')
  
     # remove IO files.
     if cleanUp:

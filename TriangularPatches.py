@@ -44,6 +44,9 @@ class TriangularPatches(Fault):
         # Specify the type of patch
         self.patchType = 'triangle'
 
+        # The case of vertical faults with triangular patches is tricky, so we leave this option here
+        self.vertical = False
+
         # All done
         return
     # ----------------------------------------------------------------------
@@ -365,6 +368,56 @@ class TriangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
+    def setMu(self,model_file):
+        '''
+        Set shear modulus values for seismic moment calculation
+        from an edks model_file
+
+        Args:
+            * model_file: EDKS .model file
+
+        Returns:
+            * None
+        '''
+
+        # Read model file
+        mu = []
+        depth  = 0.
+        depths = []
+        with open(model_file) as f:
+            l1 = f.readline()
+            items = l1.strip().split()
+            assert len(items)==2, 'Incorrect first line format in %s'%(model_file)
+            nd = int(items[0])
+            fc = float(items[1])
+            for l in f:
+                items = l.strip().split()
+                assert len(items)==4, 'Incorrect line format in %s'%(model_file)
+                RHO = float(items[0])*fc
+                VP  = float(items[1])*fc
+                VS  = float(items[2])*fc
+                H   = float(items[3])
+                mu.append(VS*VS*RHO)
+                if H==0.:
+                    H = np.inf
+                depths.append([depth,depth+H])
+                depth += H
+        Nd = len(depths)
+        assert Nd==nd, 'Incorrect number of layes in %s (%d vs %d)'%(model_file,Nd,nd)
+        Np = len(self.patch)        
+        # Set Mu for each patch
+        self.mu = np.zeros((Np,))
+        for p in range(Np):
+            p_x, p_y, p_z, width, length, strike_rad, dip_rad = self.getpatchgeometry(p,center=True)
+            for d in range(Nd):
+                if p_z>=depths[d][0] and p_z<depths[d][1]:
+                    self.mu[p] = mu[d]
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
     def readPatchesFromFile(self, filename, readpatchindex=True, 
                             donotreadslip=False, gmtslip=True,
                             inputCoordinates='lonlat'):
@@ -414,7 +467,7 @@ class TriangularPatches(Fault):
         while i<len(A):
             
             # Assert it works
-            assert A[i].split()[0] is '>', 'Not a patch, reformat your file...'
+            assert A[i].split()[0]=='>', 'Not a patch, reformat your file...'
             # Get the Patch Id
             if readpatchindex:
                 self.index_parameter.append([np.int(A[i].split()[ipatch]),np.int(A[i].split()[ipatch+1]),np.int(A[i].split()[ipatch+2])])
@@ -593,6 +646,8 @@ class TriangularPatches(Fault):
             self.top   = np.min(vz)
             self.depth = np.max(vz)
         self.z_patches = np.linspace(self.depth, 0.0, 5)
+        
+        self.initializeslip()
 
         # All done
         return
@@ -707,28 +762,28 @@ class TriangularPatches(Fault):
             # Select the string for the color
             string = '  '
             if add_slip is not None:
-                if add_slip is 'coupling':
+                if add_slip=='coupling':
                     slp = self.coupling[pIndex]
                     string = '-Z{}'.format(slp)
-                if add_slip is 'strikeslip':
+                if add_slip=='strikeslip':
                     if stdh5 is not None:
                         slp = np.std(samples[:,pIndex])
                     else:
                         slp = self.slip[pIndex,0]*scale
                     string = '-Z{}'.format(slp)
-                elif add_slip is 'dipslip':
+                elif add_slip=='dipslip':
                     if stdh5 is not None:
                         slp = np.std(samples[:,pIndex+nPatches])
                     else:
                         slp = self.slip[pIndex,1]*scale
                     string = '-Z{}'.format(slp)
-                elif add_slip is 'tensile':
+                elif add_slip=='tensile':
                     if stdh5 is not None:
                         slp = np.std(samples[:,pIndex+2*nPatches])
                     else:
                         slp = self.slip[pIndex,2]*scale
                     string = '-Z{}'.format(slp)
-                elif add_slip is 'total':
+                elif add_slip=='total':
                     if stdh5 is not None:
                         slp = np.std(samples[:,pIndex]**2 + samples[:,pIndex+nPatches]**2)
                     else:
@@ -759,9 +814,15 @@ class TriangularPatches(Fault):
 
             # Write the 3 patch corners (the order is to be GMT friendly)
             p = self.patchll[pIndex]
-            pp = p[0]; fout.write('{} {} {} \n'.format(pp[0], pp[1], pp[2]))
-            pp = p[1]; fout.write('{} {} {} \n'.format(pp[0], pp[1], pp[2]))
-            pp = p[2]; fout.write('{} {} {} \n'.format(pp[0], pp[1], pp[2]))
+            pp = p[0]; fout.write('{} {} {} \n'.format(np.round(pp[0], decimals=4), 
+                                                       np.round(pp[1], decimals=4), 
+                                                       np.round(pp[2], decimals=4)))
+            pp = p[1]; fout.write('{} {} {} \n'.format(np.round(pp[0], decimals=4), 
+                                                       np.round(pp[1], decimals=4), 
+                                                       np.round(pp[2], decimals=4)))
+            pp = p[2]; fout.write('{} {} {} \n'.format(np.round(pp[0], decimals=4), 
+                                                       np.round(pp[1], decimals=4), 
+                                                       np.round(pp[2], decimals=4)))
 
         # Close the file
         fout.close()
@@ -797,7 +858,7 @@ class TriangularPatches(Fault):
         '''
 
         # Copmute the slip direction
-        self.computeSlipDirection(scale=scale, factor=factor, ellipse=ellipse,nsigma=nsigma)
+        self.computeSlipDirection(scale=scale, factor=factor, ellipse=ellipse,nsigma=nsigma, neg_depth=neg_depth)
 
         # Write something
         print('Writing slip direction to file {}'.format(filename))
@@ -843,7 +904,7 @@ class TriangularPatches(Fault):
                     ez = -1.0 * ez
 
                 # Conversion to geographical coordinates
-                lone,late = self.putm(ex*1000.,ey*1000.,inverse=True)
+                lone,late = self.xy2ll(ex,ey)
 
                 # Write the > sign to the file
                 fout.write('> \n')
@@ -852,6 +913,67 @@ class TriangularPatches(Fault):
                     fout.write('{} {} {} \n'.format(lon, lat, -1.*z))
             # Close file
             fout.close()
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def writeSlipCenter2File(self, filename, add_slip=None, scale=1.0, neg_depth=False):
+                                
+        '''
+        Write a psxyz, surface or greenspline compatible file with the center 
+        of each patch and magnitude slip. Scale can be a real 
+        number or a string in 'total', 'strikeslip', 'dipslip' or 'tensile'
+
+        Args:
+            * filename      : Name of the output file
+
+        Kwargs:
+            * add_slip      : Put the slip as a value at the center 
+                              Can be None, strikeslip, dipslip, total, coupling
+            * scale         : Multiply the slip value by a factor.
+            * neg_depth     : if True, depth is a negative nmber
+ 
+        Returns:
+            * None
+        '''
+
+        # Write something
+        print('Writing slip at patch centers to file {}'.format(filename))
+
+        # Open the file
+        fout = open(filename, 'w')
+
+        # Loop over the patches
+        if self.N_slip == None:
+            self.N_slip = len(self.patch)
+        for pIndex in range(self.N_slip):
+            # Get the center of the patch
+            xc, yc, zc, width, length, strike, dip = self.getpatchgeometry(pIndex, center=True)
+            
+           # Get the slip value to be added
+            if add_slip is not None:
+                if add_slip == 'coupling':
+                    slp = self.coupling[pIndex]
+                if add_slip == 'strikeslip':
+                    slp = self.slip[pIndex,0]*scale
+                elif add_slip == 'dipslip':
+                    slp = self.slip[pIndex,1]*scale
+                elif add_slip == 'tensile':
+                    slp = self.slip[pIndex,2]*scale
+                elif add_slip == 'total':
+                    slp = np.sqrt(self.slip[pIndex,0]**2 + self.slip[pIndex,1]**2)*scale
+ 
+            # project center of the patch to lat-long
+            lonc, latc = self.xy2ll(xc, yc)
+            if neg_depth:
+                zc = -1.0*zc
+                
+            fout.write('{} {} {} {}\n'.format(lonc, latc, zc, slp))
+
+        # Close file
+        fout.close()
 
         # All done
         return
@@ -921,7 +1043,7 @@ class TriangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def computeSlipDirection(self, scale=1.0, factor=1.0, ellipse=False,nsigma=1.):
+    def computeSlipDirection(self, scale=1.0, factor=1.0, ellipse=False,nsigma=1., neg_depth=False):
         '''
         Computes the segment indicating the slip direction.
 
@@ -941,7 +1063,7 @@ class TriangularPatches(Fault):
         # Check Cm if ellipse
         if ellipse:
             self.ellipse = []
-            assert(self.Cm!=None), 'Provide Cm values'
+            assert((self.Cm!=None).all()), 'Provide Cm values'
 
         # Loop over the patches
         if self.N_slip == None:
@@ -959,8 +1081,11 @@ class TriangularPatches(Fault):
             #z = -1.0*np.sin(dip)*np.sin(rake)
             x = (np.sin(strike)*np.cos(rake) - np.cos(strike)*np.cos(dip)*np.sin(rake))
             y = (np.cos(strike)*np.cos(rake) + np.sin(strike)*np.cos(dip)*np.sin(rake))
-            z =  1.0*np.sin(dip)*np.sin(rake)
-
+            if neg_depth:    # do we need to flip depths? EJF 2020/10/18
+                z =  1.0*np.sin(dip)*np.sin(rake)
+            else:
+                z = -1.0*np.sin(dip)*np.sin(rake)
+                
             # Scale these
             if scale.__class__ is float:
                 sca = scale
@@ -1268,6 +1393,43 @@ class TriangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
+    def homogeneizeStrike(self, direction=1, sign=1.):
+        '''
+        Rotates the vertices in {Faces} so that the normals are all pointing in
+        a common direction. The {direction} is checked by the axis (0=x, 1=y, 2=z).
+
+        Kwargs: 
+            * direction : Direction of the normal to check. 
+            * sign      : +1 or -1
+        '''
+
+        # Check
+        assert type(sign) in (float, int), 'sign must be a float or int: {}'.format(sign)
+        assert float(sign)!=0., 'sign must be different from 0'
+
+        # Compute normals
+        normals = np.array([self.getpatchgeometry(p, retNormal=True) for p in self.patch])
+
+        # Find the normals that are not following the rule
+        inormals = np.flatnonzero(np.sign(normals[:,direction])==np.sign(sign))
+
+        # For these patches, get the patch, flip 2 summits
+        for ip in inormals:
+            p1, p2, p3 = self.patch[ip]
+            self.patch[ip] = np.array([p1, p3, p2])
+            f1, f2, f3 = self.Faces[ip,:]
+            self.Faces[ip,0] = f1
+            self.Faces[ip,1] = f3
+            self.Faces[ip,2] = f2
+
+        # Recompute patches 2 lonlat
+        self.patch2ll()
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
     def replacePatch(self, patch, iPatch):
         '''
         Replaces one patch by the given geometry.
@@ -1479,7 +1641,7 @@ class TriangularPatches(Fault):
         # Get the center of the patch
         x1, x2, x3 = self.getcenter(patch)
 
-        # Get the vertices of the patch
+        # Get the vertices of the patch (indexes are flipped to get depth along z axis)
         verts = copy.deepcopy(patch)
         p1, p2, p3 = [np.array([lst[1],lst[0],lst[2]]) for lst in verts]
 
@@ -1489,18 +1651,22 @@ class TriangularPatches(Fault):
 
         # Get the patch normal
         normal = np.cross(p2 - p1, p3 - p1)
+
+        # If fault is vertical, force normal to be horizontal
+        if self.vertical:
+            normal[2] = 0.
+
+        # Normalize
         normal /= np.linalg.norm(normal)
+
         # Enforce clockwise circulation
-        if np.round(normal[2],decimals=1) < 0:
+        if np.round(normal[2],decimals=1) < 0.:
             normal *= -1.0
             p2, p3 = p3, p2
 
-        # If fault is vertical, force normal to be horizontal
-        if np.round(normal[2],decimals=1) == 0.: 
-            normal[2] = 0.
         # Force strike between 0 and 90 or between 270 and 360
-            if normal[1] > 0:
-                normal *= -1
+        #if normal[1] > 0:
+        #     normal *= -1
                     
         # Get the strike vector and strike angle
         strike = np.arctan2(-normal[0], normal[1]) - np.pi
@@ -1533,7 +1699,7 @@ class TriangularPatches(Fault):
             * distance  : float
         '''
 
-        if distance is 'center':
+        if distance=='center':
 
             # Get the centers
             x1, y1, z1 = vertex1
@@ -1571,7 +1737,7 @@ class TriangularPatches(Fault):
         '''
 
         # Assert 
-        assert distance is 'center', 'No other method implemented than center'
+        assert distance=='center', 'No other method implemented than center'
 
         # Check
         if self.N_slip==None:
@@ -1589,6 +1755,50 @@ class TriangularPatches(Fault):
 
         # All done
         return Distances
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def distancesMatrix(self, distance='center', lim=None):
+        '''
+        Returns two matrices of the distances between patches.
+        One for the horizontal dimensions, the other for verticals
+
+        Kwargs:
+            * distance  : distance estimation mode
+
+                 - center : distance between the centers of the patches.
+                 - no other method is implemented for now.
+            * lim       : if not None, list of two float, the first one is the distance above which d=lim[1].
+
+        Returns:
+            * distances : Array of floats
+        '''
+
+        # Assert 
+        assert distance=='center', 'No other method implemented than center'
+
+        # Check
+        if self.N_slip==None:
+            self.N_slip = self.slip.shape[0]
+
+        # Loop
+        HDistances = np.zeros((self.N_slip, self.N_slip))
+        VDistances = np.zeros((self.N_slip, self.N_slip))
+        for i in range(self.N_slip):
+            p1 = self.patch[i]
+            c1 = self.getcenter(p1)
+            for j in range(self.N_slip):
+                if j == i:
+                    continue
+                p2 = self.patch[j]
+                c2 = self.getcenter(p2)
+                HDistances[i,j] = np.sqrt( (c1[0]-c2[0])**2 + (c1[1]-c2[1])**2 )
+                HDistances[j,i] = HDistances[i,j]
+                VDistances[i,j] = np.sqrt( (c1[2]-c2[2])**2 )
+                VDistances[j,i] = VDistances[i,j]
+
+        # All done
+        return HDistances, VDistances
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -1611,7 +1821,7 @@ class TriangularPatches(Fault):
             * distace   : float
         '''
 
-        if distance is 'center':
+        if distance=='center':
 
             # Get the centers
             x1, y1, z1 = self.getcenter(patch1)
@@ -1849,13 +2059,18 @@ class TriangularPatches(Fault):
 
 
     # ----------------------------------------------------------------------
-    def getcenters(self):
+    def getcenters(self, coordinates='xy'):
         '''
         Get the center of the patches.
+
+        Kwargs:
+            * coordinates   : xy or ll
 
         Returns:
             * centers:  list of triplets
         '''
+
+        assert coordinates in ('xy', 'll'), 'coordinates must either be xy or ll: currently set to {}'.format(coordinates)
 
         # Initialize a list
         center = []
@@ -1866,12 +2081,16 @@ class TriangularPatches(Fault):
             center.append(np.array([x, y, z]))
 
         # All done
-        return center
+        if coordinates=='xy':
+            return center
+        else:
+            lon,lat = self.xy2ll(np.array([c[0] for c in center]), np.array([c[1] for c in center]))
+            return [np.array([lo,la,c[2]]) for lo,la,c in zip(lon, lat, center)]
     # ----------------------------------------------------------------------
 
 
     # ----------------------------------------------------------------------
-    def surfacesimulation(self, box=None, disk=None, err=None, npoints=None, 
+    def surfacesimulation(self, box=None, disk=None, err=None, npoints=10, 
                           lonlat=None, slipVec=None):
         '''
         Takes the slip vector and computes the surface displacement that 
@@ -1895,14 +2114,14 @@ class TriangularPatches(Fault):
         # Create a lon lat grid
         if lonlat is None:
             if (box is None) and (disk is None) :
-                lon = np.linspace(self.lon.min(), self.lon.max(), 100)
-                lat = np.linspace(self.lat.min(), self.lat.max(), 100)
+                lon = np.linspace(self.lon.min(), self.lon.max(), npoints)
+                lat = np.linspace(self.lat.min(), self.lat.max(), npoints)
                 lon, lat = np.meshgrid(lon,lat)
                 lon = lon.flatten()
                 lat = lat.flatten()
             elif (box is not None):
-                lon = np.linspace(box[0], box[1], 100)
-                lat = np.linspace(box[2], box[3], 100)
+                lon = np.linspace(box[0], box[1], npoints)
+                lat = np.linspace(box[2], box[3], npoints)
                 lon, lat = np.meshgrid(lon,lat)
                 lon = lon.flatten()
                 lat = lat.flatten()
@@ -1934,7 +2153,7 @@ class TriangularPatches(Fault):
             self.sim.lon = lon
             self.sim.lat = lat
             # put these in x y utm coordinates
-            self.sim.ll2xy()
+            self.sim.lonlat2xy()
 
         # Initialize the vel_enu array
         self.sim.vel_enu = np.zeros((lon.size, 3))
@@ -1983,39 +2202,6 @@ class TriangularPatches(Fault):
 
         # All done
         return
-    # ----------------------------------------------------------------------
-
-    # ----------------------------------------------------------------------
-    def cumdistance(self, discretized=False):
-        '''
-        Computes the distance between the first point of the fault and every other
-        point, when you walk along the fault.
-
-        Kwargs:
-            * discretized           : if True, use the discretized fault trace
-
-        Returns:
-            * cum                   : Array of floats
-        '''
-
-        # Get the x and y positions
-        if discretized:
-            x = self.xi
-            y = self.yi
-        else:
-            x = self.xf
-            y = self.yf
-
-        # initialize
-        dis = np.zeros((x.shape[0]))
-
-        # Loop
-        for i in np.arange(1,x.shape[0]):
-            d = np.sqrt((x[i]-x[i-1])**2 + (y[i]-y[i-1])**2)
-            dis[i] = dis[i-1] + d
-
-        # all done
-        return dis
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -2367,7 +2553,8 @@ class TriangularPatches(Fault):
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', equiv=False, show=True, 
              axesscaling=True, norm=None, linewidth=1.0, plot_on_2d=True, 
-             drawCoastlines=True, expand=0.2):
+             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='', 
+             drawCoastlines=True, expand=0.2, savefig=False, scalebar=None, figsize=(None, None)):
         '''
         Plot the available elements of the fault.
         
@@ -2376,13 +2563,14 @@ class TriangularPatches(Fault):
             * slip          : What slip to plot
             * equiv         : useless. For consitency between fault objects
             * show          : Show me
-            * axesscaling   : Scale the axis
             * Norm          : colorbar min and max values
             * linewidth     : Line width in points
             * plot_on_2d    : Plot on a map as well
             * drawCoastline : Self-explanatory argument...
             * expand        : Expand the map by {expand} degree around the edges
                               of the fault.
+            * savefig       : Save figures as eps.
+            * scalebar      : Length of a scalebar (float, default is None)
         
         Returns:
             * None
@@ -2390,7 +2578,7 @@ class TriangularPatches(Fault):
 
         # Get lons lats
         lon = np.unique(np.array([p[:,0] for p in self.patchll]))
-        lon[lon<0.] += 360.
+        #lon[lon<0.] += 360.
         lat = np.unique(np.array([p[:,1] for p in self.patchll]))
         lonmin = lon.min()-expand
         lonmax = lon.max()+expand
@@ -2398,14 +2586,22 @@ class TriangularPatches(Fault):
         latmax = lat.max()+expand
 
         # Create a figure
-        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax)
+        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 
+                                     latmin=latmin, latmax=latmax, figsize=figsize,
+                                     scalebar=scalebar)
 
         # Draw the coastlines
         if drawCoastlines:
-            fig.drawCoastlines(drawLand=False, parallels=5, meridians=5, drawOnFault=True)
+            fig.drawCoastlines(parallels=None, meridians=None, drawOnFault=True)
 
         # Draw the fault
-        fig.faultpatches(self, slip=slip, norm=norm, colorbar=True, plot_on_2d=plot_on_2d)
+        fig.faultpatches(self, slip=slip, norm=norm, colorbar=True, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, 
+                         plot_on_2d=plot_on_2d, linewidth=linewidth)
+
+        # Savefigs?
+        if savefig:
+            prefix = self.name.replace(' ','_')
+            fig.savefig(prefix+'_{}'.format(slip), ftype='eps')
 
         # show
         if show:
@@ -2646,14 +2842,38 @@ class TriangularPatches(Fault):
             * fault         : Returns a triangularpatches instance
         '''
 
+        # Check
+        if not hasattr(self, 'keepTrackOfSources'):
+            self.keepTrackOfSources = False
+
         # Import What is needed
         from .EDKSmp import dropSourcesInPatches as Patches2Sources
 
         # Drop the sources in the patches and get the corresponding fault
-        Ids, xs, ys, zs, strike, dip, Areas, fault = Patches2Sources(self, 
-                                                verbose=verbose,
-                                                returnSplittedPatches=True)
-        self.plotSources = [Ids, xs, ys, zs, strike, dip, Areas]
+        if not self.keepTrackOfSources or not hasattr(self, 'allSplitted'):
+            Ids, xs, ys, zs, strike, dip, Areas, allSplitted = Patches2Sources(self, 
+                                                                    verbose=verbose,
+                                                          returnSplittedPatches=True)
+            self.plotSources = [Ids, xs, ys, zs, strike, dip, Areas]
+            self.allSplitted = allSplitted
+        else:
+            Ids, xs, ys, zs, strike, dip, Areas  = self.plotSources
+            allSplitted = self.allSplitted
+
+        # Create a new fault
+        fault = TriangularPatches('Splitted {}'.format(self.name), 
+                                  utmzone=self.utmzone, 
+                                  lon0=self.lon0,
+                                  lat0=self.lat0,
+                                  ellps=self.ellps,
+                                  verbose=verbose)
+        # set up patches
+        fault.patch = [np.array(p) for p in allSplitted]
+        fault.patch2ll()
+        # Patches 2 vertices
+        fault.setVerticesFromPatches()
+        # Depth
+        fault.setdepth()
 
         # Interpolate the slip on each subsource
         fault.initializeslip()
@@ -2683,7 +2903,7 @@ class TriangularPatches(Fault):
         '''
 
         # Assert 
-        assert self.patchType is 'triangle', 'Not implemented for Triangular tents'
+        assert self.patchType=='triangle', 'Not implemented for Triangular tents'
 
         # Update the map
         def _checkUpdate(check, iTriangle, modifier, fault):
@@ -2700,13 +2920,13 @@ class TriangularPatches(Fault):
             return modify
 
         # Get the array to test
-        if slip is 'strikeslip':
+        if slip=='strikeslip':
             values = self.slip[:,0]
-        elif slip is 'dipslip':
+        elif slip=='dipslip':
             values = self.slip[:,1]
-        elif slip is 'tensile':
+        elif slip=='tensile':
             values = self.slip[:,2]
-        elif slip is 'coupling':
+        elif slip=='coupling':
             values = self.coupling
         else:
             print('findAsperities: Unknown type slip vector...')

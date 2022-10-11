@@ -141,12 +141,12 @@ class opticorr(SourceInv):
 
         # Compute corner to xy
         self.xycorner = np.zeros(self.corner.shape)
-        x, y = self.putm(self.corner[:,0], self.corner[:,1])
-        self.xycorner[:,0] = x/1000.
-        self.xycorner[:,1] = y/1000.
-        x, y = self.putm(self.corner[:,2], self.corner[:,3])
-        self.xycorner[:,2] = x/1000.
-        self.xycorner[:,3] = y/1000.
+        x, y = self.ll2xy(self.corner[:,0], self.corner[:,1])
+        self.xycorner[:,0] = x
+        self.xycorner[:,1] = y
+        x, y = self.ll2xy(self.corner[:,2], self.corner[:,3])
+        self.xycorner[:,2] = x
+        self.xycorner[:,3] = y
 
         # Read the covariance
         if cov:
@@ -858,6 +858,8 @@ class opticorr(SourceInv):
 
         # Get the parameters
         params = fault.polysol[self.name]
+        if type(params) is dict:
+            params = params[ptype]
 
         # Get the estimator
         Horb = self.getPolyEstimator(ptype, computeNormFact=computeNormFact)
@@ -895,6 +897,26 @@ class opticorr(SourceInv):
         nd = self.east.shape[0]
         self.east_custompred = custompred[:nd]
         self.north_custompred = custompred[nd:2*nd]
+
+        # All done
+        return
+
+    def removeTransformation(self, fault, verbose=False, custom=False):
+        '''
+        Wrapper of removePoly to ensure consistency between data sets.
+
+        Args:
+            * fault     : a fault instance
+
+        Kwargs:
+            * verbose   : talk to us
+            * custom    : Remove custom GFs
+
+        Returns:
+            * None
+        '''
+
+        self.removePoly(fault, verbose=verbose, custom=custom)
 
         # All done
         return
@@ -1359,8 +1381,8 @@ class opticorr(SourceInv):
         dic['Distance'] = np.array(Dalong)
         dic['Normal Distance'] = np.array(Dacros)
         dic['EndPoints'] = [[xe1, ye1], [xe2, ye2]]
-        lone1, late1 = self.putm(xe1*1000., ye1*1000., inverse=True)
-        lone2, late2 = self.putm(xe2*1000., ye2*1000., inverse=True)
+        lone1, late1 = self.xy2ll(xe1, ye1)
+        lone2, late2 = self.xy2ll(xe2, ye2)
         dic['EndPointsLL'] = [[lone1, late1], 
                             [lone2, late2]]
 
@@ -1419,8 +1441,9 @@ class opticorr(SourceInv):
             Np = dic['North'][i]
             Fn = dic['Fault Normal'][i]
             Fp = dic['Fault Parallel'][i]
+            dnorm = dic['Normal Distance'][i]
             if np.isfinite(Ep):
-                fout.write('{} {} {} {} {} \n'.format(d, Ep, Np, Fn, Fp))
+                fout.write('{} {} {} {} {} {}\n'.format(d, Ep, Np, Fn, Fp,dnorm))
 
         # Close the file
         fout.close()
@@ -1634,7 +1657,9 @@ class opticorr(SourceInv):
 #        # All done  
 #        return
 
-    def plot(self, faults=None, figure=None, gps=None, decim=False, norm=None, data='data', show=True, drawCoastlines=True, expand=0.2):
+    def plot(self, faults=None, figure=None, gps=None, decim=False, norm=None, 
+             data='data', show=True, drawCoastlines=True, expand=0.2, 
+             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel=''):
         '''
         Plot the data set, together with a fault, if asked.
 
@@ -1668,7 +1693,7 @@ class opticorr(SourceInv):
 
         # Draw the coastlines
         if drawCoastlines:
-            fig.drawCoastlines(drawLand=True, parallels=5, meridians=5, drawOnFault=True)
+            fig.drawCoastlines(parallels=5, meridians=5, drawOnFault=True)
 
         # Plot the fault trace if asked
         if faults is not None:
@@ -1686,11 +1711,11 @@ class opticorr(SourceInv):
 
         # Plot the decimation process, if asked
         if decim:
-            fig.opticorr(self, norm=norm, colorbar=True, data=data, plotType='decimate')
+            fig.opticorr(self, norm=norm, colorbar=True, data=data, plotType='decimate', cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel)
 
         # Plot the data
         if not decim:
-            fig.opticorr(self, norm=norm, colorbar=True, data=data, plotType='scatter')
+            fig.opticorr(self, norm=norm, colorbar=True, data=data, plotType='scatter', cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel)
 
         # Show
         if show:
@@ -1779,13 +1804,13 @@ class opticorr(SourceInv):
         # Get variables
         x = self.lon
         y = self.lat
-        if data is 'data':
+        if data=='data':
             e = self.east
             n = self.north
-        elif data is 'synth':
+        elif data=='synth':
             e = self.east_synth
             n = self.north_synth
-        elif data is 'res':
+        elif data=='res':
             e = self.east - self.east_synth
             n = self.north - self.north_synth
 

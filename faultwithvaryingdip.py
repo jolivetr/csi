@@ -149,13 +149,13 @@ class faultwithvaryingdip(RectangularPatches):
             # Get the top of the row
             xt = self.xi
             yt = self.yi
-            lont, latt = self.putm(xt*1000., yt*1000., inverse=True)
+            lont, latt = self.xy2ll(xt,yt)
             zt = self.zi
 
             # Compute the bottom row
             xb = xt + self.width*np.cos(self.dip)*np.sin(dipdirection_rad)
             yb = yt + self.width*np.cos(self.dip)*np.cos(dipdirection_rad)
-            lonb, latb = self.putm(xb*1000., yb*1000., inverse=True)
+            lonb, latb = self.xy2ll(xb,yb)
             zb = zt + self.width*np.sin(self.dip)
 
             # fill D

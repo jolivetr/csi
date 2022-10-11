@@ -77,7 +77,7 @@ class planarfault(RectangularPatches):
         # All done
         return
 
-    def buildPatches(self, lon, lat, dep, strike, dip, f_length, f_width, n_strike, n_dip, verbose=True):
+    def buildPatches(self, lon, lat, dep, strike, dip, f_length, f_width, n_strike, n_dip, verbose=True, discretize=True):
         '''
         Builds a dipping fault.
         Args:
@@ -211,7 +211,8 @@ class planarfault(RectangularPatches):
         self.zi = np.ones((self.xi.shape))*self.top
         
         # Re-discretize to get the original fault
-        self.discretize(lon,lat,strike,f_length,n_strike)
+        if discretize:
+            self.discretize(lon,lat,strike,f_length,n_strike)
 
         # All done
         return

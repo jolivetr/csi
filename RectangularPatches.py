@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import matplotlib.path as path
 import scipy.interpolate as sciint
 from scipy.linalg import block_diag
+from copy import deepcopy
 import copy
 import sys
 import os
@@ -28,6 +29,26 @@ from . import okadafull
 from .geodeticplot import geodeticplot as geoplot
 from .gps import gps as gpsclass
 from .csiutils import colocated
+
+def getDist(ij):
+    f,i,lim = ij
+    p1 = f.patch[i]
+    dist = []
+    for j in range(i):
+        p2 = f.patch[j]
+        dist.append(f.distancePatchToPatch(p1, p2, distance='center', lim=lim))
+    return i,dist
+
+def getDistHV(ij):
+    f,i,lim = ij
+    p1 = f.patch[i]
+    c1 = self.getcenter(p1)
+    dist = []
+    for j in range(i):
+        p2 = f.patch[j]
+        c2 = self.getcenter(p2)
+        dist.append( (np.sqrt((c1[0]-c2[0])**2 + (c1[1]-c2[1])**2), np.sqrt((c1[2]-c2[2])**2)) )
+    return i,dist
 
 class RectangularPatches(Fault):
     '''
@@ -619,10 +640,10 @@ class RectangularPatches(Fault):
             self.equivpatch.append(np.array([pt1, pt2, pt3, pt4]))
             
             # Deal with the lon lat
-            lon1, lat1 = self.putm(x1*1000., y1*1000., inverse=True)
-            lon2, lat2 = self.putm(x2*1000., y2*1000., inverse=True)
-            lon3, lat3 = self.putm(x3*1000., y3*1000., inverse=True)
-            lon4, lat4 = self.putm(x4*1000., y4*1000., inverse=True)
+            lon1, lat1 = self.xy2ll(x1, y1)
+            lon2, lat2 = self.xy2ll(x2, y2)
+            lon3, lat3 = self.xy2ll(x3, y3)
+            lon4, lat4 = self.xy2ll(x4, y4)
             pt1 = [lon1, lat1, z1]
             pt2 = [lon2, lat2, z2]
             pt3 = [lon3, lat3, z3]
@@ -932,7 +953,7 @@ class RectangularPatches(Fault):
         while i<len(A):
             
             # Assert it works
-            assert A[i].split()[0] is '>', 'Not a patch, reformat your file...'
+            assert A[i].split()[0]=='>', 'Not a patch, reformat your file...'
             # Get the Patch Id
             if readpatchindex:
                 self.index_parameter.append([np.int(A[i].split()[3]),np.int(A[i].split()[4]),np.int(A[i].split()[5])])
@@ -1209,7 +1230,7 @@ class RectangularPatches(Fault):
                     ez = -1.0 * ez
 
                 # Conversion to geographical coordinates
-                lone,late = self.putm(ex*1000.,ey*1000.,inverse=True)
+                lone,late = self.xy2ll(ex, ey)
                 
                 # Write the > sign to the file
                 fout.write('> \n')
@@ -1219,6 +1240,67 @@ class RectangularPatches(Fault):
 
             # Close file
             fout.close()            
+
+        # All done
+        return
+   # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def writeSlipCenter2File(self, filename, add_slip=None, scale=1.0, neg_depth=False):
+                                
+        '''
+        Write a psxyz, surface or greenspline compatible file with the center 
+        of each patch and magnitude slip. Scale can be a real 
+        number or a string in 'total', 'strikeslip', 'dipslip' or 'tensile'
+
+        Args:
+            * filename      : Name of the output file
+
+        Kwargs:
+            * add_slip      : Put the slip as a value at the center 
+                              Can be None, strikeslip, dipslip, total, coupling
+            * scale         : Multiply the slip value by a factor.
+            * neg_depth     : if True, depth is a negative nmber
+ 
+        Returns:
+            * None
+        '''
+
+        # Write something
+        print('Writing slip at patch centers to file {}'.format(filename))
+
+        # Open the file
+        fout = open(filename, 'w')
+
+        # Loop over the patches
+        if self.N_slip == None:
+            self.N_slip = len(self.patch)
+        for pIndex in range(self.N_slip):
+            # Get the center of the patch
+            xc, yc, zc, width, length, strike, dip = self.getpatchgeometry(pIndex, center=True)
+            
+           # Get the slip value to be added
+            if add_slip is not None:
+                if add_slip == 'coupling':
+                    slp = self.coupling[pIndex]
+                if add_slip == 'strikeslip':
+                    slp = self.slip[pIndex,0]*scale
+                elif add_slip == 'dipslip':
+                    slp = self.slip[pIndex,1]*scale
+                elif add_slip == 'tensile':
+                    slp = self.slip[pIndex,2]*scale
+                elif add_slip == 'total':
+                    slp = np.sqrt(self.slip[pIndex,0]**2 + self.slip[pIndex,1]**2)*scale
+ 
+            # project center of the patch to lat-long
+            lonc, latc = self.xy2ll(xc, yc)
+            if neg_depth:
+                zc = -1.0*zc
+                
+            fout.write('{} {} {} {}\n'.format(lonc, latc, zc, slp))
+
+        # Close file
+        fout.close()
 
         # All done
         return
@@ -1305,7 +1387,7 @@ class RectangularPatches(Fault):
         # Check Cm if ellipse
         if ellipse:
             self.ellipse = []
-            assert(self.Cm!=None), 'Provide Cm values'
+            assert((self.Cm!=None).all()), 'Provide Cm values'
 
         # Loop over the patches
         for p in range(len(self.patch)):  
@@ -1826,7 +1908,7 @@ class RectangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def distanceMatrix(self, distance='center', lim=None):
+    def distanceMatrix(self, distance='center', lim=None, nproc=1, verbose=False):
         '''
         Returns a matrix of the distances between patches.
 
@@ -1836,19 +1918,37 @@ class RectangularPatches(Fault):
         '''
 
         # Check
-        if self.N_slip==None:
-            self.N_slip = self.slip.shape[0]
+        self.N_slip = self.slip.shape[0]
+
+        # Multiprocessing
+        if nproc>1:
+            import multiprocessing
+            print('Computing distances using %d cpus'%(nproc))
+            ijs = []
+            for i in range(self.N_slip):
+                f = deepcopy(self)
+                ijs.append([f,i,lim])
+            pool = multiprocessing.Pool(nproc)
+            results = pool.map(getDist,ijs)
+            Distances = np.zeros((self.N_slip, self.N_slip))
+            for result in results:
+                i,d=result
+                for j in range(i):
+                    Distances[i,j] = d[j]
+                    Distances[j,i] = d[j]
+            return Distances
 
         # Loop
         Distances = np.zeros((self.N_slip, self.N_slip))
         for i in range(self.N_slip):
+            if verbose:
+                sys.stdout.write('Distances from patch %d/%d\r'%(i,self.N_slip))
             p1 = self.patch[i]
-            for j in range(self.N_slip):
-                if j == i:
-                    continue
+            for j in range(i):
                 p2 = self.patch[j]
                 Distances[i,j] = self.distancePatchToPatch(p1, p2, distance='center', lim=lim)
-
+                Distances[j,i] = Distances[i,j]
+        print('')
         # All done
         return Distances
     # ----------------------------------------------------------------------
@@ -1867,7 +1967,7 @@ class RectangularPatches(Fault):
             * lim       : if not None, list of two float, the first one is the distance above which d=lim[1].
         '''
 
-        if distance is 'center':
+        if distance=='center':
 
             # Get the centers
             x1, y1, z1 = self.getcenter(patch1)
@@ -1883,6 +1983,61 @@ class RectangularPatches(Fault):
 
         # All done
         return dis
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def distancesMatrix(self, distance='center', lim=None, nproc=1, verbose=False):
+        '''
+        Returns two matrices of the distances between patches.
+        One along the horizontal dimension, the other for the vertical.
+
+        Kwargs:
+            * distance  : has to be 'center' for now. No other method is implemented for now.
+            * lim       : if not None, list of two float, the first one is the distance above which d=lim[1].
+        '''
+
+        # Check
+        self.N_slip = self.slip.shape[0]
+
+        # Multiprocessing
+        if nproc>1:
+            import multiprocessing
+            print('Computing distances using %d cpus'%(nproc))
+            ijs = []
+            for i in range(self.N_slip):
+                f = deepcopy(self)
+                ijs.append([f,i,lim])
+            pool = multiprocessing.Pool(nproc)
+            results = pool.map(getDistHV,ijs)
+            HDistances = np.zeros((self.N_slip, self.N_slip))
+            VDistances = np.zeros((self.N_slip, self.N_slip))
+            for result in results:
+                i,d=result
+                for j in range(i):
+                    HDistances[i,j] = d[0][j]
+                    HDistances[j,i] = d[0][j]
+                    VDistances[j,i] = d[1][j]
+                    VDistances[j,i] = d[1][j]
+            return HDistances,VDistances
+
+        # Loop
+        HDistances = np.zeros((self.N_slip, self.N_slip))
+        VDistances = np.zeros((self.N_slip, self.N_slip))
+        for i in range(self.N_slip):
+            if verbose:
+                sys.stdout.write('Distances from patch %d/%d\r'%(i,self.N_slip))
+            p1 = self.patch[i]
+            c1 = self.getcenter(p1)
+            for j in range(i):
+                p2 = self.patch[j]
+                c2 = self.getcenter(p2)
+                HDistances[i,j] = np.sqrt( (c1[0]-c2[0])**2 + (c1[1]-c2[1])**2 )
+                HDistances[j,i] = HDistances[i,j]
+                VDistances[i,j] = np.sqrt( (c1[2]-c2[2])**2 )
+                VDistances[j,i] = VDistances[i,j]
+        print('')
+        # All done
+        return HDistances,VDistances
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -2132,7 +2287,7 @@ class RectangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def surfacesimulation(self, box=None, disk=None, err=None, lonlat=None,
+    def surfacesimulation(self, box=None, disk=None, err=None, lonlat=None, npoints=10,
                           slipVec=None):
         ''' 
         Takes the slip vector and computes the surface displacement that 
@@ -2152,57 +2307,50 @@ class RectangularPatches(Fault):
         self.sim = gpsclass('simulation', utmzone=self.utmzone, lon0=self.lon0, lat0=self.lat0)
 
         # Create a lon lat grid
-#        if lonlat is None:
-#            if (box is None) and (disk is None) :
-#                n = box[-1]
-#                lon = np.linspace(self.lon.min(), self.lon.max(), n)
-#                lat = np.linspace(self.lat.min(), self.lat.max(), n)
-#                lon, lat = np.meshgrid(lon,lat)
-#                lon = lon.flatten()
-#                lat = lat.flatten()
-#            elif (box is not None):
-#                n = box[-1]
-#                lon = np.linspace(box[0], box[1], n)
-#                lat = np.linspace(box[2], box[3], n)
-#                lon, lat = np.meshgrid(lon,lat)
-#                lon = lon.flatten()
-#                lat = lat.flatten()
-#            elif (disk is not None):
-#                lon = []; lat = []
-#                xd, yd = self.ll2xy(disk[0], disk[1])
-#                xmin = xd-disk[2]; xmax = xd+disk[2]; ymin = yd-disk[2]; ymax = yd+disk[2]
-#                ampx = (xmax-xmin)
-#                ampy = (ymax-ymin)
-#                n = 0
-#                while n<disk[3]:
-#                    x, y = np.random.rand(2)
-#                    x *= ampx; x -= ampx/2.; x += xd
-#                    y *= ampy; y -= ampy/2.; y += yd
-#                    if ((x-xd)**2 + (y-yd)**2) <= (disk[2]**2):
-#                        lo, la = self.xy2ll(x,y)
-#                        lon.append(lo); lat.append(la)
-#                        n += 1
-#                lon = np.array(lon); lat = np.array(lat)
-#        else:
-#            lon = np.array(lonlat[0])
-#            lat = np.array(lonlat[1])
+        if lonlat is None:
+            if (box is None) and (disk is None) :
+                lon = np.linspace(self.lon.min(), self.lon.max(), npoints)
+                lat = np.linspace(self.lat.min(), self.lat.max(), npoints)
+                lon, lat = np.meshgrid(lon,lat)
+                lon = lon.flatten()
+                lat = lat.flatten()
+            elif (box is not None):
+                if len(box)>4:
+                    npoints= box[4]
+                lon = np.linspace(box[0], box[1], npoints)
+                lat = np.linspace(box[2], box[3], npoints)
+                lon, lat = np.meshgrid(lon,lat)
+                lon = lon.flatten()
+                lat = lat.flatten()
+            elif (disk is not None):
+                lon = []; lat = []
+                xd, yd = self.ll2xy(disk[0], disk[1])
+                xmin = xd-disk[2]; xmax = xd+disk[2]; ymin = yd-disk[2]; ymax = yd+disk[2]
+                ampx = (xmax-xmin)
+                ampy = (ymax-ymin)
+                n = 0
+                while n<disk[3]:
+                    x, y = np.random.rand(2)
+                    x *= ampx; x -= ampx/2.; x += xd
+                    y *= ampy; y -= ampy/2.; y += yd
+                    if ((x-xd)**2 + (y-yd)**2) <= (disk[2]**2):
+                        lo, la = self.xy2ll(x,y)
+                        lon.append(lo); lat.append(la)
+                        n += 1
+                lon = np.array(lon); lat = np.array(lat)
+        else:
+            lon = np.array(lonlat[0])
+            lat = np.array(lonlat[1])
 
         # Clean it
-#        if (lon.max()>360.) or (lon.min()<-180.0) or (lat.max()>90.) or (lat.min()<-90):
-#            self.sim.x = lon
-#            self.sim.y = lat
-#        else:
-        n = box[4]
-        lon = np.arange(box[0], box[1], n)
-        lat = np.arange(box[2], box[3], n)
-        lon, lat = np.meshgrid(lon,lat)
-        lon = lon.flatten()
-        lat = lat.flatten()
-        self.sim.lon = lon
-        self.sim.lat = lat
-        # put these in x y utm coordinates
-        self.sim.lonlat2xy()
-
+        if (lon.max()>360.) or (lon.min()<-180.0) or (lat.max()>90.) or (lat.min()<-90):
+            self.sim.x = lon
+            self.sim.y = lat
+        else:
+            self.sim.lon = lon
+            self.sim.lat = lat
+            # put these in x y utm coordinates
+            self.sim.lonlat2xy()
         # Initialize the vel_enu array
         self.sim.vel_enu = np.zeros((lon.size, 3))
 
@@ -2224,9 +2372,6 @@ class RectangularPatches(Fault):
                 z *= err
                 self.sim.err_enu.append([x,y,z])
             self.sim.err_enu = np.array(self.sim.err_enu)
-
-        # import stuff
-        import sys
 
         # Load the slip values if provided
         if slipVec is not None:
@@ -2370,10 +2515,10 @@ class RectangularPatches(Fault):
         imin = y.argmin()
         
         # Take the points we need to move
-        if fixedside is 'south':
+        if fixedside=='south':
             fpts = np.flatnonzero(y==y[imin])
             mpts = np.flatnonzero(y!=y[imin])
-        elif fixedside is 'north':
+        elif fixedside=='north':
             fpts = np.flatnonzero(y!=y[imin])
             mpts = np.flatnonzero(y==y[imin])
 
@@ -2398,10 +2543,10 @@ class RectangularPatches(Fault):
         imin = y.argmin()
         
         # Take the points we need to move
-        if fixedside is 'south':
+        if fixedside=='south':
             fpts = np.flatnonzero(y==y[imin])
             mpts = np.flatnonzero(y!=y[imin])
-        elif fixedside is 'north':
+        elif fixedside=='north':
             fpts = np.flatnonzero(y!=y[imin])
             mpts = np.flatnonzero(y==y[imin])
 
@@ -2424,6 +2569,9 @@ class RectangularPatches(Fault):
             lon, lat = self.xy2ll(x, y)
             patchll[i][0] = lon
             patchll[i][1] = lat
+
+        # Equivalent
+        self.computeEquivRectangle()
 
         # All done
         return
@@ -2934,7 +3082,8 @@ class RectangularPatches(Fault):
     def plot(self, figure=134, slip='total', 
              equiv=False, show=True, axesscaling=True, 
              norm=None, linewidth=1.0, plot_on_2d=True, 
-             drawCoastlines=True, expand=0.2):
+             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
+             drawCoastlines=True, expand=0.2, figsize=(None, None)):
         '''
         Plot the available elements of the fault.
         
@@ -2952,26 +3101,26 @@ class RectangularPatches(Fault):
         '''
 
         # Get lons lats
-
         lonmin = np.min([p[:,0] for p in self.patchll])-expand
-	
-        if lonmin<0: 
-            lonmin += 360
+        #if lonmin<0: 
+        #    lonmin += 360
         lonmax = np.max([p[:,0] for p in self.patchll])+expand
-        if lonmax<0:
-            lonmax+= 360
+        #if lonmax<0:
+        #    lonmax+= 360
         latmin = np.min([p[:,1] for p in self.patchll])-expand
         latmax = np.max([p[:,1] for p in self.patchll])+expand
 
         # Create a figure
-        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax)
+        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize)
 
         # Draw the coastlines
         if drawCoastlines:
-            fig.drawCoastlines(drawLand=False, parallels=5, meridians=5, drawOnFault=True)
+            fig.drawCoastlines(parallels=None, meridians=None, drawOnFault=True)
 
         # Draw the fault
-        fig.faultpatches(self, slip=slip, norm=norm, colorbar=True, plot_on_2d=plot_on_2d)
+        fig.faultpatches(self, slip=slip, norm=norm, colorbar=True, 
+                         cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
+                         plot_on_2d=plot_on_2d)
 
         # Plot the trace of there is one
         if self.lon is not None:

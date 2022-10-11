@@ -1,0 +1,25 @@
+# TODO for CSI 1.0
+
+# Technical points: 
+. Check the usefulness and pertinence of the 2 faultpostproc objects (redundancy?) (Zach)
+. Create a setup.py that handles csi, okada4py and edks (Romain)
+. Do we include the calculation of EDKS kernels in CSI? (Zach)
+. Add a case for slip='somethingunknown' where the method picks is using getattr (Romain)
+
+# Organisation: 
+. Read the code entirely and check redundancy or obsolete methods. (Romain)
+. Verify the computeEquivPatch routine. It behaves weird for the Himalaya case... (Romain)
+. Check help for each method. (Zach)
+. Check names of methods and attributes for data objects (same name for same usage). (Baptiste)
+. Check option consistency between differents objects. (Baptiste)
+. Examples. (Romain)
+. Test on different architectures. (Zach)
+
+# Writings
+. Write Documentation
+. Write Paper
+
+# TODO for CSI 2.0
+. Add uncertainties on the covariance plots (standard deviations, for instance)
+. Incorporate EDKS correctly in csi (stop writing stuff to file and start passing arrays)
+. Add prediction uncertainties tools (Thea, almost done)

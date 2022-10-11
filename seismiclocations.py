@@ -11,9 +11,11 @@ import pyproj as pp
 import datetime as dt
 import matplotlib.pyplot as plt
 import copy
+import csv
 
 # Personals
 from .SourceInv import SourceInv
+from .geodeticplot import geodeticplot as geoplot
 
 class seismiclocations(SourceInv):
 
@@ -137,6 +139,73 @@ class seismiclocations(SourceInv):
         self.mag = np.array(self.mag)
 
         # Create the utm coordinates
+        self.lonlat2xy()
+
+        # All done
+        return
+
+    def read_from_AyitiSeisme_csv(self, filename):
+        '''
+        Read a catalog from the AyitiSeisme CSV files
+
+        Args:
+            * filename      : Input file name
+
+        Returns:
+            * None
+        '''
+
+        print('Read from file {} into data set {}'.format(filename, self.name))
+
+        # Create holders
+        self.time = []
+        self.lon = []
+        self.lat = []
+        self.depth = []
+        self.errlon = []
+        self.errlat = []
+        self.errdepth = []
+        self.mag = []
+
+        with open(filename, 'r') as fin:
+            data = csv.reader(fin, delimiter=',')
+            for d in data:
+                # Check
+                if d[0][0]=='#':
+                        continue
+
+                # Time
+                yr = int(d[1].split('/')[0])
+                mo = int(d[1].split('/')[1])
+                da = int(d[1].split('/')[2].split(' ')[0])
+                hr = int(d[1].split(' ')[1].split(':')[0])
+                mi = int(d[1].split(' ')[1].split(':')[1])
+                sd = int(d[1].split(' ')[1].split(':')[2])
+                self.time.append(dt.datetime(yr, mo, da, hr, mi, sd))
+                
+                # Specs
+                self.lon.append(float(d[4]))
+                self.errlon.append(float(d[5]))
+                self.lat.append(float(d[2]))
+                self.errlat.append(float(d[3]))
+                self.depth.append(float(d[6])/1000.)
+                if d[7]=='NULL':
+                    self.errdepth.append(99999.0)
+                else:
+                    self.errdepth.append(float(d[7])/1000.)
+                self.mag.append(float(d[8]))
+
+        # Array-ize
+        self.time = np.array(self.time)
+        self.lon = np.array(self.lon)
+        self.lat = np.array(self.lat)
+        self.depth = np.array(self.depth)
+        self.errlon = np.array(self.errlon)
+        self.errlat = np.array(self.errlat)
+        self.errdepth = np.array(self.errdepth)
+        self.mag = np.array(self.mag)
+
+        # Homogeneize
         self.lonlat2xy()
 
         # All done
@@ -623,7 +692,7 @@ class seismiclocations(SourceInv):
 
         # Compute the magnitudes
         self.Cmt2Dislocation(size=1e-1, mu=44e9, choseplane='nochoice', 
-                             moment_from_tensor=True)
+                             moment_from_tensor=True, verbose=False)
         self.Mo2mag()
 
         # Create the utm
@@ -1580,13 +1649,31 @@ class seismiclocations(SourceInv):
         # All done
         return
 
+    def getCmts(self):
+        '''
+        Returns the cmt in one line
+
+        Return:
+            * List of sextuples
+        '''
+
+        cmts = []
+
+        # Loop
+        for cmt in self.CMTinfo:
+            cmts.append([cmt['Mrr'], cmt['Mtt'], cmt['Mpp'], 
+                         cmt['Mrt'], cmt['Mrp'], cmt['Mtp']])
+
+        # All done
+        return cmts
+
     def Cmt2Dislocation(self, size=1, mu=30e9, choseplane='nochoice', 
                               moment_from_tensor=False, verbose=True):
         '''
         Builds a list of single square patch faults from the cmt solutions. If no condition is given, it returns the first value.
 
         Kwargs:
-            * size          : Size of one side of the fault patch (km).
+            * size          : Size of one side of the fault patch (km) of (width, length) in km
             * mu            : Shear modulus (Pa).
             * choseplane    : Choice of the focal plane to use (can be 'smallestdip', 'highestdip', 'nochoice')
             * moment_from_tensor: Computes the scalar moment from the cmt.
@@ -1610,6 +1697,13 @@ class seismiclocations(SourceInv):
         # Check something
         if not hasattr(self, 'Mo'):
             self.Mo = np.zeros(self.lon.shape)
+
+        # Check size
+        if type(size) is float:
+            length = size
+            width = size
+        elif type(size) is tuple:
+            width, length = size
 
         # Loop on the earthquakes
         for i in range(len(self.CMTinfo)):
@@ -1657,6 +1751,15 @@ class seismiclocations(SourceInv):
             if (mu.__class__ is float):
                 Mu = mu
 
+            # lon, lat and depth are for the centroid, we want the top of the fault
+            xc,yc = self.ll2xy(self.lon[i], self.lat[i])
+            center = np.array([xc,yc,-depth])
+            top = center + 0.5*width*np.array([np.cos(strike)*np.cos(dip), 
+                                               np.sin(strike)*np.cos(dip),
+                                               np.sin(dip)])
+            lon, lat = self.xy2ll(top[0], top[1])
+            depth = -1.0*top[2]
+
             # Build a planar fault
             fault = planarfault(event, 
                                 utmzone=self.utmzone, 
@@ -1664,11 +1767,12 @@ class seismiclocations(SourceInv):
                                 lat0=self.lat0, 
                                 ellps=self.ellps,
                                 verbose=False)
-            fault.buildPatches(self.lon[i], self.lat[i], depth, strike*180./np.pi, dip*180./np.pi, size, size, 1, 1, verbose=False)
+            fault.buildPatches(lon, lat, depth, strike*180./np.pi, dip*180./np.pi, 
+                               length, width, 1, 1, verbose=verbose)
 
             # Components of slip
-            ss = np.cos(rake) * self.Mo[i] / (Mu * size * size * 1000. * 1000.)
-            ds = np.sin(rake) * self.Mo[i] / (Mu * size * size * 1000. * 1000.)
+            ss = np.cos(rake) * self.Mo[i] / (Mu * width * length * 1000. * 1000.)
+            ds = np.sin(rake) * self.Mo[i] / (Mu * width * length * 1000. * 1000.)
 
             # Set slip
             fault.slip[0,0] = ss
@@ -1718,9 +1822,9 @@ class seismiclocations(SourceInv):
             * None
         '''
 
-        x, y = self.putm(self.lon, self.lat)
-        self.x = x/1000.
-        self.y = y/1000.
+        x, y = self.ll2xy(self.lon, self.lat)
+        self.x = x
+        self.y = y
 
         # All done
         return
@@ -1733,7 +1837,7 @@ class seismiclocations(SourceInv):
             * None
         '''
 
-        lon, lat = self.putm(x*1000., y*1000.)
+        lon, lat = self.xy2ll(x, y)
         self.lon = lon
         self.lat = lat
 
@@ -2042,6 +2146,114 @@ class seismiclocations(SourceInv):
 
         # All done
         return d
+
+    def plot(self, faults=None, figure=None, norm=None, data='mag', show=True, 
+             drawCoastlines=True, expand=0.2, linewidth=0.3, figsize=None, markersize=10,
+             cmap='jet', alpha=1., box=None, titleyoffset=1.1, 
+             shadedtopo=None, landcolor='lightgrey', seacolor=None,
+             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], 
+             cborientation='horizontal', cblabel=''):
+        '''
+        Plot the data set, together with a fault, if asked.
+
+        Kwargs:
+            * faults            : list of fault objects.
+            * figure            : number of the figure.
+            * norm              : colorbar limits
+            * data              : 'mag', 'time', 'depth' or an array
+            * markersize        : Size of the dots is magnitude and markersize is the divider
+            * show              : bool. Show on screen?
+            * drawCoastlines    : bool. default is True
+            * expand            : default expand around the limits covered by the data
+            * linewidth         : Width of dots edges
+            * plotType          : 'decim', 'scatter' or 'flat'
+            * figsize           : tuple of figure sizes
+            * box               : Lon/lat box [lonmin, lonmax, latmin, latmax]
+
+        Returns:
+            * None
+        '''
+
+        # Get lons lats
+        lonmin = self.lon.min()-expand
+        if lonmin<0.:
+            lonmin += 360.
+        lonmax = self.lon.max()+expand
+        if lonmax<0.:
+            lonmax += 360.
+        latmin = self.lat.min()-expand
+        latmax = self.lat.max()+expand
+
+        # This gets override if there is a box for plotting
+        if box is not None:
+            assert len(box)==4, 'box must be 4 floats: box = {}'.format(tuple(box))
+            lonmin, lonmax, latmin, latmax = box
+
+        # Create a figure
+        if figsize is None: 
+            figsize=[None, None]
+        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 
+                                     latmin=latmin, latmax=latmax, 
+                                     figsize=figsize)
+
+        # Shaded topo
+        if shadedtopo is not None:
+            smooth = shadedtopo['smooth']
+            al = shadedtopo['alpha']
+            zo = shadedtopo['zorder']
+            fig.shadedTopography(smooth=smooth, alpha=al, zorder=zo)
+
+        # Draw the coastlines
+        if drawCoastlines:
+            fig.drawCoastlines(landcolor=landcolor, seacolor=seacolor, 
+                               drawOnFault=True, zorder=0)
+
+        # Get the data to plot
+        if type(data) is str:
+            try:
+                d = self.getattr(data)
+            except:
+                d = data
+        else:
+            d = data
+
+        # Special case
+        if data=='time':
+            tmin = np.min(self.time)
+            d = np.array([(t-tmin).days for t in self.time]) 
+            cblabel = 'Days since {}'.format(tmin.date().isoformat())
+
+        # Size 
+        if type(markersize) in (float, int):
+            markersize = np.log(self.mag**markersize)
+
+        # Plot earthquakes
+        fig.earthquakes(self, plot='2d3d', color=d, markersize=markersize,
+                              norm=norm, colorbar=colorbar, cbaxis=cbaxis, 
+                              cmap=cmap, cborientation=cborientation, cblabel=cblabel, 
+                              zorder=2, alpha=alpha, linewidth=linewidth)
+
+        # Plot the fault trace if asked
+        if faults is not None:
+            if type(faults) is not list:
+                faults = [faults]
+            for fault in faults:
+                if fault.type=="Fault":
+                    fig.faulttrace(fault, zorder=2)
+
+        # Title
+        title = '{} - {} '.format(self.name, data)
+        fig.titlemap(title, y=titleyoffset)
+
+        # Show
+        if show:
+            fig.show(showFig=['map', 'fault'])
+        
+        # Save the whole thing
+        self.fig = fig
+
+        # All done
+        return
 
 #PRIVATE METHODS
     def _getDistance2Fault(self, fault):

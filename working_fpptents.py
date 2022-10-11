@@ -33,43 +33,20 @@ class faultpostproctents(object):
         self.utmzone = fault.utmzone
         self.sourceDepths = None
         self.numNodes = len(fault.tent)
+        self.numPatches = len(fault.patch)
  
-        # Create the interpolating sources
-        if not hasattr(self.fault, 'sourceNumber'):
-            self.fault.sourceNumber = npoints
-        if not hasattr(self.fault, 'plotSources'):
-            print("--Interpolate data inside tent patches--")
-            from .EDKSmp import dropSourcesInPatches as Patches2Sources
-            Ids, xs, ys, zs, strike, dip, Areas = Patches2Sources(self.fault, verbose=self.verbose)  
-            self.fault.plotSources = [Ids, xs, ys, zs, strike, dip, Areas] 
-
-        # Get the interpolating sources
-        Ids, xs, ys, zs, strike, dip, Areas = self.fault.plotSources
-        Lon, Lat = self.fault.xy2ll(xs, ys)
-        X, Y, Z = xs, ys, zs
-
-        # Store what is needed (one source, not three)
-        self.lon = Lon
-        self.lat = Lat
-        self.x = X
-        self.y = Y
-        self.depth = Z
-        self.areas = Areas
-        self.strike = strike
-        self.dip = dip
-        self.ids = Ids
-
-        # Get number of Nodes
-        self.numSources = len(self.ids)
-
-        # Create the slip vector
-        self.setSlipToSources()
+        # Get some geometrical informations
+        self.areas = np.array([super(self.fault.class, self.fault).patchArea(p) \
+                for p in self.fault.patch])
+        self.strike = super(self.fault.class, self.fault).getStrikes()
+        self.dip = super(self.fault.class, self.fault).getDips()
+        self.depth = super(self.fault.class, self.fault).getDepths()
 
         # Assign Mu to each node
         if len(np.array(Mu).flatten())==1:
-            self.Mu = Mu * np.ones((self.numSources,))
+            self.Mu = Mu * np.ones((self.numPatches,))
         else:
-            assert len(Mu)==self.numSources, 'length of Mu must be 1 or numPatch'
+            assert len(Mu)==self.numPatches, 'length of Mu must be 1 or {}'.format(self.numPatches)
             self.Mu = np.array(Mu)
             
         # Display
@@ -80,6 +57,29 @@ class faultpostproctents(object):
 
         # Check to see if we're reading in an h5 file for posterior samples
         self.samplesh5 = samplesh5
+
+        # All done
+        return
+
+    def computeMomentTensor(self):
+        '''
+        Computes the full seismic (0-order) moment tensor from the slip distribution.
+        '''
+
+        # Compute the tensor for each subsource
+        self.computePatchesMoments()
+        
+        # Sum
+        M = self.Moments.sum(axis=0)
+
+        # Check if symmetric
+        self.checkSymmetric(M)
+
+        # Store it (Aki convention)
+        self.Maki = M
+
+        # Convert it to Harvard
+        self.Aki2Harvard()
 
         # All done
         return
@@ -124,7 +124,6 @@ class faultpostproctents(object):
                 self.fault.slip = np.zeros((self.numNodes,3,nsamples))
                 self.fault.slip[:,0,:] = samples[::decim,indss[0]:indss[1]].T
                 self.fault.slip[:,1,:] = samples[::decim,indds[0]:indds[1]].T
-
 
             self.h5 = True # set flag for the rest of the process
 
@@ -171,26 +170,6 @@ class faultpostproctents(object):
         # All done
         return
 
-    def setSlipToSources(self):
-        '''
-        Takes the slip vector from a fault and organize the slip vector of the postprocessing tool.
-        '''
-
-        # Get values
-        X = self.x
-        Y = self.y
-        Z = self.depth
-        Ids = self.ids
-
-        # Get the corresponding Slip distribution
-        slip = []
-        for i in range(3):
-            slip.append(self.fault._getSlipOnSubSources(Ids, X, Y, Z, self.fault.slip[:,i]))
-        self.slip = np.array(slip).T
-
-        # All done
-        return
-
     def h5_finalize(self):
         '''
         Close the (potentially) open h5 file.
@@ -220,9 +199,9 @@ class faultpostproctents(object):
 
         return self.fault.xy2ll(x, y)
 
-    def sourceNormal(self):
+    def patchNormal(self):
         '''
-        Returns the Normal of the subsources
+        Returns the Normal of the patches
         '''
 
         # Get the geometry of the subSources
@@ -239,16 +218,25 @@ class faultpostproctents(object):
 
     def slipVector(self):
         '''
-        Returns the slip vector in the cartesian space for all subsources. We do not deal with 
-        the opening component. The fault slip may be a 3D array for multiple samples of slip.
+        Returns the average slip vector in the cartesian space for each patch. 
+        We do not deal with the opening component. The fault slip may be a 3D 
+        array for multiple samples of slip. 
+        The average slip is to be used in the moment computation, multiplied 
+        by the area to get the integral of slip along the patch (integral of 
+        a linearly interpolated quantity is the average times the area).
         '''
 
         # Get the geometry of the patch
         strike, dip = self.strike, self.dip
 
         # Get the slip
-        strikeslip, dipslip = self.slip[:,0,...], self.slip[:,1,...]
-        slip = np.sqrt(strikeslip**2 + dipslip**2)
+        strikeslip = [np.mean([self.slip[v[0],0,...],
+                               self.slip[v[1],0,...],
+                               self.slip[v[2],0,...]]) for v in self.fault.Faces]
+        dipslip = [np.mean([self.slip[v[0],1,...],
+                            self.slip[v[1],1,...],
+                            self.slip[v[2],1,...]]) for v in self.fault.Faces]
+        slip = np.sqrt(np.array(strikeslip)**2 + np.array(dipslip)**2)
 
         # Get the rake
         rake = np.arctan2(dipslip, strikeslip)
@@ -268,17 +256,17 @@ class faultpostproctents(object):
         else:
             return np.array([ux, uy, uz]).T
 
-    def computeSourcesMoments(self) :
+    def computePatchesMoments(self) :
         '''
         Computes the Moment tensors for all subsources.
         '''
 
         # Get the normal
-        normals = self.sourceNormal()
+        normals = self.patchNormal()
 
         # Get the slip vector
-        slip = self.slipVector()
         if self.verbose: print("WARNING : assume slip is already in meters")
+        slip = self.slipVector()
 
         # Compute the moment density
         if slip.ndim == 2:
@@ -550,7 +538,7 @@ class faultpostproctents(object):
         from numpy.linalg import eigh
 
         # Get Mout in the righ tconvention
-        if form=='aki':
+        if form is 'aki':
             Mout = self._aki2harvard(Mout)
 
         # Calculate the Eigenvectors for Mout
@@ -782,7 +770,7 @@ class faultpostproctents(object):
         else:
             fout = sys.stdout
 
-        if form=='full':
+        if form is 'full':
             # Write the BS header
             fout.write(' PDE 1999  1  1  9 99 99.00  99.9900   99.9900  99.0 5.3 5.0 BULLSHIT \n')
             fout.write('event name:    thebigbaoum \n')
@@ -797,7 +785,7 @@ class faultpostproctents(object):
             fout.write('Mrt:           {:7e}       \n'.format(M[0,1]*1e7))
             fout.write('Mrp:           {:7e}       \n'.format(M[0,2]*1e7))
             fout.write('Mtp:           {:7e}       \n'.format(M[1,2]*1e7))
-        elif form=='line':
+        elif form is 'line':
             # get the largest mantissa
             mantissa = 0
             A = [M[0,0], M[1,1], M[2,2], M[0,1], M[0,2], M[1,2]]

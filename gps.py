@@ -12,6 +12,8 @@ import os
 import copy
 import sys
 
+import shapely.geometry as geom
+
 # Personals
 from .SourceInv import SourceInv
 from .gpstimeseries import gpstimeseries
@@ -555,18 +557,18 @@ class gps(SourceInv):
         self.profiles[name] = {}
 
         # What data do we want
-        if data is 'data':
+        if data == 'data':
             values = self.vel_enu
             self.profiles[name]['data type'] = 'data'
-        elif data is 'synth':
+        elif data == 'synth':
             values = self.synth
             self.profiles[name]['data type'] = 'synth'
-        elif data is 'res':
+        elif data == 'res':
             values = self.vel_enu - self.synth
-            self.profiles[name]['data_type'] = 'res'
-        elif data is 'transformation':
+            self.profiles[name]['data type'] = 'res'
+        elif data == 'transformation':
             values = self.transformation
-            self.profiles[name]['data_type'] = 'transformation'
+            self.profiles[name]['data type'] = 'transformation'
 
         # Convert the lat/lon of the center into UTM.
         xc, yc = self.ll2xy(loncenter, latcenter)
@@ -624,18 +626,18 @@ class gps(SourceInv):
         dic['Length'] = length
         dic['Width'] = width
         dic['Box'] = np.array(boxll)
-        dic['Normal Velocity'] = np.array(Vacros)
-        dic['Normal Error'] = np.array(Eacros)
-        dic['Parallel Velocity'] = np.array(Valong)
-        dic['Parallel Error'] = np.array(Ealong)
+        dic['Parallel Velocity'] = np.array(Vacros)
+        dic['Parallel Error'] = np.array(Eacros)
+        dic['Normal Velocity'] = np.array(Valong)
+        dic['Normal Error'] = np.array(Ealong)
         dic['Vertical Velocity'] = np.array(Vup)
         dic['Vertical Error'] = np.array(Eup)
         dic['Distance'] = np.array(Dalong)
         dic['Normal Distance'] = np.array(Dacros)
         dic['Stations'] = names
         dic['EndPoints'] = [[xe1, ye1], [xe2, ye2]]
-        lone1, late1 = self.putm(xe1*1000., ye1*1000., inverse=True)
-        lone2, late2 = self.putm(xe2*1000., ye2*1000., inverse=True)
+        lone1, late1 = self.xy2ll(xe1,ye1)
+        lone2, late2 = self.xy2ll(xe2,ye2)
         dic['EndPointsLL'] = [[lone1, late1],
                               [lone2, late2]]
         dic['Vectors'] = [vec1, vec2]
@@ -707,7 +709,8 @@ class gps(SourceInv):
         # all done
         return
 
-    def plotprofile(self, name, legendscale=10., fault=None, data=['parallel', 'normal', 'vertical'], show=True):
+    def plotprofile(self, name, legendscale=10., fault=None, data=['parallel', 'normal', 'vertical'], 
+                    show=True, figsize=None, colorbar=False, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel=''):
         '''
         Plot profile.
 
@@ -732,7 +735,8 @@ class gps(SourceInv):
             vertical=True
         else:
             vertical=False
-        self.plot(faults=fault, figure=None, show=False, legendscale=legendscale, vertical=vertical)
+        self.plot(faults=fault, figure=None, show=False, legendscale=legendscale, vertical=vertical, figsize=figsize, 
+                  colorbar=colorbar, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel)
 
         # plot the box on the map
         b = self.profiles[name]['Box']
@@ -749,7 +753,7 @@ class gps(SourceInv):
         self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=0)
 
         # open a figure
-        fig = plt.figure()
+        fig = plt.figure(figsize=figsize)
         prof = fig.add_subplot(111)
 
         # plot the profile
@@ -814,9 +818,6 @@ class gps(SourceInv):
         # Grab the profile
         prof = self.profiles[name]
 
-        # import shapely
-        import shapely.geometry as geom
-        
         # Build a linestring with the profile center
         Lp = geom.LineString(prof['EndPoints'])
 
@@ -849,7 +850,7 @@ class gps(SourceInv):
         # All done
         return d
 
-    def read_from_en(self, velfile, factor=1., minerr=1., header=0):
+    def read_from_en(self, velfile, factor=1., minerr=1., header=0, error='std'):
         '''
         Reading velocities from a en file formatted as:
 
@@ -867,6 +868,7 @@ class gps(SourceInv):
             * factor    : multiplication factor for velocities
             * minerr    : if err=0, then err=minerr.
             * header    : length of the file header
+            * error     : if 'variance', then np.sqrt(err) is taken. Default is 'std'
 
         Returns:
             * None
@@ -907,6 +909,106 @@ class gps(SourceInv):
                 east = np.float(A[5])
                 north = np.float(A[6])
                 up = 0.0
+                if east == 0.:
+                    east = minerr
+                if north == 0.:
+                    north = minerr
+                if up == 0:
+                    up = minerr
+                if error in ('variance'):
+                    east = np.sqrt(east)
+                    north = np.sqrt(north)
+                    up = np.sqrt(up)
+                self.err_enu.append([east, north, up])
+
+        # Make np array with that
+        self.lon = np.array(self.lon).squeeze()
+        self.lat = np.array(self.lat).squeeze()
+        self.vel_enu = np.array(self.vel_enu).squeeze()*factor
+        self.err_enu = np.array(self.err_enu).squeeze()*factor
+        self.station = np.array(self.station).squeeze()
+        self.factor = factor
+
+        # set lon to (0, 360.)
+        self._checkLongitude()
+
+        # Pass to xy 
+        self.lonlat2xy()
+
+        # All done
+        return
+
+    def read_from_midas(self, velfile, stationfile, factor=1., minerr=1., 
+                              header=0, checkNaNs=True):
+        '''
+        Reading velocities from a file produced by the midas tool. Details are available here: http://geodesy.unr.edu/
+
+        Args:
+            * velfile       : Input file
+            * stationfile   : File of the list of stations
+
+        Kwargs:
+            * factor    : multiplication factor for velocities
+            * minerr    : if err=0, then err=minerr.
+            * header    : length of the header
+            * checkNaNs : If True, kicks out stations with NaNs
+
+        Returns:
+            * None
+        '''
+
+        if self.verbose:
+            print ("Read data from file {} into data set {}".format(velfile, 
+                                                                    self.name))
+
+        # Keep the file
+        self.velfile = velfile
+
+        # open the file
+        fvel = open(self.velfile, 'r')
+
+        # read it 
+        Vel = fvel.readlines()
+
+        # Initialize things
+        self.lon = []           # Longitude list
+        self.lat = []           # Latitude list
+        self.vel_enu = []       # ENU velocities list
+        self.err_enu = []       # ENU errors list
+        self.station = []       # Name of the stations
+
+        # Get station info
+        stationInfos = open(stationfile, 'r').readlines() 
+
+        for i in range(header,len(Vel)):
+
+            A = Vel[i].split()
+            if 'nan' not in A or not checkNaNs:
+
+                self.station.append(A[0])
+
+                # Get lon/lat from station file
+                stationInfo = [l for l in stationInfos if A[0] in l]
+                if len(stationInfo)==0:
+                    continue
+
+                # Otherwise, get the station info
+                lon = float(stationInfo[0].split()[2])
+                lat = float(stationInfo[0].split()[1])
+                if lon<0.:
+                    lon += 360.
+                self.lon.append(lon)
+                self.lat.append(lat)
+
+                # Deal with velocities
+                east = np.float(A[8])
+                north = np.float(A[9])
+                up = np.float(A[10])
+                self.vel_enu.append([east, north, up])
+
+                east = np.float(A[11])
+                north = np.float(A[12])
+                up = np.float(A[13])
                 if east == 0.:
                     east = minerr
                 if north == 0.:
@@ -1482,28 +1584,8 @@ class gps(SourceInv):
             * None
         '''
 
-        # Import stuff
-        import shapely.geometry as geom
-
-        # Check something 
-        if faults.__class__ is not list:
-            faults = [faults]
-
-        # Build a line object with the fault
-        mll = []
-        for f in faults:
-            xf = f.xf
-            yf = f.yf
-            mll.append(np.vstack((xf,yf)).T.tolist())
-        Ml = geom.MultiLineString(mll)
-
-        # Build the distance map
-        d = []
-        for i in range(len(self.x)):
-            p = [self.x[i], self.y[i]]
-            PP = geom.Point(p)
-            d.append(Ml.distance(PP))
-        d = np.array(d)
+        # Compute the distance to the fault or faults
+        d = self.distance2fault(faults)
 
         # Find the close ones
         u = np.where(d>=dis)[0].tolist()
@@ -1526,8 +1608,28 @@ class gps(SourceInv):
             * None
         '''
 
-        # Import stuff
-        import shapely.geometry as geom
+        # Compute the distance to the fault or faults
+        d = self.distance2fault(faults)
+
+        # Find the close ones
+        u = np.where(d<=dis)[0].tolist()
+        
+        # reject them
+        self.reject_stations(self.station[u].tolist())
+
+        # All done
+        return
+
+    def distance2fault(self, faults):
+        ''' 
+        Computes the distance between the GPS stations and a list of faults.
+
+        Args:
+            * faults    : list of faults
+
+        Return:
+            * d         : distance
+        '''
 
         # Check something 
         if faults.__class__ is not list:
@@ -1547,16 +1649,8 @@ class gps(SourceInv):
             p = [self.x[i], self.y[i]]
             PP = geom.Point(p)
             d.append(Ml.distance(PP))
-        d = np.array(d)
 
-        # Find the close ones
-        u = np.where(d<=dis)[0].tolist()
-        
-        # reject them
-        self.reject_stations(self.station[u].tolist())
-
-        # All done
-        return
+        return np.array(d)
 
     def reject_stations(self, station):
         '''
@@ -1723,11 +1817,6 @@ class gps(SourceInv):
             * None
         '''
 
-        # Initialize the variables
-        GssE = None; GdsE = None; GtsE = None; GcpE = None
-        GssN = None; GdsN = None; GtsN = None; GcpN = None
-        GssU = None; GdsU = None; GtsU = None; GcpU = None
-
         # Check components
         east  = False
         north = False
@@ -1738,69 +1827,152 @@ class gps(SourceInv):
         if vertical and np.isnan(self.vel_enu[:,2]).any():
             raise ValueError('vertical can only be true if all stations have vertical components')
 
-        # Get the 3 components
-        try:
-            Gss = G['strikeslip']
-        except:
-            Gss = None
-        try:
-            Gds = G['dipslip']
-        except: 
-            Gds = None
-        try:
-            Gts = G['tensile']
-        except:
-            Gts = None
-        try: 
-            Gcp = G['coupling']
-        except:
-            Gcp = None
+        nd = self.vel_enu.shape[0]
 
-        # Get the values
-        if Gss is not None:
-            N = 0
-            if east:
-                GssE = Gss[range(0,self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if north:
-                GssN = Gss[range(N,N+self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if vertical:
-                GssU = Gss[range(N,N+self.vel_enu.shape[0]),:]
-        if Gds is not None:
-            N = 0
-            if east:
-                GdsE = Gds[range(0,self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if north:
-                GdsN = Gds[range(N,N+self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if vertical:
-                GdsU = Gds[range(N,N+self.vel_enu.shape[0]),:]
-        if Gts is not None:
-            N = 0
-            if east:
-                GtsE = Gts[range(0,self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if north:
-                GtsN = Gts[range(N,N+self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if vertical:
-                GtsU = Gts[range(N,N+self.vel_enu.shape[0]),:]
-        if Gcp is not None:
-            N = 0
-            if east:
-                GcpE = Gcp[range(0,self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if north:
-                GcpN = Gcp[range(N,N+self.vel_enu.shape[0]),:]
-                N += self.vel_enu.shape[0]
-            if vertical:
-                GcpU = Gcp[range(N,N+self.vel_enu.shape[0]),:]
+        if fault.type=="Fault":
 
-        # set the GFs
-        fault.setGFs(self, strikeslip=[GssE, GssN, GssU], dipslip=[GdsE, GdsN, GdsU],
-                    tensile=[GtsE, GtsN, GtsU], coupling=[GcpE, GcpN, GcpU], vertical=vertical)
+            # Initialize the variables
+            GssE = None; GdsE = None; GtsE = None; GcpE = None
+            GssN = None; GdsN = None; GtsN = None; GcpN = None
+            GssU = None; GdsU = None; GtsU = None; GcpU = None
+
+            # Get the 3 components
+            try:
+                Gss = G['strikeslip']
+            except:
+                Gss = None
+            try:
+                Gds = G['dipslip']
+            except: 
+                Gds = None
+            try:
+                Gts = G['tensile']
+            except:
+                Gts = None
+            try: 
+                Gcp = G['coupling']
+            except:
+                Gcp = None
+
+            # Get the values
+            if Gss is not None:
+                N = 0
+                if east:
+                    GssE = Gss[range(0,nd),:]
+                    N += nd
+                if north:
+                    GssN = Gss[range(N,N+nd),:]
+                    N += nd
+                if vertical:
+                    GssU = Gss[range(N,N+nd),:]
+            if Gds is not None:
+                N = 0
+                if east:
+                    GdsE = Gds[range(0,nd),:]
+                    N += nd
+                if north:
+                    GdsN = Gds[range(N,N+nd),:]
+                    N += nd
+                if vertical:
+                    GdsU = Gds[range(N,N+nd),:]
+            if Gts is not None:
+                N = 0
+                if east:
+                    GtsE = Gts[range(0,nd),:]
+                    N += nd
+                if north:
+                    GtsN = Gts[range(N,N+nd),:]
+                    N += nd
+                if vertical:
+                    GtsU = Gts[range(N,N+nd),:]
+            if Gcp is not None:
+                N = 0
+                if east:
+                    GcpE = Gcp[range(0,nd),:]
+                    N += nd
+                if north:
+                    GcpN = Gcp[range(N,N+nd),:]
+                    N += nd
+                if vertical:
+                    GcpU = Gcp[range(N,N+nd),:]
+
+            # set the GFs
+            fault.setGFs(self, strikeslip=[GssE, GssN, GssU], dipslip=[GdsE, GdsN, GdsU],
+                        tensile=[GtsE, GtsN, GtsU], coupling=[GcpE, GcpN, GcpU], vertical=vertical)
+
+        elif fault.type=='Pressure':
+
+            # Initialize
+            GpE = None; GpN = None; GpU = None
+            GdvxE = None; GdvxN = None; GdvxU = None
+            GdvyE = None; GdvyN = None; GdvyU = None
+            GdvzE = None; GdvzN = None; GdvzU = None
+
+            # Tries
+            try:
+                Gp = G['pressure']
+            except:
+                Gp = None
+            try:
+                Gdvx = G['pressureDVx']
+            except:
+                Gdvx = None
+            try:
+                Gdvy = G['pressureDVy']
+            except:
+                Gdvy = None
+            try:
+                Gdvz = G['pressureDVz']
+            except:
+                Gdvz = None
+
+            # Order
+            if Gp is not None:
+                N = 0
+                if east:
+                    GpE = Gp[:nd,:]
+                    N += nd
+                if north:
+                    GpN = Gp[N:N+nd,:]
+                    N += nd
+                if vertical:
+                    GpU = Gp[N:N+nd,:]
+            if Gdvx is not None:
+                N = 0
+                if east:
+                    GdvxE = Gdvx[:nd,:]
+                    N += nd
+                if north:
+                    GdvxN = Gdvx[N:N+nd,:]
+                    N += nd
+                if vertical:
+                    GdvxU = Gdvx[N:N+nd,:]
+            if Gdvy is not None:
+                N = 0
+                if east:
+                    GdvyE = Gdvy[:nd,:]
+                    N += nd
+                if north:
+                    GdvyN = Gdvy[N:N+nd,:]
+                    N += nd
+                if vertical:
+                    GdvyU = Gdvy[N:N+nd,:]
+            if Gdvz is not None:
+                N = 0
+                if east:
+                    GdvzE = Gdvz[:nd,:]
+                    N += nd
+                if north:
+                    GdvzN = Gdvz[N:N+nd,:]
+                    N += nd
+                if vertical:
+                    GdvzU = Gdvz[N:N+nd,:]
+
+            # Organize
+            fault.setGFs(self, deltapressure=[GpE, GpN, GpU], 
+                               GDVx=[GdvxE, GdvxN, GdvxU] , GDVy=[GdvyE, GdvyN, GdvyU], 
+                               GDVz =[GdvzE, GdvzN, GdvzU], 
+                               vertical=vertical)
 
         # All done
         return
@@ -1819,35 +1991,35 @@ class gps(SourceInv):
         '''
 
         # Helmert Transform
-        if transformation is 'full':
+        if transformation == 'full':
             if self.obs_per_station==3:
                 Npo = 7                    # 3D Helmert transform is 7 parameters
             else:
                 Npo = 4                    # 2D Helmert transform is 4 parameters
         # Full Strain (Translation + Strain + Rotation)
-        elif transformation is 'strain':
+        elif transformation == 'strain':
             Npo = 6
         # Strain without rotation (Translation + Strain)
-        elif transformation is 'strainnorotation':
+        elif transformation == 'strainnorotation':
             Npo = 5
         # Strain Only (Strain)
-        elif transformation is 'strainonly':
+        elif transformation == 'strainonly':
             Npo = 3
         # Strain without translation (Strain + Rotation)
-        elif transformation is 'strainnotranslation':
+        elif transformation == 'strainnotranslation':
             Npo = 4
         # Translation
-        elif transformation is 'translation':
+        elif transformation == 'translation':
             Npo = 2
         # Translation and Rotation
-        elif transformation is 'translationrotation':
+        elif transformation == 'translationrotation':
             Npo = 3
         # Uknown
         else:
             return 0
 
         # If verticals
-        if not np.isnan(self.vel_enu[:,2]).any() and transformation is not 'full':
+        if not np.isnan(self.vel_enu[:,2]).any() and transformation != 'full':
             Npo += 1
          
         # If no horizontals
@@ -1872,25 +2044,25 @@ class gps(SourceInv):
         '''
         
         # Helmert Transform
-        if transformation is 'full':
+        if transformation == 'full':
             orb = self.getHelmertMatrix(components=self.obs_per_station)
         # Strain + Rotation + Translation
-        elif transformation is 'strain':
+        elif transformation == 'strain':
             orb = self.get2DstrainEst(computeNormFact=computeNormFact)
         # Strain + Translation
-        elif transformation is 'strainnorotation':
+        elif transformation == 'strainnorotation':
             orb = self.get2DstrainEst(rotation=False, computeNormFact=computeNormFact)
         # Strain
-        elif transformation is 'strainonly':
+        elif transformation == 'strainonly':
             orb = self.get2DstrainEst(rotation=False, translation=False, computeNormFact=computeNormFact)
         # Strain + Rotation
-        elif transformation is 'strainnotranslation':
+        elif transformation == 'strainnotranslation':
             orb = self.get2DstrainEst(translation=False, computeNormFact=computeNormFact)
         # Translation
-        elif transformation is 'translation':
+        elif transformation == 'translation':
             orb = self.get2DstrainEst(strain=False, rotation=False, computeNormFact=computeNormFact)
         # Translation and Rotation
-        elif transformation is 'translationrotation': 
+        elif transformation == 'translationrotation': 
             orb = self.get2DstrainEst(strain=False, computeNormFact=computeNormFact)
         # Unknown case
         else:
@@ -1984,13 +2156,13 @@ class gps(SourceInv):
         # All done
         return
 
-    def removeTransformation(self, fault, custom=False, verbose=False):
+    def removeTransformation(self, fault, custom=False):
         '''
         Removes the transformation that is stored in a fault.
         '''
 
         # Compute the transformation
-        self.computeTransformation(fault, custom=custom, verbose=False)
+        self.computeTransformation(fault, custom=custom)
 
         # Do the correction
         self.vel_enu -= self.transformation
@@ -2226,27 +2398,27 @@ class gps(SourceInv):
         # Get some info
         if write2file or verbose:
             transformation = fault.poly[self.name]
-            if transformation is 'strain':
+            if transformation == 'strain':
                 strain = True
                 translation = True
                 rotation = True
-            elif transformation is 'strainnorotation':
+            elif transformation == 'strainnorotation':
                 strain = True
                 translation = True
                 rotation = False
-            elif transformation is 'strainnotranslation':
+            elif transformation == 'strainnotranslation':
                 strain = True
                 translation = False
                 rotation = True
-            elif transformation is 'translation':
+            elif transformation == 'translation':
                 strain = False
                 rotation = False
                 translation = True
-            elif transformation is 'translationrotation':
+            elif transformation == 'translationrotation':
                 strain = False
                 rotation = True
                 translation = True
-            elif transformation is 'strainonly':
+            elif transformation == 'strainonly':
                 strain = True
                 rotation = False
                 translation = False
@@ -2639,62 +2811,116 @@ class gps(SourceInv):
             # Get the good part of G
             G = fault.G[self.name]
 
-            if ('s' in direction) and ('strikeslip' in G.keys()):
-                Gs = G['strikeslip']
-                Ss = fault.slip[:,0]
-                ss_synth = np.dot(Gs,Ss)
-                N = 0
-                if east:
-                    self.synth[:,0] += ss_synth[0:Nd]
-                    N += Nd
-                if north:
-                    self.synth[:,1] += ss_synth[N:N+Nd]
-                    N += Nd
-                if vertical:
-                    # if ss_synth.size > 2*Nd and east and north:
-                    self.synth[:,2] += ss_synth[N:N+Nd]
-            if ('d' in direction) and ('dipslip' in G.keys()):
-                Gd = G['dipslip']
-                Sd = fault.slip[:,1]
-                ds_synth = np.dot(Gd, Sd)
-                N = 0
-                if east:
-                    self.synth[:,0] += ds_synth[0:Nd]
-                    N += Nd
-                if north:
-                    self.synth[:,1] += ds_synth[N:N+Nd]
-                    N += Nd
-                if vertical:
-                    #if ds_synth.size > 2*Nd and east and north:
-                    self.synth[:,2] += ds_synth[N:N+Nd]
-            if ('t' in direction) and ('tensile' in G.keys()):
-                Gt = G['tensile']
-                St = fault.slip[:,2]
-                op_synth = np.dot(Gt, St)
-                N = 0
-                if east:                
-                    self.synth[:,0] += op_synth[0:Nd]
-                    N += Nd
-                if north:
-                    self.synth[:,1] += op_synth[N:N+Nd]
-                    N += Nd
-                if vertical:
-                    #if op_synth.size > 2*Nd and east and north:
-                    self.synth[:,2] += op_synth[N:N+Nd]
-            if ('c' in direction) and ('coupling' in G.keys()):
-                Gc = G['coupling']
-                Sc = fault.coupling
-                dc_synth = np.dot(Gc,Sc)
-                N = 0
-                if east:
-                    self.synth[:,0] += dc_synth[N:Nd]
-                    N += Nd
-                if north:
-                    self.synth[:,1] += dc_synth[N:N+Nd]
-                    N += Nd
-                if vertical:
-                    #if dc_synth.size > 2*Nd and east and north:
-                    self.synth[:,2] += dc_synth[N:N+Nd]
+            if fault.type=="Fault":
+
+                if ('s' in direction) and ('strikeslip' in G.keys()):
+                    Gs = G['strikeslip']
+                    Ss = fault.slip[:,0]
+                    ss_synth = np.dot(Gs,Ss)
+                    N = 0
+                    if east:
+                        self.synth[:,0] += ss_synth[0:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += ss_synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        # if ss_synth.size > 2*Nd and east and north:
+                        self.synth[:,2] += ss_synth[N:N+Nd]
+                if ('d' in direction) and ('dipslip' in G.keys()):
+                    Gd = G['dipslip']
+                    Sd = fault.slip[:,1]
+                    ds_synth = np.dot(Gd, Sd)
+                    N = 0
+                    if east:
+                        self.synth[:,0] += ds_synth[0:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += ds_synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        #if ds_synth.size > 2*Nd and east and north:
+                        self.synth[:,2] += ds_synth[N:N+Nd]
+                if ('t' in direction) and ('tensile' in G.keys()):
+                    Gt = G['tensile']
+                    St = fault.slip[:,2]
+                    op_synth = np.dot(Gt, St)
+                    N = 0
+                    if east:                
+                        self.synth[:,0] += op_synth[0:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += op_synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        #if op_synth.size > 2*Nd and east and north:
+                        self.synth[:,2] += op_synth[N:N+Nd]
+                if ('c' in direction) and ('coupling' in G.keys()):
+                    Gc = G['coupling']
+                    Sc = fault.coupling
+                    dc_synth = np.dot(Gc,Sc)
+                    N = 0
+                    if east:
+                        self.synth[:,0] += dc_synth[N:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += dc_synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        #if dc_synth.size > 2*Nd and east and north:
+                        self.synth[:,2] += dc_synth[N:N+Nd]
+
+            elif fault.type == "Pressure":
+
+                if fault.source in {"Mogi", "Yang"}:
+                    Gp = G['pressure']
+                    synth = Gp*fault.deltapressure
+                    N = 0
+                    if east:
+                        self.synth[:,0] += synth[N:Nd].squeeze()
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += synth[N:N+Nd].squeeze()
+                        N += Nd
+                    if vertical:
+                        self.synth[:,2] += synth[N:N+Nd].squeeze()
+
+                elif fault.source==("pCDM"):
+                    Gdx = G['pressureDVx']
+                    synthx = np.dot(Gdx,fault.DVx)
+                    Gdy = G['pressureDVy']
+                    synthy = np.dot(Gdy, fault.DVy)
+                    Gdz = G['pressureDVz']
+                    synthz = np.dot(Gdz, fault.DVz)
+                    N = 0
+                    if east:
+                        self.synth[:,0] += synthx[N:N+Nd]
+                        self.synth[:,0] += synthy[N:N+Nd]
+                        self.synth[:,0] += synthz[N:N+Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += synthx[N:N+Nd]
+                        self.synth[:,1] += synthy[N:N+Nd]
+                        self.synth[:,1] += synthz[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        self.synth[:,2] += synthx[N:N+Nd]
+                        self.synth[:,2] += synthy[N:N+Nd]
+                        self.synth[:,2] += synthz[N:N+Nd]
+                        N += Nd
+
+                elif fault.source==("CDM"):
+                    Gp = G['pressure']
+                    synth = Gp*fault.deltaopening
+                    N = 0
+                    if east:
+                        self.synth[:,0] += synth[N:Nd]
+                        N += Nd
+                    if north:
+                        self.synth[:,1] += synth[N:N+Nd]
+                        N += Nd
+                    if vertical:
+                        self.synth[:,2] += synth[N:N+Nd]
 
             if custom:
                 Gc = G['custom']
@@ -2717,7 +2943,7 @@ class gps(SourceInv):
                         if gpsref in ('strain', 'strainonly', 'strainnorotation', 'strainnotranslation'):
                             self.compute2Dstrain(fault)
                             self.synth = self.synth + self.Strain
-                        elif gpsref is 'full':
+                        elif gpsref == 'full':
                             self.computeHelmertTransform(fault)
                             self.synth = self.synth + self.HelmTransform
                     elif type(gpsref) is float:
@@ -2726,7 +2952,7 @@ class gps(SourceInv):
                         if len(gpsref)==3:
                             self.synth += gpsref[2]
 
-        # All done
+    # All done
         return
 
 
@@ -2790,15 +3016,15 @@ class gps(SourceInv):
         fout.write('# Name lon lat v_east v_north v_up e_east e_north e_up \n')
 
         # Get the data 
-        if data is 'data':
+        if data == 'data':
             z = self.vel_enu
-        elif data is 'synth':
+        elif data == 'synth':
             z = self.synth
-        elif data is 'res':
+        elif data == 'res':
             z = self.vel_enu - self.synth
-        elif data is 'strain':
+        elif data == 'strain':
             z = self.Strain
-        elif data is 'transformation':
+        elif data == 'transformation':
             z = self.transformation
         else:
             print('Unknown data type to write...')
@@ -2819,7 +3045,74 @@ class gps(SourceInv):
         # All done 
         return
 
-    def getRMS(self):
+    def write2GMTfile(self, namefile=None, data='data', outDir='./',vertOrHoriz='horiz'):
+        '''
+        Writes GPS data to the GMT psvelo format file, converting units from m to cm
+        Args:
+            * namefile  : Name of the output file.
+            * data      : data, synth, strain, transformation.
+            * vertOrHoriz   : write vertical or horizontal data to file (Default horiz)
+
+        '''
+
+        # Determine file name
+        if namefile is None:
+            filename = ''
+            for a in self.name.split():
+                filename = filename+a+'_'
+            filename = outDir+'/'+filename+data+'.psvelo'
+        else: 
+            filename = outDir+'/'+namefile
+        
+        if self.verbose:        
+            print ("Write {} set {} to file {}".format(data, self.name, filename))
+
+        # open the file
+        fout = open(filename,'w')
+
+        # write a header for psvelo format
+        fout.write('#  longitude   latitude east(cm) north(cm) err_e(cm) err_n(cm) covarXY  site_name\n')
+
+        # Get the data 
+        if data == 'data':
+            z = self.vel_enu
+        elif data == 'synth':
+            z = self.synth
+        elif data == 'res':
+            z = self.vel_enu - self.synth
+        elif data == 'strain':
+            z = self.Strain
+        elif data == 'transformation':
+            z = self.transformation
+        else:
+            print('Unknown data type to write...')
+            return
+
+        z_cm = z.squeeze()*100.    # convert m to cm
+        err_enu_cm = self.err_enu.squeeze()*100.
+
+        # Loop over stations
+        for i in range(len(self.station)):
+            if vertOrHoriz == 'horiz':
+                fout.write('{} {} {} {} {} {} {} {}\n'.format(self.lon[i], self.lat[i], 
+                                                        z_cm[i,0], z_cm[i,1],err_enu_cm[i,0], err_enu_cm[i,1],
+                                                        0.0,self.station[i]))
+            elif vertOrHoriz == 'vert':
+                fout.write('{} {} {} {} {} {} {} {}\n'.format(self.lon[i], self.lat[i], 
+                                                        0.0, z_cm[i,2], 0.0, err_enu_cm[i,2],
+                                                        0.0,self.station[i]))
+            else:
+                print('Unknown data component to write...')
+                return
+
+        # Close file
+        fout.close()
+
+        # All done 
+        return
+
+
+    def getRMS(self, vertical=False):
         '''
         Computes the RMS of the data and if synthetics are computed, the RMS of the residuals
         
@@ -2827,8 +3120,12 @@ class gps(SourceInv):
             * dataRMS, synthRMS: 2 floats
         '''
 
+        # Components
+        ncomp = 2
+        if vertical: ncomp+= 1
+
         # Get the number of points
-        N = self.vel_enu.shape[0] * 3.
+        N = self.vel_enu.shape[0] * ncomp
 
         # RMS of the data
         dataRMS = np.sqrt( 1./N * sum(self.vel_enu.flatten()**2) )
@@ -3320,10 +3617,41 @@ class gps(SourceInv):
         # all done
         return
 
-    def plot(self, faults=None, figure=135, name=False, legendscale=10., scale=None, 
-            plot_los=False, drawCoastlines=True, expand=0.2, show=True, drawCountries=False,
-            vertical=False, verticalsize=[30], extent=None,
-            data=['data'], color=['k']):
+    def createNetwork(self, lonc, latc, expand, nstation, prefix='S'):
+        '''
+        Builds a GPS network with randomly dropped stations within the box. Box is specified
+        by the center (lonc, latc) and its half-size in degrees (expand). {nstation} gives the 
+        number of stations randomly chosen.
+
+        Args:
+            * lonc          : Longitude of the center of the box
+            * latc          : Latitude of the center of the box
+            * expand        : Half-size in degrees of the box
+            * nstation      : Number of stations in the box
+            * prefix        : Station name prefix (number of the station is added)
+        '''
+        
+        # Create lon, lat and names
+        lon, lat, stations = [],[],[]
+
+        # Iterate
+        for i in range(nstation):
+            lon.append(lonc + np.random.rand()*expand*2. - expand)
+            lat.append(latc + np.random.rand()*expand*2. - expand)
+            stations.append('{}{:03d}'.format(prefix,i))
+
+        # Set the stations
+        self.setStat(stations, lon, lat, loc_format='LL', initVel=True)
+
+        # All done
+        return
+
+    def plot(self, faults=None, figure=135, name=False, legendscale=10., scale=None, figsize=None,
+            plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True,
+            colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
+            landcolor='lightgrey', seacolor=None, shadedtopo=None,
+            vertical=False, verticalsize=[30], box=None,
+            data=['data'], color=['k'], titleyoffset=1.1, alpha=1.):
         '''
         Plot the network
 
@@ -3343,30 +3671,43 @@ class gps(SourceInv):
             * figure        : number of the figure.
             * faults        : List of fault objects to plot the surface trace of a fault object (see verticalfault.py).
             * plot_los      : Plot the los projected gps as scatter points
+            * box           : Lon/lat box [lonmin, lonmax, latmin, latmax]
 
         Returns:
             * None
         '''
 
         # Get lons lats
-        if extent is None:
-            lonmin = self.lon.min()-expand
-            lonmax = self.lon.max()+expand
-            latmin = self.lat.min()-expand
-            latmax = self.lat.max()+expand
-        else:
-            assert len(extent)==4, 'Extent format must be: [lonmin, lonmax, latmin, latmax]'
-            lonmin, lonmax, latmin, latmax = extent
+        lonmin = self.lon.min()-expand
+        lonmax = self.lon.max()+expand
+        latmin = self.lat.min()-expand
+        latmax = self.lat.max()+expand
+
+        # This gets override if there is a box for plotting
+        if box is not None:
+            assert len(box)==4, 'box must be 4 floats: box = {}'.format(tuple(box))
+            lonmin, lonmax, latmin, latmax = box
 
         # Create a figure
+        if figsize is not None: 
+            figsize=(figsize,figsize)
+        else:
+            figsize=(None, None)
         fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 
-                                     latmin=latmin, latmax=latmax)
+                                     latmin=latmin, latmax=latmax, 
+                                     figsize=figsize)
+
+        # Shaded topo
+        if shadedtopo is not None:
+            smooth = shadedtopo['smooth']
+            al = shadedtopo['alpha']
+            zo = shadedtopo['zorder']
+            fig.shadedTopography(smooth=smooth, alpha=al, zorder=zo)
 
         # Draw the coastlines
         if drawCoastlines:
-            fig.drawCoastlines(drawLand=True, parallels=5, 
-                               meridians=5, drawOnFault=True, 
-                               drawCountries=drawCountries)
+            fig.drawCoastlines(landcolor=landcolor, seacolor=seacolor, 
+                               drawOnFault=True, zorder=0)
 
         # Plot the fault trace if asked
         if faults is not None:
@@ -3377,16 +3718,24 @@ class gps(SourceInv):
 
         # plot GPS along the LOS
         if plot_los:
-            fig.gps_projected(self, colorbar=True)
+            fig.gpsprojected(self, colorbar=True, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, alpha=alpha)
 
         # Plot verticals?
         if vertical:
-            fig.gpsverticals(self, colorbar=True, data=data, markersize=verticalsize)
+            fig.gpsverticals(self, colorbar=True, data=data, markersize=verticalsize, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, alpha=alpha)
 
         # Plot GPS velocities
-        fig.gps(self, data=data, name=name, 
+        fig.gps(self, data=data, name=name, error=error,
                       legendscale=legendscale, scale=scale, 
-                      color=color)
+                      color=color, alpha=alpha)
+
+        # Set up title
+        title = '{} '.format(self.name)
+        if type(data) is list:
+            for d in data: title += '- {}'.format(d) 
+        else:
+            title += '- {}'.format(data)
+        fig.titlemap(title, y=titleyoffset)
 
         # Save fig
         self.fig = fig

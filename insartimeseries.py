@@ -10,15 +10,13 @@ import pyproj as pp
 import matplotlib.pyplot as plt
 import matplotlib.dates as mpdates
 import sys
-try:
-    import h5py
-except:
-    print('No hdf5 capabilities detected')
 import datetime as dt
 import scipy.interpolate as sciint
+import scipy.io as scio
 import copy
 
 # Personals
+from .csiutils import *
 from .SourceInv import SourceInv
 from .insar import insar
 from .gpstimeseries import gpstimeseries
@@ -67,6 +65,9 @@ class insartimeseries(insar):
         self.corner = None
         self.xycorner = None
         self.Cd = None
+
+        # Save
+        self.verbose = verbose
 
         # All done
         return
@@ -233,13 +234,13 @@ class insartimeseries(insar):
         # Select on latitude and longitude
         u = np.flatnonzero((self.lat>minlat) & (self.lat<maxlat) \
                 & (self.lon>minlon) & (self.lon<maxlon))
-    
-        # Keep pixels
-        self.keepPixels(u)
 
         # Iterate over the timeseries
         for sar in self.timeseries:
             sar.keepPixels(u)
+    
+        # Keep pixels
+        self.keepPixels(u)
 
         # All done
         return
@@ -269,6 +270,28 @@ class insartimeseries(insar):
 
         # All done
         return
+
+    def reference2area(self, lon, lat, radius):
+        '''
+        References the time series to an area. Selects the area and sets all dates to zero at this area.
+
+        Args:
+            * lon       : longitude of the center of the area
+            * lat       : latitude of the center of the area
+            * radius    : Radius of the area
+
+        Returns:
+            * None
+        '''
+
+        # Iterate
+        for insar in self.timeseries:
+            # Reference
+            insar.reference2area(lon, lat, radius)
+
+        # All done
+        return
+
 
     def referenceTimeSeries2Date(self, date):
         '''
@@ -324,6 +347,11 @@ class insartimeseries(insar):
             * None
         '''
 
+        try:
+            import h5py
+        except:
+            print('No hdf5 capabilities detected')
+
         # Open the file
         h5out = h5py.File(h5file, 'w')
 
@@ -342,6 +370,171 @@ class insartimeseries(insar):
         h5out.close()
 
         # All done
+        return
+
+    def readFromKFts(self, h5file, setmaster2zero=None,
+                           zfile=None, lonfile=None, latfile=None, filetype='f',
+                           incidence=None, heading=None, inctype='onefloat', closeh5=True, box=None,
+                           field='rawts', error='rawts_std', keepnan=False, mask=None, readModel=False):
+        '''
+        Read the output from a typical GIAnT h5 output file.
+
+        Args:
+            * h5file        : Input h5file (phase file)
+
+        Kwargs:
+            * setmaster2zero: If index is provided, master will be replaced by zeros (no substraction)
+            * zfile         : File with elevation 
+            * lonfile       : File with longitudes 
+            * latfile       : File with latitudes 
+            * filetype      : type of data in lon, lat and elevation file (default: 'f')
+            * incidence     : Incidence angle (degree)
+            * box           : Crop data (default None), ex: [y0:y1,x0:x1]
+            * heading       : Heading angle (degree)
+            * inctype       : Type of the incidence and heading values (see insar.py for details). Can be 'onefloat', 'grd', 'binary', 'binaryfloat'
+            * field         : Name of the field in the h5 file.
+            * error         : Name of the phase std deviation field.
+            * mask          : Adds a common mask to the data. mask is an array the same size as the data with nans and 1. It can also be a tuple with a key word in the h5file, a value and 'above' or 'under'
+
+        Returns:
+            * None
+        '''
+        try:
+            import h5py
+        except:
+            print('No hdf5 capabilities detected')
+
+        # open the h5file
+        h5in = h5py.File(h5file, 'r')
+        self.h5in = h5in
+
+        # Get the data
+        data = h5in[field]
+        err = h5in[field+'_std']
+
+        # Box
+        if box is None:
+            bbox = [0,data.shape[0],0,data.shape[1]]
+        else:
+            bbox = box
+
+        # Get some sizes
+        nDates = data.shape[2]
+        nLines = bbox[1]-bbox[0]
+        nCols = bbox[3]-bbox[2]
+
+        # Deal with the mask instructions
+        if mask is not None:
+            if type(mask) is tuple:
+                key = mask[0]
+                value = mask[1]
+                instruction = mask[2]
+                mask = np.ones((nLines, nCols))
+                if instruction in ('above'):
+                    mask[np.where(h5in[key][bbox[0]:bbox[1],bbox[2]:bbox[3]]>value)] = np.nan
+                elif instruction in ('under'):
+                    mask[np.where(h5in[key][bbox[0]:bbox[1],bbox[2]:bbox[3]]<value)] = np.nan
+                else:
+                    print('Unknow instruction type for Masking...')
+                    sys.exit(1)
+        else:
+            mask = np.ones((nLines, nCols))
+
+        # Read Lon Lat
+        if lonfile is not None:
+            self.lon = np.fromfile(lonfile, dtype=filetype).reshape((data.shape[0],data.shape[1]))[bbox[0]:bbox[1],bbox[2]:bbox[3]].flatten()
+        if latfile is not None:
+            self.lat = np.fromfile(latfile, dtype=filetype).reshape((data.shape[0],data.shape[1]))[bbox[0]:bbox[1],bbox[2]:bbox[3]].flatten()
+
+        # Compute utm
+        self.x, self.y = self.ll2xy(self.lon, self.lat) 
+
+        # Elevation
+        if zfile is not None:
+            self.elevation = insar('Elevation', utmzone=self.utmzone, 
+                                   verbose=False, lon0=self.lon0, lat0=self.lat0,
+                                   ellps=self.ellps)
+            z = np.fromfile(zfile, dtype=filetype).reshape((data.shape[0],data.shape[1]))[bbox[0]:bbox[1],bbox[2]:bbox[3]].flatten()
+            self.elevation.read_from_binary(z, self.lon, self.lat, 
+                                            incidence=None, heading=None, 
+                                            remove_nan=False, remove_zeros=False, 
+                                            dtype=filetype)
+            self.z = self.elevation.vel
+
+        # Get the time
+        dates = h5in['dates']
+        self.time = []
+        for i in range(nDates):
+            self.time.append(dt.datetime.fromordinal(int(dates[i])))
+
+        # Create a list to hold the dates
+        self.timeseries = []
+
+        # Iterate over the dates
+        for i in range(nDates):
+            
+            # Get things
+            date = self.time[i]
+            if self.verbose:
+                sys.stdout.write('\r Reading {}'.format(date.isoformat()))
+                sys.stdout.flush()
+            dat = data[bbox[0]:bbox[1],bbox[2]:bbox[3],i]*mask[bbox[0]:bbox[1],bbox[2]:bbox[3]]
+            std = err[bbox[0]:bbox[1],bbox[2]:bbox[3],i]*mask[bbox[0]:bbox[1],bbox[2]:bbox[3]]
+
+            # check master date
+            if i is setmaster2zero:
+                dat[:,:] = 0.
+
+            # Create an insar object
+            sar = insar('{} {}'.format(self.name,date.isoformat()), utmzone=self.utmzone, 
+                        verbose=False, lon0=self.lon0, lat0=self.lat0, ellps=self.ellps)
+
+            # Put thing in the insarrate object
+            sar.vel = dat.flatten()
+            sar.err = std.flatten()
+            sar.lon = self.lon
+            sar.lat = self.lat
+            sar.x = self.x
+            sar.y = self.y
+
+            # Things should remain None
+            sar.corner = None
+
+            # Set factor
+            sar.factor = 1.0
+
+            # Take care of the LOS
+            if incidence is not None and heading is not None:
+                assert box is None, 'Incidence cropping not implemented yet'
+                sar.inchd2los(incidence, heading, origin=inctype)
+            else:
+                sar.los = np.zeros((sar.vel.shape[0], 3))
+
+            # Store the object in the list
+            self.timeseries.append(sar)
+
+            # Remove nans
+            if not keepnan:
+                sar.checkNaNs()
+
+        # Keep incidence and heading
+        self.incidence = incidence
+        self.heading = heading
+        self.inctype = inctype
+
+        # Close file if asked
+        if closeh5:
+            h5in.close()
+
+        # Create fakes 
+        self.vel = np.zeros(self.lon.shape)
+        self.err = None
+        if not hasattr(self, 'los'):
+            self.los = None
+        self.synth = None
+        self.corner = None
+
+        # all done
         return
 
     def readFromGIAnT(self, h5file, setmaster2zero=None,
@@ -370,6 +563,10 @@ class insartimeseries(insar):
         Returns:
             * None
         '''
+        try:
+            import h5py
+        except:
+            print('No hdf5 capabilities detected')
 
         # open the h5file
         h5in = h5py.File(h5file, 'r')
@@ -538,6 +735,73 @@ class insartimeseries(insar):
 
         # All done
         return    
+
+    def readFromStamps(self, tsfile, lonlatfile, datefile, setmaster2zero=None,
+                            incidence=None, heading=None, inctype='onefloat', 
+                            keepnan=False):
+        '''
+        Read the output from a typical Stamps mat file
+
+        Returns:
+            * None
+        '''
+
+        # open the h5file
+        ts_file = scio.loadmat(tsfile)
+        lonlat = np.loadtxt(lonlatfile)
+        dates = np.loadtxt(datefile).astype(int)
+        year = np.floor(dates/1e4).astype(int)
+        month = np.floor((dates-year*1e4)/1e2).astype(int)
+        day = np.floor(dates-year*1e4-month*1e2).astype(int)
+
+        # Compute utm
+        self.lon = lonlat[:,0]
+        self.lat = lonlat[:,1]
+        self.x, self.y = self.ll2xy(self.lon, self.lat) 
+
+        # Get the time
+        self.time = [dt.datetime(y, m, d) for y,m,d in zip(year, month, day)]
+
+        # Create a list to hold the dates
+        self.timeseries = []
+
+        # Iterate over the dates
+        for date,phi in zip(self.time, ts_file['ph_disp'].T):
+            
+            # Create an insar object
+            sar = insar('{} {}'.format(self.name,date.isoformat()), utmzone=self.utmzone, 
+                        verbose=False, lon0=self.lon0, lat0=self.lat0, ellps=self.ellps)
+
+            # Put thing in the insarrate object
+            sar.vel = phi
+            sar.lon = self.lon
+            sar.lat = self.lat
+            sar.x = self.x
+            sar.y = self.y
+
+            # Things should remain None
+            sar.corner = None
+            sar.err = None
+
+            # Set factor
+            sar.factor = 1.0
+
+            # Take care of the LOS
+            if incidence is not None and heading is not None:
+                sar.inchd2los(incidence, heading, origin=inctype)
+            else:
+                sar.los = np.zeros((sar.vel.shape[0], 3))
+
+            # Store the object in the list
+            self.timeseries.append(sar)
+
+        # Keep incidence and heading
+        self.incidence = incidence
+        self.heading = heading
+        self.inctype = inctype
+
+        # all done
+        return
 
     def removeDate(self, date):
         '''
@@ -1208,7 +1472,66 @@ class insartimeseries(insar):
         # All done
         return
 
-    def plotProfiles(self, prefix, figure=124, show=True, norm=None, xlim=None, zlim=None, marker='.', color='k'):
+    def write2lonlath5(self, filename, nSamples=None, increments=None, verbose=True):
+        '''
+        Maps the data onto a geocoded h5file.
+
+        Args:
+            * filename      : Output file name
+            * nSamples      : number of points along lon and lat (int or tuple of ints)
+            * increments    : longitude and latitude increments (float or tuple of floats)
+            * verbose       : True/False
+        '''
+        try:
+            import h5py
+        except:
+            print('No hdf5 capabilities detected')
+
+        # Get a lon/lat grid
+        olon, olat, z = lonlatMapping(self.lon, self.lat, self.timeseries[0].vel, nSamples=nSamples, increments=increments, dryRun=True)
+
+        # Open file
+        h5out = h5py.File(filename, 'w')
+
+        # Create holders
+        l = h5out.create_dataset('longitude', data=olon)
+        l.attrs['help'] = 'Longitude'
+
+        l = h5out.create_dataset('latitude', data=olat)
+        l.attrs['help'] = 'Latitude'
+
+        l = h5out.create_dataset('time', data=np.array([t.isoformat() for t in self.time]).astype(np.string_))
+        l.attrs['help'] = 'Time'
+
+        l = h5out.create_dataset('rawts', shape=(olat.shape[0], olat.shape[1], len(self.time)))
+        l.attrs['help'] = 'Geocoded time series'
+
+        # Iterate over the frames
+        for isar,sar in enumerate(self.timeseries):
+
+            # Show me
+            if verbose:
+                sys.stdout.write('\r {} '.format(self.time[isar].isoformat()))
+                sys.stdout.flush()
+
+            # Interpolate
+            olon, olat, z = lonlatMapping(self.lon, self.lat, sar.vel, nSamples=nSamples, increments=increments)
+
+            # Save
+            l[:,:,isar] = z
+
+        # Printing
+        if verbose:
+            print('')
+
+        # Close file
+        h5out
+
+        # All done
+        return
+
+    def plotProfiles(self, prefix, figure=124, show=True, norm=None, xlim=None, zlim=None, marker='.', color='k', line=False, linewidth=2, figsize=(20, 20), 
+            view=None, markersize=0.1, aspectRatio=1.):
         '''
         Plots the profiles in 3D plot.
 
@@ -1223,14 +1546,29 @@ class insartimeseries(insar):
             * zlim          : tuple of upper and lower limit along the z-axis (removes the points before plotting)
             * marker        : matplotlib marker style
             * color         : matplotlib color style
+            * line          : If True, plots a line (default is False)
+            * linewidth     : controls the width of the line
+            * view          : list of elevation angle and azimuth (default is None)
+            * aspectRatio   : aspect of the z-axis with respect to other axis
 
         Returns:
             * None
         '''
 
+        # Imports
+        import matplotlib.colors as colors
+        import matplotlib.cm as cmx
+
         # Create the figure
-        fig = plt.figure(figure)
+        fig = plt.figure(figure, figsize=figsize)
         ax = fig.add_subplot(111, projection='3d')
+
+        # Try to get a color map out of color. 
+        #try:
+        cmap = plt.get_cmap(color)
+        cNorm = colors.Normalize(0 , (self.time[-1] - self.time[0]).days/365.24)
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
+        #except:
 
         # loop over the profiles to plot these
         for date, sar in zip(self.time, self.timeseries):
@@ -1266,12 +1604,25 @@ class insartimeseries(insar):
             nDate = [date.toordinal() for i in range(len(distance))]
                 
             # Plot that
-            ax.plot3D(nDate, distance, values, 
-                      marker=marker, color=color, linewidth=0.0 )
+            if not line:
+                ax.plot3D(nDate, distance, values, 
+                          marker=marker, color=scalarMap.to_rgba((date-self.time[0]).days/365.24), 
+                          linewidth=0.0, markersize=markersize)
+            else:
+                ax.plot3D(nDate, distance, values, '-', 
+                          color=color, linewidth=linewidth)
+
+        # Aspect
+        if aspectRatio>1. or aspectRatio<0.: aspectRatio=1.
+        ax.set_box_aspect((1.,1.,aspectRatio))
 
         # norm
         if norm is not None:
             ax.set_zlim(norm[0], norm[1])
+
+        # View
+        if view is not None:
+            ax.view_init(elev=view[0], azim=view[1])
 
         # If show
         if show:

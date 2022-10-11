@@ -54,36 +54,6 @@ class gpstimeseries(SourceInv):
         # All done
         return
 
-    def lonlat2xy(self):
-        '''
-        Pass the position into the utm coordinate system.
-
-        Returns:
-            * None
-        '''
-
-        x, y = self.putm(self.lon, self.lat)
-        self.x = x/1000.
-        self.y = y/1000.
-
-        # All done
-        return
-
-    def xy2lonlat(self):
-        '''
-        Pass the position from utm to lonlat.
-
-        Returns:
-            * None
-        '''
-
-        lon, lat = self.putm(x*1000., y*1000.)
-        self.lon = lon
-        self.lat = lat
-
-        # all done
-        return
-
     def read_from_file(self, filename, verbose=False):
         '''
         Reads the time series from a file which has been written by write2file

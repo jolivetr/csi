@@ -118,7 +118,7 @@ class transformation(SourceInv):
         for data, transformation in zip(datas, transformations):
             
             # Check something
-            assert data.dtype in ('insar', 'gps', 'tsunami', 'multigps', 'opticorr'), \
+            assert data.dtype in ('insar', 'gps', 'tsunami', 'multigps', 'opticorr', 'surfaceslip'), \
                     'Unknown data type {}'.format(data.dtype)
 
             # Check the GFs
@@ -127,26 +127,31 @@ class transformation(SourceInv):
             # Save
             self.transformations[data.name] = transformation
 
-            # A case that will need to change in the future
-            if data.dtype in ('gps') and transformation=='strain':
-                T = data.getTransformEstimator('strainonly', computeNormFact=False)
-            else:
-                T = data.getTransformEstimator(transformation, computeNormFact=False)
+            # Check iterations
+            if type(transformation) is not list:
+                transformation = [transformation]
 
-            # One case is tricky so we build strings
-            trans = '{}'.format(transformation)
-            self.G[data.name][trans] = T
+            for trans in transformation:
+                if data.dtype in ('gps','multigps') and trans=='strain':
+                    T = data.getTransformEstimator('strainonly', computeNormFact=False)
+                else:
+                    T = data.getTransformEstimator(trans, computeNormFact=False)
+                # One case is tricky so we build strings
+                if type(trans) is list:
+                    trans = ''.join(itertools.chain.from_iterable(trans))
+                self.G[data.name][trans] = T
 
             # Set data in the GFs
-            if data.dtype == 'insar':
+            if data.dtype in ('insar', 'surfaceslip'):
                 self.d[data.name] = data.vel
             elif data.dtype == 'tsunami':
                 self.d[data.name] = data.d
             elif data.dtype in ('gps', 'multigps'):
-                if not np.isnan(data.vel_enu[:,2]).any():
-                    self.d[data.name] = data.vel_enu.T.flatten()
-                else:
-                    self.d[data.name] = data.vel_enu[:,0:2].T.flatten()
+                locdat = []
+                for i in range(3):
+                    if not np.isnan(data.vel_enu[:,i]).any():
+                        locdat.append(data.vel_enu[:,i])
+                    self.d[data.name] = np.array(locdat).flatten()
             elif data.dtype == 'opticorr':
                 self.d[data.name] = np.hstack((data.east.T.flatten(),
                                                data.north.T.flatten()))
@@ -229,7 +234,7 @@ class transformation(SourceInv):
         data.TransformNormalizingFactor['base'] = base_max
 
         # Special case of a multigps dataset
-        if data.dtype is 'multigps':
+        if data.dtype=='multigps':
             for d in data.gpsobjects:
                 self.computeTransformNormFactor(d)
 
@@ -389,7 +394,9 @@ class transformation(SourceInv):
             if Nplocal > 0:
                 assert all([self.G[dname][trans].shape[0]==Ndlocal \
                             for trans in self.G[dname]]),\
-                            'GFs size issue for data set {}'.format(dname)
+                            'GFs size issue for data set {}: {} vs {}'.format(dname, 
+                                    self.G[dname][trans].shape[0], 
+                                    Ndlocal)
             dindex[dname] = (Nd, Nd+Ndlocal)
             Nd += Ndlocal
 
@@ -430,7 +437,7 @@ class transformation(SourceInv):
                     G[Nds:Nde,:3] = Glocal
                 elif trans is None:
                     self.transOrder.append('{} --//-- {}'.format(dname, trans))
-                    self.transIndices.append((Npl, Npe))
+                    self.transIndices.append(None)
                 else:
                     Npe = Npl + Glocal.shape[1]
                     G[Nds:Nde,Npl:Npe] = Glocal
@@ -498,7 +505,7 @@ class transformation(SourceInv):
 
         # remove
         for data in datas:
-            data.removeTransformation(self, verbose=verbose)
+            data.removeTransformation(self)
             
         # All done
         return
@@ -538,7 +545,7 @@ class transformation(SourceInv):
 
         # Iterate over transOrder
         for datatrans, index in zip(self.transOrder[start:], self.transIndices[start:]):
-            
+
             # Get names
             dname, trans = datatrans.split(' --//-- ')
 
@@ -551,7 +558,11 @@ class transformation(SourceInv):
             # Check
             if dname not in self.m:
                 self.m[dname] = {}
-            self.m[dname][trans] = self.mpost[index[0]:index[1]]
+
+            if index is not None:
+                self.m[dname][trans] = self.mpost[index[0]:index[1]]
+            else:
+                self.m[dname][trans] = None
 
         # Consistency
         self.polysol = self.m

@@ -13,6 +13,12 @@ import matplotlib.path as path
 import scipy.spatial.distance as scidis
 import copy
 import sys, os
+import cartopy.io.shapereader as shpreader
+import shapely.geometry as sgeom
+from shapely.ops import unary_union
+from shapely.prepared import prep
+#import shapely.speedups
+#shapely.speedups.enable()
 
 # Personals
 from .SourceInv import SourceInv
@@ -159,13 +165,54 @@ class insar(SourceInv):
             uLos = np.array([])
 
         # Concatenate all these guys
-        uRemove = np.concatenate((uVel, uErr, uLon, uLat, uLos))
+        uRemove = np.concatenate((uVel, uErr, uLon, uLat, uLos)).astype(int)
+        uRemove = np.unique(uRemove)
 
         # Reject pixels
-        self.reject_pixel(uRemove)
+        self.deletePixels(uRemove)
 
         # All done
         return
+
+    def checkLand(self, resolution='fine', reject=True):
+        '''
+        Checks whether pixels are inland or in water.
+
+        Args:
+            * resolution: Cartopy resolution. Can be fine, coarse or auto
+            * refect: deletes the pixels if True. If False, returns a list of booleans
+        '''
+
+        # Resolution 
+        if resolution == 'auto' or resolution == 'intermediate':
+            resolution = '50m'
+        elif resolution == 'coarse' or resolution == 'low':
+            resolution = '110m'
+        elif resolution == 'fine':            
+            resolution = '10m'
+        else:
+            assert False, 'Unknown resolution : {}'.format(resolution)
+
+        # Get data from cartopy
+        land_shp_fname = shpreader.natural_earth(resolution=resolution,                               
+                                                         category='physical', name='land')                    
+        
+        # Check it
+        land_geom = unary_union(list(shpreader.Reader(land_shp_fname).geometries()))
+        land = prep(land_geom)                          
+
+        # cartopy works in -180, 180
+        lon = copy.deepcopy(self.lon)
+        lon[lon>180.] -= 360.
+
+        # Checkit
+        island = [land.contains(sgeom.Point(lo,la)) for lo,la in zip(lon, self.lat)]
+
+        # All done
+        if reject:
+            self.deletePixels(np.flatnonzero([not i for i in island]))
+        else:
+            return island
 
     def read_from_ascii_simple(self, filename, factor=1.0, step=0.0, header=0, los=None):
         '''
@@ -426,13 +473,13 @@ class insar(SourceInv):
         if type(lon) is str:
             lon = np.fromfile(lon, dtype=dtype)[::downsample]
         else:
-            lon = lon[::downsample]
+            lon = lon.flatten()[::downsample]
 
         # Get the lat
         if type(lat) is str:
             lat = np.fromfile(lat, dtype=dtype)[::downsample]
         else:
-            lat = lat[::downsample]
+            lat = lat.flatten()[::downsample]
 
         # Check sizes
         assert vel.shape==lon.shape, 'Something wrong with the sizes: {} {} {} '.format(vel.shape, lon.shape, lat.shape)
@@ -441,9 +488,10 @@ class insar(SourceInv):
         # Get the error
         if err is not None:
             if type(err) is str:
-                err = np.fromfile(err, dtype=dtype)[::downsample]
-            err = err * np.abs(factor)
-            assert vel.shape==err.shape, 'Something wrong with the sizes: {} {} {} '.format(vel.shape, lon.shape, lat.shape)
+                err = np.fromfile(err, dtype=dtype)[::downsample]*np.abs(factor)
+            else:
+                err = err.flatten()[::downsample]*np.abs(factor)
+            assert vel.shape==err.shape, 'Something wrong with the sizes: {} {}'.format(vel.shape, err.shape)
 
         # If zeros
         if remove_zeros:
@@ -458,6 +506,25 @@ class insar(SourceInv):
             iFinite = np.flatnonzero(np.isfinite(vel))
         else:
             iFinite = range(len(vel))
+
+        # Who to keep
+        iKeep = np.intersect1d(iZeros, iFinite)
+
+        # Remove unwanted pixels
+        vel = vel[iKeep]
+        if err is not None:
+            err = err[iKeep]
+        lon = lon[iKeep]
+        lat = lat[iKeep]
+
+        # Set things in self
+        self.vel = vel
+        if err is not None:
+            self.err = err
+        else:
+            self.err = None
+        self.lon = lon
+        self.lat = lat
 
         # Compute the LOS
         if heading is not None:
@@ -487,27 +554,8 @@ class insar(SourceInv):
                 self.los = np.fromfile(los, 'f').reshape((len(vel), 3))
         else:
             self.los = None
-
-        # Who to keep
-        iKeep = np.intersect1d(iZeros, iFinite)
-
-        # Remove unwanted pixels
-        vel = vel[iKeep]
-        if err is not None:
-            err = err[iKeep]
-        lon = lon[iKeep]
-        lat = lat[iKeep]
         if self.los is not None:
             self.los = self.los[iKeep,:]
-
-        # Set things in self
-        self.vel = vel
-        if err is not None:
-            self.err = err
-        else:
-            self.err = None
-        self.lon = lon
-        self.lat = lat
 
         # Keep track of factor
         self.factor = factor
@@ -634,11 +682,11 @@ class insar(SourceInv):
         self.Azimuth = azimuth
 
         # Convert angles
-        alpha = -1.0*azimuth*np.pi/180.
+        alpha = azimuth*np.pi/180.
         phi = incidence*np.pi/180.
 
         # Compute LOS
-        Se = np.sin(alpha) * np.sin(phi)
+        Se = -1.0 * np.sin(alpha) * np.sin(phi)
         Sn = np.cos(alpha) * np.sin(phi)
         Su = np.cos(phi)
 
@@ -826,9 +874,16 @@ class insar(SourceInv):
                     finx = netcdf.netcdf_file(los[0])
                     finy = netcdf.netcdf_file(los[1])
                     finz = netcdf.netcdf_file(los[2])
-                losx = np.array(finx.variables['z'][:,:]).flatten()
-                losy = np.array(finy.variables['z'][:,:]).flatten()
-                losz = np.array(finz.variables['z'][:,:]).flatten()
+                # check file organization (assume same for all LOS)    
+                if len(finx.variables['z'].shape)==1:  # 1-d array
+                    losx = np.array(finx.variables['z'][:])
+                    losy = np.array(finy.variables['z'][:])
+                    losz = np.array(finz.variables['z'][:])
+                else:
+                    # 2-d array has to be flattened
+                    losx = np.array(finx.variables['z'][:,:]).flatten()
+                    losy = np.array(finy.variables['z'][:,:]).flatten()
+                    losz = np.array(finz.variables['z'][:,:]).flatten()
                 # Remove NaNs?
                 if not keepnans:
                     losx = losx[u]
@@ -961,9 +1016,9 @@ class insar(SourceInv):
         distance = np.sqrt( (x[:,None] - x[None,:])**2 + (y[:,None] - y[None,:])**2)
 
         # Compute Cd
-        if function is 'exp':
+        if function=='exp':
             self.Cd = sigma*sigma*np.exp(-1.0*distance/lam)
-        elif function is 'gauss':
+        elif function=='gauss':
             self.Cd = sigma*sigma*np.exp(-1.0*distance*distance/(2*lam))
 
         # Normalize
@@ -1057,14 +1112,43 @@ class insar(SourceInv):
         else:
             return None, None, None
 
-    def extractAroundGPS(self, gps, distance, doprojection=True):
+    def reference2area(self, lon, lat, radius):
+        '''
+        References the data to an area. Selects the area and sets all dates to zero at this area.
+
+        Args:
+            * lon       : longitude of the center of the area
+            * lat       : latitude of the center of the area
+            * radius    : Radius of the area
+
+        Returns:
+            * None
+        '''
+
+        # Get average
+        vel, err, los = self.returnAverageNearPoint(lon, lat, radius)
+    
+        # Check
+        if np.isnan(vel): 
+            print('Referencing impossible for data {}: Only NaNs in the reference'.format(self.name))
+            return
+
+        # Correct
+        self.vel -= vel
+
+        # All done
+        return
+
+        
+
+    def extractAroundGPS(self, inp, distance, doprojection=True):
         '''
         Returns a gps object with values projected along the LOS around the
         gps stations included in gps. In addition, it projects the gps displacements
         along the LOS
 
         Args:
-            * gps           : gps or gpstimeseries object
+            * inp           : gps or gpstimeseries object
             * distance      : distance to consider around the stations
 
         Kwargs:
@@ -1075,7 +1159,14 @@ class insar(SourceInv):
         '''
 
         # Create a gps object
-        out = copy.deepcopy(gps)
+        from .gps import gps
+        out = gps('{} - {}'.format(self.name, inp.name), lon0=self.lon0, 
+                                                         lat0=self.lat0,
+                                                         utmzone=self.utmzone,
+                                                         ellps=self.ellps)
+        out.setStat(inp.station, inp.lon, inp.lat, initVel=True)
+        out.vel_enu = copy.deepcopy(inp.vel_enu)
+        out.err_enu = copy.deepcopy(inp.err_enu)
 
         # Create a holder in the new gps object
         out.vel_los = []
@@ -1165,6 +1256,40 @@ class insar(SourceInv):
         # All done
         return
 
+    def deletePixels(self, u):
+        '''
+        Delete the pixels indicated by index in u.
+
+        Args:
+            * u         : array of indexes
+
+        Returns:
+            * None  
+        '''
+
+        # Select the stations
+        self.lon = np.delete(self.lon,u)
+        self.lat = np.delete(self.lat,u)
+        self.x = np.delete(self.x,u)
+        self.y = np.delete(self.y,u)
+        self.vel = np.delete(self.vel,u)
+        if self.err is not None:
+            self.err = np.delete(self.err,u)
+        if self.los is not None:
+            self.los = np.delete(self.los,u, axis=0)
+        if self.synth is not None:
+            self.synth = np.delete(self.synth, u)
+        if self.corner is not None:
+            self.corner = np.delete(self.corner, u, axis=0)
+            self.xycorner = np.delete(self.xycorner, u, axis=0)
+
+        # Deal with the covariance matrix
+        if self.Cd is not None:
+            self.Cd = np.delete(np.delete(Cd ,u, axis=0), u, axis=1)
+
+        # All done
+        return
+
     def setGFsInFault(self, fault, G, vertical=True):
         '''
         From a dictionary of Green's functions, sets these correctly into the fault
@@ -1180,7 +1305,7 @@ class insar(SourceInv):
         Returns:
             * None
         '''
-        if fault.type is "Fault":
+        if fault.type=="Fault":
             # Get the values
             try:
                 GssLOS = G['strikeslip']
@@ -1202,7 +1327,8 @@ class insar(SourceInv):
             # set the GFs
             fault.setGFs(self, strikeslip=[GssLOS], dipslip=[GdsLOS], tensile=[GtsLOS],
                         coupling=[GcpLOS], vertical=True)
-        elif fault.type is "Pressure":
+
+        elif fault.type=="Pressure":
             try:
                 GpLOS = G['pressure']
             except:
@@ -1220,7 +1346,9 @@ class insar(SourceInv):
             except:
                 GdvzLOS = None
 
-            fault.setGFs(self, deltapressure=[GpLOS], GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], vertical=True)
+            fault.setGFs(self, deltapressure=[GpLOS], 
+                               GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], 
+                               vertical=True)
 
         # All done
         return
@@ -1472,7 +1600,7 @@ class insar(SourceInv):
 
         # Print Something
         if verbose:
-            print('Correcting insar {} from polynomial function'.format(self.name))
+            print('Correcting insar {} from polynomial function: {}'.format(self.name))
         # Correct
         self.vel -= self.orbit
         # Correct Custom
@@ -1560,7 +1688,7 @@ class insar(SourceInv):
 
         # Loop on each fault
         for fault in faults:
-            if fault.type is "Fault":
+            if fault.type=="Fault":
                 # Get the good part of G
                 G = fault.G[self.name]
 
@@ -1594,38 +1722,33 @@ class insar(SourceInv):
                 if poly is not None:
                     # Compute the polynomial
                     self.computePoly(fault,computeNormFact=computeNormFact)
-                    if poly is 'include':
+                    if poly=='include':
                         self.removePoly(fault, computeNormFact=computeNormFact)
                     else:
                         self.synth += self.orbit
 
             #Loop on each pressure source
-            elif fault.type is "Pressure":
+            elif fault.type=="Pressure":
 
                 # Get the good part of G
                 G = fault.G[self.name]
                 if fault.source in {"Mogi", "Yang"}:
                     Gp = G['pressure']
-                    Sp = fault.deltapressure/fault.mu
-                    print("Scaling by pressure", fault.deltapressure )
-                    losdp_synth = Gp*Sp
+                    losdp_synth = Gp*fault.deltapressure
                     self.synth += losdp_synth
 
-                elif fault.source is ("pCDM"):
+                elif fault.source==("pCDM"):
                     Gdx = G['pressureDVx']
-                    Sxp = fault.DVx/fault.scale
-                    lossx_synth = np.dot(Gdx,Sxp)
+                    lossx_synth = np.dot(Gdx,fault.DVx)
                     self.synth += lossx_synth
                     Gdy = G['pressureDVy']
-                    Syp = fault.DVy/fault.scale
-                    lossy_synth = np.dot(Gdy, Syp)
+                    lossy_synth = np.dot(Gdy, fault.DVy)
                     self.synth += lossy_synth
                     Gdz = G['pressureDVz']
-                    Szp = fault.DVz/fault.scale
-                    lossz_synth = np.dot(Gdz, Szp)
+                    lossz_synth = np.dot(Gdz, fault.DVz)
                     self.synth += lossz_synth
 
-                elif fault.source is ("CDM"):
+                elif fault.source==("CDM"):
                     Gp = G['pressure']
                     Sp = fault.deltaopening
                     print("Scaling by opening")
@@ -1642,7 +1765,7 @@ class insar(SourceInv):
                 if poly is not None:
                     # Compute the polynomial
                     self.computePoly(fault,computeNormFact=computeNormFact)
-                    if poly is 'include':
+                    if poly=='include':
                         self.removePoly(fault, computeNormFact=computeNormFact)
                     else:
                         self.synth += self.orbit
@@ -1699,7 +1822,8 @@ class insar(SourceInv):
         self.y = np.delete(self.y, u)
         if self.err is not None:
             self.err = np.delete(self.err, u)
-        self.los = np.delete(self.los, u, axis=0)
+        if self.los is not None:
+            self.los = np.delete(self.los, u, axis=0)
         self.vel = np.delete(self.vel, u)
 
         if self.Cd is not None:
@@ -1716,20 +1840,16 @@ class insar(SourceInv):
         # All done
         return
 
-    def reject_pixels_fault(self, dis, faults):
+    def getDistance2Faults(self, faults):
         '''
-        Rejects the pixels that are {dis} km close to the fault.
+        Returns the minimum distance to a fault for each pixel
 
         Args:
-            * dis       : Threshold distance.
-            * faults    : list of fault objects.
+            * faults    : a fault or a list of faults.
 
-        Returns:
-            * None
+        Return:
+            * distance  : array
         '''
-
-        # Variables to trim are  self.corner,
-        # self.xycorner, self.Cd, (self.synth)
 
         # Check something
         if faults.__class__ is not list:
@@ -1750,6 +1870,24 @@ class insar(SourceInv):
         # Get minimums
         d = np.min(D, axis=1)
         del D
+
+        # All done
+        return d
+
+    def reject_pixels_fault(self, dis, faults):
+        '''
+        Rejects the pixels that are {dis} km close to the fault.
+
+        Args:
+            * dis       : Threshold distance.
+            * faults    : list of fault objects.
+
+        Returns:
+            * None
+        '''
+
+        # Get distances 
+        d = self.getDistance2Faults(faults)
 
         # Find the close ones
         if dis>0.:
@@ -1820,8 +1958,8 @@ class insar(SourceInv):
         dic['Distance'] = np.array(Dalong)
         dic['Normal Distance'] = np.array(Dacros)
         dic['EndPoints'] = [[xe1, ye1], [xe2, ye2]]
-        lone1, late1 = self.putm(xe1*1000., ye1*1000., inverse=True)
-        lone2, late2 = self.putm(xe2*1000., ye2*1000., inverse=True)
+        lone1, late1 = self.xy2ll(xe1,ye1)
+        lone2, late2 = self.xy2ll(xe2,ye2)
         dic['EndPointsLL'] = [[lone1, late1],
                               [lone2, late2]]
         dic['LOS vector'] = los
@@ -1874,8 +2012,8 @@ class insar(SourceInv):
         dic['Distance'] = np.array(Dalong)
         dic['Normal Distance'] = np.array(Dacros)
         dic['EndPoints'] = [[xe1, ye1], [xe2, ye2]]
-        lone1, late1 = self.putm(xe1*1000., ye1*1000., inverse=True)
-        lone2, late2 = self.putm(xe2*1000., ye2*1000., inverse=True)
+        lone1, late1 = self.xy2ll(xe1, ye1)
+        lone2, late2 = self.xy2ll(xe2, ye2)
         dic['EndPointsLL'] = [[lone1, late1],
                               [lone2, late2]]
 
@@ -1910,7 +2048,7 @@ class insar(SourceInv):
 
         # Get average value
         if method=='mean':
-            reference = profile['LOS Velocity'][ii].mean()
+            reference = np.nanmean(profile['LOS Velocity'][ii])
         elif method=='linear':
             y = profile['LOS Velocity'][ii]
             x = profile['Distance'][ii]
@@ -2003,15 +2141,15 @@ class insar(SourceInv):
 
                 # Get the mean
                 if method in ('mean'):
-                    m = vel[uu].mean()
+                    m = np.nanmean(vel[uu])
                 elif method in ('median'):
-                    m = np.median(vel[uu])
+                    m = np.nanmedian(vel[uu])
 
                 # Get the mean distance
-                d = dis[uu].mean()
+                d = np.nanmean(dis[uu])
 
                 # Get the error
-                e = vel[uu].std()
+                e = np.nanstd(vel[uu])
 
                 # Set it
                 outvel.append(m)
@@ -2030,7 +2168,7 @@ class insar(SourceInv):
         self.profiles[newName]['LOS Error'] = np.array(outerr)
         self.profiles[newName]['Distance'] = np.array(outdis)
         if los is not None:
-            self.profiles[newName]['LOS vector'] = np.array(outlos)
+            self.profiles[newName]['LOS vectopr'] = np.array(outlos)
 
         # All done
         return
@@ -2186,165 +2324,165 @@ class insar(SourceInv):
         # All done
         return Dalong, vel, err, Dacross, boxll, xc, yc, xe1, ye1, xe2, ye2, length
 
-    def getAlongStrikeOffset(self, name, fault, interpolation=None, width=1.0,
-            length=10.0, faultwidth=1.0, tolerance=0.2, azimuthpad=2.0):
+    #def getAlongStrikeOffset(self, name, fault, interpolation=None, width=1.0,
+    #        length=10.0, faultwidth=1.0, tolerance=0.2, azimuthpad=2.0):
 
-        '''
-        Runs along a fault to determine variations of the phase offset in the
-        along strike direction. !!!! Not tested in a long time !!!!
+    #    '''
+    #    Runs along a fault to determine variations of the phase offset in the
+    #    along strike direction. !!!! Not tested in a long time !!!!
 
-        Args:
-            * name              : name of the results stored in AlongStrikeOffsets
-            * fault             : a fault object.
+    #    Args:
+    #        * name              : name of the results stored in AlongStrikeOffsets
+    #        * fault             : a fault object.
 
-        Kwargs:
-            * interpolation     : interpolation distance
-            * width             : width of the profiles used
-            * length            : length of the profiles used
-            * faultwidth        : width of the fault zone.
-            * tolerance         : ??
-            * azimuthpad        : ??
+    #    Kwargs:
+    #        * interpolation     : interpolation distance
+    #        * width             : width of the profiles used
+    #        * length            : length of the profiles used
+    #        * faultwidth        : width of the fault zone.
+    #        * tolerance         : ??
+    #        * azimuthpad        : ??
 
-        Returns:
-            * None
-        '''
+    #    Returns:
+    #        * None
+    #    '''
 
-        # the Along strike measurements are in a dictionary
-        if not hasattr(self, 'AlongStrikeOffsets'):
-            self.AlongStrikeOffsets = {}
+    #    # the Along strike measurements are in a dictionary
+    #    if not hasattr(self, 'AlongStrikeOffsets'):
+    #        self.AlongStrikeOffsets = {}
 
-        # Interpolate the fault object if asked
-        if interpolation is not None:
-            fault.discretize(every=interpolation, tol=tolerance)
-            xf = fault.xi
-            yf = fault.yi
-        else:
-            xf = fault.xf
-            yf = fault.yf
+    #    # Interpolate the fault object if asked
+    #    if interpolation is not None:
+    #        fault.discretize(every=interpolation, tol=tolerance)
+    #        xf = fault.xi
+    #        yf = fault.yi
+    #    else:
+    #        xf = fault.xf
+    #        yf = fault.yf
 
-        # Initialize some lists
-        ASprof = []
-        ASx = []
-        ASy = []
-        ASazi = []
+    #    # Initialize some lists
+    #    ASprof = []
+    #    ASx = []
+    #    ASy = []
+    #    ASazi = []
 
-        # Loop
-        for i in range(len(xf)):
+    #    # Loop
+    #    for i in range(len(xf)):
 
-            # Write something
-            sys.stdout.write('\r Fault point {}/{}'.format(i,len(xf)))
-            sys.stdout.flush()
+    #        # Write something
+    #        sys.stdout.write('\r Fault point {}/{}'.format(i,len(xf)))
+    #        sys.stdout.flush()
 
-            # Get coordinates
-            xp = xf[i]
-            yp = yf[i]
+    #        # Get coordinates
+    #        xp = xf[i]
+    #        yp = yf[i]
 
-            # get the local profile and fault azimuth
-            Az, pAz = self._getazimuth(xf, yf, i, pad=azimuthpad)
+    #        # get the local profile and fault azimuth
+    #        Az, pAz = self._getazimuth(xf, yf, i, pad=azimuthpad)
 
-            # If there is something
-            if np.isfinite(Az):
+    #        # If there is something
+    #        if np.isfinite(Az):
 
-                # Get the profile
-                norm, dis, Bol = utils.coord2prof(xp, yp,
-                        length, pAz, width)[0:3]
-                vel = self.vel[Bol]
-                err = self.err[Bol]
+    #            # Get the profile
+    #            norm, dis, Bol = utils.coord2prof(xp, yp,
+    #                    length, pAz, width)[0:3]
+    #            vel = self.vel[Bol]
+    #            err = self.err[Bol]
 
-                # Keep only the non NaN values
-                pts = np.flatnonzero(np.isfinite(vel))
-                dis = np.array(dis)[pts]
-                ptspos = np.flatnonzero(dis>0.0)
-                ptsneg = np.flatnonzero(dis<0.0)
+    #            # Keep only the non NaN values
+    #            pts = np.flatnonzero(np.isfinite(vel))
+    #            dis = np.array(dis)[pts]
+    #            ptspos = np.flatnonzero(dis>0.0)
+    #            ptsneg = np.flatnonzero(dis<0.0)
 
-                # If there is enough points, on both sides, get the offset value
-                if (len(pts)>20 and len(ptspos)>10 and len(ptsneg)>10):
+    #            # If there is enough points, on both sides, get the offset value
+    #            if (len(pts)>20 and len(ptspos)>10 and len(ptsneg)>10):
 
-                    # Select the points
-                    vel = vel[pts]
-                    err = err[pts]
-                    norm = np.array(norm)[pts]
+    #                # Select the points
+    #                vel = vel[pts]
+    #                err = err[pts]
+    #                norm = np.array(norm)[pts]
 
-                    # Symmetrize the profile
-                    mindis = np.min(dis)
-                    maxdis = np.max(dis)
-                    if np.abs(mindis)>np.abs(maxdis):
-                       pts = np.flatnonzero(dis>-1.0*maxdis)
-                    else:
-                        pts = np.flatnonzero(dis<=-1.0*mindis)
+    #                # Symmetrize the profile
+    #                mindis = np.min(dis)
+    #                maxdis = np.max(dis)
+    #                if np.abs(mindis)>np.abs(maxdis):
+    #                   pts = np.flatnonzero(dis>-1.0*maxdis)
+    #                else:
+    #                    pts = np.flatnonzero(dis<=-1.0*mindis)
 
-                    # Get the points
-                    dis = dis[pts]
-                    ptsneg = np.flatnonzero(dis>0.0)
-                    ptspos = np.flatnonzero(dis<0.0)
+    #                # Get the points
+    #                dis = dis[pts]
+    #                ptsneg = np.flatnonzero(dis>0.0)
+    #                ptspos = np.flatnonzero(dis<0.0)
 
-                    # If we still have enough points on both sides
-                    if (len(pts)>20 and len(ptspos)>10 and len(ptsneg)>10 and np.abs(mindis)>(10*faultwidth/2)):
+    #                # If we still have enough points on both sides
+    #                if (len(pts)>20 and len(ptspos)>10 and len(ptsneg)>10 and np.abs(mindis)>(10*faultwidth/2)):
 
-                        # Get the values
-                        vel = vel[pts]
-                        err = err[pts]
-                        norm = norm[pts]
+    #                    # Get the values
+    #                    vel = vel[pts]
+    #                    err = err[pts]
+    #                    norm = norm[pts]
 
-                        # Get offset
-                        off = self._getoffset(dis, vel, faultwidth, plot=False)
+    #                    # Get offset
+    #                    off = self._getoffset(dis, vel, faultwidth, plot=False)
 
-                        # Store things in the lists
-                        ASprof.append(off)
-                        ASx.append(xp)
-                        ASy.append(yp)
-                        ASazi.append(Az)
+    #                    # Store things in the lists
+    #                    ASprof.append(off)
+    #                    ASx.append(xp)
+    #                    ASy.append(yp)
+    #                    ASazi.append(Az)
 
-                    else:
+    #                else:
 
-                        # Store some NaNs
-                        ASprof.append(np.nan)
-                        ASx.append(xp)
-                        ASy.append(yp)
-                        ASazi.append(Az)
+    #                    # Store some NaNs
+    #                    ASprof.append(np.nan)
+    #                    ASx.append(xp)
+    #                    ASy.append(yp)
+    #                    ASazi.append(Az)
 
-                else:
+    #            else:
 
-                    # Store some NaNs
-                    ASprof.append(np.nan)
-                    ASx.append(xp)
-                    ASy.append(yp)
-                    ASazi.append(Az)
-            else:
+    #                # Store some NaNs
+    #                ASprof.append(np.nan)
+    #                ASx.append(xp)
+    #                ASy.append(yp)
+    #                ASazi.append(Az)
+    #        else:
 
-                # Store some NaNs
-                ASprof.append(np.nan)
-                ASx.append(xp)
-                ASy.append(yp)
-                ASazi.append(Az)
+    #            # Store some NaNs
+    #            ASprof.append(np.nan)
+    #            ASx.append(xp)
+    #            ASy.append(yp)
+    #            ASazi.append(Az)
 
-        ASprof = np.array(ASprof)
-        ASx = np.array(ASx)
-        ASy = np.array(ASy)
-        ASazi = np.array(ASazi)
+    #    ASprof = np.array(ASprof)
+    #    ASx = np.array(ASx)
+    #    ASy = np.array(ASy)
+    #    ASazi = np.array(ASazi)
 
-        # Store things
-        self.AlongStrikeOffsets[name] = {}
-        dic = self.AlongStrikeOffsets[name]
-        dic['xpos'] = ASx
-        dic['ypos'] = ASy
-        lon, lat = self.xy2ll(ASx, ASy)
-        dic['lon'] = lon
-        dic['lat'] = lat
-        dic['offset'] = ASprof
-        dic['azimuth'] = ASazi
+    #    # Store things
+    #    self.AlongStrikeOffsets[name] = {}
+    #    dic = self.AlongStrikeOffsets[name]
+    #    dic['xpos'] = ASx
+    #    dic['ypos'] = ASy
+    #    lon, lat = self.xy2ll(ASx, ASy)
+    #    dic['lon'] = lon
+    #    dic['lat'] = lat
+    #    dic['offset'] = ASprof
+    #    dic['azimuth'] = ASazi
 
-        # Compute along strike cumulative distance
-        if interpolation is not None:
-            disc = True
-        dic['distance'] = fault.cumdistance(discretized=disc)
+    #    # Compute along strike cumulative distance
+    #    if interpolation is not None:
+    #        disc = True
+    #    dic['distance'] = fault.cumdistance(discretized=disc)
 
-        # Clean screen
-        sys.stdout.write('\n')
-        sys.stdout.flush()
+    #    # Clean screen
+    #    sys.stdout.write('\n')
+    #    sys.stdout.flush()
 
-        # all done
-        return
+    #    # all done
+    #    return
 
     def writeAlongStrikeOffsets2File(self, name, filename):
         '''
@@ -2441,8 +2579,45 @@ class insar(SourceInv):
 
         # all done
         return
+    
+    def pickleProfiles(self, names, filename):
+        '''
+        Add on by M. Dalaison (Jan 2019)
+        To save in one file several profiles drawn in one image 
+	under the form of a list of python dictionaries
+        
+        Args:
+            * names : profile name or list of profile names (list of strings)
+            * filename : for storage of the list of profile object 
+        '''
+        import pickle
 
-    def plotprofile(self, name, legendscale=10., fault=None, norm=None, ref='utm', synth=False):
+        # prepare storage list
+        store = []
+        
+        if isinstance(names,str):
+            store = self.profiles[names]
+
+        elif isinstance(names,list):
+            for k in range(len(names)) :
+                # Get the dictionary
+                dic = self.profiles[names[k]]
+
+                # Build list of dictionaries 
+                store.append( dic )
+        else:
+            assert False,"Format of names not recognised {} {}".format(names,type(names))
+
+        # open files
+        fout = open(filename, 'wb')
+
+        pickle.dump(store, fout)
+
+        # Close the file
+        fout.close()
+
+
+    def plotprofile(self, name, legendscale=10., fault=None, norm=None, synth=False, alpha=.3, plotType='scatter', drawCoastlines=True):
         '''
         Plot profile.
 
@@ -2453,7 +2628,6 @@ class insar(SourceInv):
             * legendscale: Length of the legend arrow.
             * fault     : Fault object
             * norm      : Colorscale limits
-            * ref       : utm or lonlat
             * synth     : Plot synthetics (True/False).
 
         Returns:
@@ -2465,20 +2639,20 @@ class insar(SourceInv):
         assert len(x)>5, 'There is less than 5 points in your profile...'
 
         # Plot the insar
-        self.plot(faults=fault, norm=norm, show=False)
+        self.plot(faults=fault, norm=norm, show=False, alpha=alpha, plotType=plotType, expand=0., drawCoastlines=drawCoastlines)
 
         # plot the box on the map
         b = self.profiles[name]['Box']
         bb = np.zeros((len(b)+1, 2))
         for i in range(len(b)):
             x = b[i,0]
-            if x<0.:
-                x += 360.
+            #if x<0.:
+            #    x += 360.
             bb[i,0] = x
             bb[i,1] = b[i,1]
         bb[-1,0] = bb[0,0]
         bb[-1,1] = bb[0,1]
-        self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=0)
+        self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=3, linewidth=2)
 
         # open a figure
         fig = plt.figure()
@@ -2489,9 +2663,9 @@ class insar(SourceInv):
         y = self.profiles[name]['LOS Velocity']
         ey = self.profiles[name]['LOS Error']
         try:
-            p = prof.errorbar(x, y, yerr=ey, label='LOS', fmt='o')
+            p = prof.errorbar(x, y, yerr=ey, label='LOS', fmt='o', alpha=alpha)
         except:
-            p = prof.plot(x, y, label='LOS', marker='.')
+            p = prof.plot(x, y, label='LOS', marker='.', alpha=alpha)
         if synth:
             sy = self.profiles[name]['LOS Synthetics']
             s = prof.plot(x, sy, '-r', label='synthetics')
@@ -2518,7 +2692,7 @@ class insar(SourceInv):
         # All done
         return
 
-    def intersectProfileFault(self, name, fault):
+    def intersectProfileFault(self, name, fault, discretized=False):
         '''
         Gets the distance between the fault/profile intersection and the profile center.
 
@@ -2534,8 +2708,12 @@ class insar(SourceInv):
         import shapely.geometry as geom
 
         # Grab the fault trace
-        xf = fault.xf
-        yf = fault.yf
+        if discretized:
+            xf = fault.xi
+            yf = fault.yi
+        else:
+            xf = fault.xf
+            yf = fault.yf
 
         # Grab the profile
         prof = self.profiles[name]
@@ -2593,13 +2771,15 @@ class insar(SourceInv):
         dataRMS = np.sqrt( 1./N * sum(self.vel**2) )
 
         # Synthetics
+        values = copy.deepcopy(self.vel)
         if self.synth is not None:
-            synthRMS = np.sqrt( 1./N *sum( (self.vel - self.synth)**2 ) )
-            return dataRMS, synthRMS
-        else:
-            return dataRMS, 0.
+            values -= self.synth
+        #obsolete if self.orbit is not None:
+        #    values -= self.orbit
+        synthRMS = np.sqrt( 1./N *sum( (values)**2 ) )
 
         # All done
+        return dataRMS, synthRMS
 
     def getVariance(self):
         '''
@@ -2617,14 +2797,15 @@ class insar(SourceInv):
         dataVariance = ( 1./N * sum((self.vel-dmean)**2) )
 
         # Synthetics
+        values = copy.deepcopy(self.vel)
         if self.synth is not None:
-            rmean = (self.vel - self.synth).mean()
-            synthVariance = ( 1./N *sum( (self.vel - self.synth - rmean)**2 ) )
-            return dataVariance, synthVariance
-        else:
-            return dataVariance, 0.
+            values -= self.synth
+        if self.orbit is not None:
+            values -= self.orbit
+        synthVariance = ( 1./N *sum( (values - values.mean())**2 ) )
 
         # All done
+        return dataVariance, synthVariance
 
     def getMisfit(self):
         '''
@@ -2646,7 +2827,11 @@ class insar(SourceInv):
 
         # All done
 
-    def plot(self, faults=None, figure=None, gps=None, decim=False, norm=None, data='data', show=True, drawCoastlines=True, expand=0.2, edgewidth=1, figsize=[None, None]):
+    def plot(self, faults=None, figure=None, gps=None, norm=None, data='data', show=True, 
+             drawCoastlines=True, expand=0.2, edgewidth=1, figsize=None, markersize=1.,
+             plotType='scatter', cmap='jet', alpha=1., box=None, titleyoffset=1.1,
+             landcolor='lightgrey', seacolor=None, shadedtopo=None, title=True, los=None,
+             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel=''):
         '''
         Plot the data set, together with a fault, if asked.
 
@@ -2654,14 +2839,15 @@ class insar(SourceInv):
             * faults            : list of fault objects.
             * figure            : number of the figure.
             * gps               : list of gps objects.
-            * decim             : plot the insar following the decimation process of varres.
             * norm              : colorbar limits
             * data              : 'data', 'synth' or 'res'
             * show              : bool. Show on screen?
             * drawCoastlines    : bool. default is True
             * expand            : default expand around the limits covered by the data
             * edgewidth         : width of the edges of the decimation process patches
+            * plotType          : 'decim', 'scatter' or 'flat'
             * figsize           : tuple of figure sizes
+            * box               : Lon/lat box [lonmin, lonmax, latmin, latmax]
 
         Returns:
             * None
@@ -2677,12 +2863,31 @@ class insar(SourceInv):
         latmin = self.lat.min()-expand
         latmax = self.lat.max()+expand
 
+        # This gets override if there is a box for plotting
+        if box is not None:
+            assert len(box)==4, 'box must be 4 floats: box = {}'.format(tuple(box))
+            lonmin, lonmax, latmin, latmax = box
+
         # Create a figure
-        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize)
+        if figsize is not None: 
+            figsize=(figsize,figsize)
+        else:
+            figsize=(None, None)
+        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 
+                                     latmin=latmin, latmax=latmax, 
+                                     figsize=figsize)
+
+        # Shaded topo
+        if shadedtopo is not None:
+            smooth = shadedtopo['smooth']
+            al = shadedtopo['alpha']
+            zo = shadedtopo['zorder']
+            fig.shadedTopography(smooth=smooth, alpha=al, zorder=zo)
 
         # Draw the coastlines
         if drawCoastlines:
-            fig.drawCoastlines(drawLand=True, parallels=5, meridians=5, drawOnFault=True)
+            fig.drawCoastlines(landcolor=landcolor, seacolor=seacolor, 
+                               drawOnFault=True, zorder=0)
 
         # Plot the gps data if asked
         if gps is not None:
@@ -2692,26 +2897,29 @@ class insar(SourceInv):
                 fig.gps(g)
 
         # Plot the decimation process, if asked
-        if decim:
-            fig.insar(self, norm=norm, colorbar=True, data=data, plotType='decimate', edgewidth=edgewidth)
-
-        # Plot the insar
-        if not decim:
-            fig.insar(self, norm=norm, colorbar=True, data=data, plotType='scatter')
+        fig.insar(self, norm=norm, colorbar=True, data=data, plotType=plotType, markersize=markersize,
+                        cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, los=los,
+                        edgewidth=edgewidth, cmap=cmap, zorder=1, alpha=alpha)
 
         # Plot the fault trace if asked
         if faults is not None:
             if type(faults) is not list:
                 faults = [faults]
             for fault in faults:
-                if fault.type is "Fault":
-                    fig.faulttrace(fault)
+                if fault.type=="Fault":
+                    fig.faulttrace(fault, zorder=2)
+
+        # Title
+        if title:
+            title = '{} - {} '.format(self.name, data)
+            fig.titlemap(title, y=titleyoffset)
 
         # Show
         if show:
             fig.show(showFig=['map'])
-        else:
-            self.fig = fig
+        
+        # Save the whole thing
+        self.fig = fig
 
         # All done
         return
@@ -2752,6 +2960,8 @@ class insar(SourceInv):
             z = self.orbit
         elif data == 'res':
             z = self.vel - self.synth
+        elif data == 'err':
+            z = self.err
 
         if not useGMT:
 
@@ -2807,7 +3017,7 @@ class insar(SourceInv):
         return
 
 
-    def write2file(self, fname, data='data', outDir='./'):
+    def write2file(self, fname, data='data', outDir='./', err=False):
         '''
         Write to an ascii file
 
@@ -2825,21 +3035,95 @@ class insar(SourceInv):
         # Get variables
         x = self.lon
         y = self.lat
-        if data is 'data':
+        if data=='data':
             z = self.vel
-        elif data is 'synth':
+        elif data=='synth':
             z = self.synth
-        elif data is 'poly':
+        elif data=='poly':
             z = self.orbit
-        elif data is 'resid':
+        elif data=='resid':
             z = self.vel - self.synth
+        if err:
+            e = self.err
 
         # Write these to a file
         fout = open(os.path.join(outDir, fname), 'w')
         for i in range(x.shape[0]):
-            fout.write('{} {} {} \n'.format(x[i], y[i], z[i]))
+            line = '{} {} {} '.format(x[i], y[i], z[i])
+            if err: line += '{} '.format(e[i])
+            line += '\n'
+            fout.write(line)
         fout.close()
 
+        return
+
+    def writeDownsampled2File(self, prefix, rsp=False):
+        '''
+        Writes the downsampled image data to a file. The file will be called prefix.txt. If rsp is True, then it writes a file called prefix.rsp containing the boxes of the downsampling. If prefix has white spaces, those are replaced by "_".
+
+        Args:
+            * prefix        : Prefix of the output file
+
+        Kwargs:
+            * rsp           : Write the rsp file?
+
+        Returns:
+            * None
+        '''
+
+        # Replace spaces
+        prefix = prefix.replace(" ", "_")
+
+        # Open files
+        ftxt = open(prefix+'.txt', 'w')
+        if rsp:
+            frsp = open(prefix+'.rsp', 'w')
+
+        # Write the header
+        ftxt.write('Number xind yind east north data err wgt Elos Nlos Ulos\n')
+        ftxt.write('********************************************************\n')
+        if rsp:
+            frsp.write('xind yind UpperLeft-x,y DownRight-x,y\n')
+            frsp.write('********************************************************\n')
+
+        # Loop over the samples
+        for i in range(len(self.x)):
+
+            # Write in txt
+            wgt = self.wgt[i]
+            x = int(self.x[i])
+            y = int(self.y[i])
+            lon = self.lon[i]
+            lat = self.lat[i]
+            vel = self.vel[i]
+            err = self.err[i]
+            elos = self.los[i,0]
+            nlos = self.los[i,1]
+            ulos = self.los[i,2]
+            strg = '{:4d} {:4d} {:4d} {:3.6f} {:3.6f} {} {} {} {} {} {}\n'\
+                .format(i, x, y, lon, lat, vel, err, wgt, elos, nlos, ulos)
+            ftxt.write(strg)
+
+            # Write in rsp
+            if rsp:
+                ulx = self.xycorner[i][0]
+                uly = self.xycorner[i][1]
+                drx = self.xycorner[i][2]
+                dry = self.xycorner[i][3]
+                ullon = self.corner[i][0]
+                ullat = self.corner[i][1]
+                drlon = self.corner[i][2]
+                drlat = self.corner[i][3]
+                strg = '{:4d} {:4d} {} {} {} {} {} {} {} {} \n'\
+                        .format(x, y, ulx, uly, drx, dry, ullon, ullat, drlon, drlat)
+                frsp.write(strg)
+
+        # Close the files
+        ftxt.close()
+        if rsp:
+            frsp.close()
+
+        # All done
         return
 
     def writeDecim2file(self, filename, data='data', outDir='./'):
@@ -2915,6 +3199,234 @@ class insar(SourceInv):
                 pAz = np.nan
         # All done
         return Az*180./np.pi,pAz*180./np.pi
+
+    def getOffsetFault(self, profile, fault, distance, threshold=25, discretized=True, verbose=False, useerrors=True):
+        '''
+        Computes the offset next to a fault along a profile. This is a copy from 
+        a script written by Manon Dalaison during her PhD in 2020 (infamous year).
+        
+        Args:
+            * profile   : Name of the profile
+            * fault     : fault object
+            * distance  : Distance to take on each side of the fault (min, max)
+
+        Kwargs:
+            * threshold : minimum number of data points on each side to move on
+
+        Returns:
+            * offset, uncertainty, los
+        '''
+
+        # Get the profile
+        rawts = self.profiles[profile]['LOS Velocity']
+        d     = self.profiles[profile]['Distance']
+        err = self.profiles[profile]['LOS Error']
+        los = self.profiles[profile]['LOS vector']
+        if err is None: err = np.ones((len(d),))
+
+        # NaNs
+        d = d[np.isfinite(rawts)]
+        err = err[np.isfinite(rawts)]
+        if los is not None:
+            los = los[np.isfinite(rawts),:]
+        rawts = rawts[np.isfinite(rawts)]
+
+        # Shift with respect to the fault position
+        intersect = self.intersectProfileFault(profile, fault, discretized=discretized)
+        if intersect is not None: d -= intersect
+        
+        # Extract points that are in the limit fault area
+        pointleft  = ((d > -distance[1]) & (d < -distance[0]))
+        pointright = ((d < distance[1]) & (d > distance[0]))
+
+        # Remove outliers
+        # Mean and standard deviation on left and right side
+        meanleft = np.nanmean(rawts[pointleft])
+        stdleft  = np.nanstd(rawts[pointleft])
+        meanright = np.nanmean(rawts[pointright])
+        stdright  = np.nanstd(rawts[pointright])
+
+        # Remove outliers out of (Mean +/- 2*SD)
+        # AND Deal with NaN appearing as Zeros in H5file
+        mask1    = (abs(rawts[pointleft]-meanleft)<2*stdleft) & (rawts[pointleft]!=0)
+        mask2    = (abs(rawts[pointright]-meanright)<2*stdright) & (rawts[pointright]!=0)
+
+        displeft  = rawts[pointleft][mask1]
+        dispright = rawts[pointright][mask2]
+        dleft     = d[pointleft][mask1]
+        dright    = d[pointright][mask2]
+        errleft   = err[pointleft][mask1]
+        errright  = err[pointright][mask2]
+
+        # Check, if False, keep going
+        if (len(displeft)<threshold) or (len(dispright)<threshold) :
+            if verbose: print("Warning: not enough data for profile",profile,"values replaced by NaN")
+            return np.nan, np.nan, [np.nan, np.nan, np.nan]
+
+        # Linear regression in the two clouds of points
+        if useerrors:
+            wleft    = 1./errleft /np.sum(1./errleft)
+            wright   = 1./errright /np.sum(1./errright)
+            fitLeft   = np.polyfit(dleft, displeft, 1, w=wleft)
+            fitRight  = np.polyfit(dright, dispright, 1, w=wright)
+        else:
+            wleft = 1.
+            wright = 1.
+            fitLeft   = np.polyfit(dleft, displeft, 1)
+            fitRight  = np.polyfit(dright, dispright, 1)
+        fitLeft_fn = np.poly1d(fitLeft)
+        fitRight_fn = np.poly1d(fitRight)
+
+        # Get RMS Residual of fit
+        rmsleft  = (np.sum(wleft*(fitLeft_fn(dleft)-displeft)**2) )**(1/2.)
+        rmsright = (np.sum(wright*(fitRight_fn(dright)-dispright)**2) )**(1/2.)
+        creep_err = (rmsleft**2+rmsright**2)**(1/2.)
+
+        # Get creep rate value
+        # Offset calculated from points of fitting lines nearest the fault trace
+        creep = fitLeft_fn(max(dleft)) - fitRight_fn(min(dright))
+
+        # Average the LOS value at the fault
+        if los is not None:
+            los = np.nanmean(los[np.abs(d)<distance[1]], axis=0)
+
+        # All done
+        return creep, creep_err, los
+
+    def getStepFromProfile(self, profname, fault, leftdistance, rightdistance, discretized=False, method='mean'):
+        '''
+        Returns the offset across a fault from a profile.
+
+        Args:
+            profname    : Name of the profile
+            fault       : fault object
+            leftdistance: tuple of distances between which to average displacement to the left
+            rightdistance: tuple of distances between which to average displacement to the right
+
+        Returns:
+            step, std, los
+        '''
+
+        # get profile
+        profile = self.profiles[profname]
+        y = profile['LOS Velocity']
+        los = profile['LOS vector']
+
+        # Reference
+        x = profile['Distance'] - self.intersectProfileFault(profname, fault, discretized=True)
+
+        # Find plus and minus
+        ip = np.flatnonzero(np.logical_and(x>leftdistance[0], x<leftdistance[1]))
+        im = np.flatnonzero(np.logical_and(x>rightdistance[0], x<rightdistance[1]))
+
+        # Average
+        if method == 'mean':
+            step = np.nanmean(y[ip]) - np.nanmean(y[im])
+        elif method=='median':
+            step = np.nanmedian(y[ip]) - np.nanmedian(y[im])
+        std = np.sqrt(np.nanstd(y[ip])**2 + np.nanstd(y[im])**2)
+        if los is not None:
+            los = (np.nanmean(los[ip,:], axis=0) + np.nanmean(los[im,:], axis=0))/2
+        else:
+            los = None
+
+        # All done
+        return step,std,los
+
+    def alongStrikeStep(self, fault, offset, width, binning, discretized=True, strike='mean', returnBox=False):
+        '''
+        Computes the difference in values along 2 lines, parallel to the surface trace of a fault.
+
+        Args:
+            * fault     : fault object with a trace
+            * offset    : offset between each line and the fault
+            * width     : width of the averaging box
+            * binning   : bins width (in km)
+
+        Kwargs:
+            * disctretized  : Use the discretized trace of the fault
+            * strike        : 'mean' (mean strike) or a number between 0 and 2pi
+            * returnBox     : Return the boxes i which data are taken
+        '''
+        
+        # Average fault strike
+        if strike == 'mean':
+            strike = np.mean(fault.strike)
+        else:
+            assert type(strike) is float, 'Strike should either be mean or a float (currently: {})'.format(strike)
+            assert 0.<strike<2*np.pi, 'Strike should be in radians (currrently: {})'.format(strike)
+
+        # Compute cumulative distance once and for all
+        cumdis = fault.cumdistance(discretized=discretized)
+
+        # Get the fault trace
+        x = fault.xi
+        y = fault.yi
+
+        # Offset north/south
+        voff = [np.sin(strike+np.pi/2.), np.cos(strike+np.pi/2.)]
+        xs = x + offset*voff[0]
+        ys = y + offset*voff[1]
+        xn = x - offset*voff[0]
+        yn = y - offset*voff[1]
+
+        # Make two closed path
+        north = [(x, y) for x,y in zip(xn,yn)] + \
+                [(x, y) for x,y in zip(xn[::-1]-width*voff[0], yn[::-1]-width*voff[1])]
+        south = [(x, y) for x,y in zip(xs,ys)] + \
+                [(x, y) for x,y in zip(xs[::-1]+width*voff[0], ys[::-1]+width*voff[1])]
+        northll = [self.xy2ll(*xy) for xy in north]
+        southll = [self.xy2ll(*xy) for xy in south]
+
+        # Make matplotlib paths
+        southPath = path.Path(south, closed=False)
+        northPath = path.Path(north, closed=False)
+
+        # Create an array with the position
+        XY = np.vstack((self.x, self.y)).T
+
+        # Find who is in the southern path
+        bolSouth = southPath.contains_points(XY)
+        bolNorth = northPath.contains_points(XY)
+
+        # Get these points
+        xn = self.x[bolNorth]; yn = self.y[bolNorth]
+        lonn = self.lon[bolNorth]; latn = self.lat[bolNorth]
+        valn = self.vel[bolNorth]
+        xs = self.x[bolSouth]; ys = self.y[bolSouth]
+        lons = self.lon[bolSouth]; lats = self.lat[bolSouth]
+        vals = self.vel[bolSouth]
+
+        # Find their along strike distance
+        disn = [fault.distance2trace(lo,la,discretized=discretized, recompute=False)[0] \
+                for lo,la in zip(lonn, latn)]
+        diss = [fault.distance2trace(lo,la,discretized=discretized, recompute=False)[0] \
+                for lo,la in zip(lons, lats)]
+
+        # Digitize as a function of distance along strike
+        bins = np.arange(0., np.max(fault.cumdis), binning)
+        distance = bins[:-1] + (bins[1:] - bins[:-1])/2.
+        idisn = np.digitize(disn, bins)
+        idiss = np.digitize(diss, bins)
+
+        # Average the values in the bins
+        averageNorth = [np.nanmean(valn[idisn==ibin]) for ibin, b in enumerate(bins[:-1])]
+        averageSouth = [np.nanmean(vals[idiss==ibin]) for ibin, b in enumerate(bins[:-1])]
+        lonn = [np.nanmean(lonn[idisn==ibin]) for ibin, b in enumerate(bins[:-1])]
+        latn = [np.nanmean(latn[idisn==ibin]) for ibin, b in enumerate(bins[:-1])]
+        lons = [np.nanmean(lons[idiss==ibin]) for ibin, b in enumerate(bins[:-1])]
+        lats = [np.nanmean(lats[idiss==ibin]) for ibin, b in enumerate(bins[:-1])]
+        diffNS = [n-s for n,s in zip(averageNorth,averageSouth)]
+
+        # Save
+        north = [disn, valn, lonn, latn, averageNorth]
+        south = [diss, vals, lons, lats, averageSouth]
+
+        # All done
+        if returnBox:
+            return distance, diffNS, north, south, northll, southll
+        else:
+            return distance, diffNS, north, south
 
     def _getoffset(self, x, y, w, plot=True):
         '''

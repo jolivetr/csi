@@ -102,7 +102,7 @@ class tsunami(SourceInv):
         '''
 
         GF = np.loadtxt(filename+'.gf')*factor
-        n  = GF.shape[1]/2
+        n  = int(GF.shape[1]/2)
         assert n == len(fault.slip), 'Incompatible tsunami GF size'
         GF_SS = GF[:,:n]
         GF_DS = GF[:,n:]
@@ -208,7 +208,7 @@ class tsunami(SourceInv):
         fig = plt.figure(figsize=figsize)
         fig.subplots_adjust(bottom=bottom,top=top,left=left,right=right,wspace=wspace,hspace=hspace)
         nsamp = nobs_per_trace
-        nstat = len(self.d)/nobs_per_trace
+        nstat = int(len(self.d)/nobs_per_trace)
 
 
         for i in range(nstat): 

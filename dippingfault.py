@@ -12,65 +12,32 @@ import scipy.interpolate as sciint
 import copy
 import sys
 
+from .RectangularPatches import RectangularPatches 
+
 # Personals
 major, minor, micro, release, serial = sys.version_info
 if major==2:
     import okada4py as ok
 from .gps import gps as gpsclass
 
-class dippingfault(object):
+class dippingfault(RectangularPatches):
 
-    def __init__(self, name, utmzone=None):
+    def __init__(self, name, utmzone=None, ellps='WGS84', verbose=True, lon0=None, lat0=None):
         '''
         Args:
             * name          : Name of the fault.
+            * utmzone   : UTM zone  (optional, default=None)
+            * ellps     : ellipsoid (optional, default='WGS84')
         '''
 
-        # Initialize the fault
-        self.name = name
-
-        print ("---------------------------------")
-        print ("---------------------------------")
-        print ("Initializing fault {}".format(self.name))
-
-        # Set the reference point in the x,y domain (not implemented)
-        self.xref = 0.0
-        self.yref = 0.0
-
-        # Set the utm zone
-        self.utmzone = utmzone
-        if self.utmzone is not None:
-            self.putm = pp.Proj(proj='utm', zone=self.utmzone, ellps='WGS84')
-
-        # allocate some things
-        self.xf = None
-        self.yf = None
-        self.xi = None
-        self.yi = None
-        self.loni = None
-        self.lati = None
-
-        # Allocate depth and number of patches
-        self.top = None             # Depth of the top of the fault
-        self.depth = None           # Depth of the bottom of the fault
-        self.numz = None
-
-        # Allocate patches
-        self.patch = None
-        self.slip = None
-        self.totalslip = None
-
-        # Create a dictionary for the Green's functions and the data vector
-        self.G = {}
-        self.d = {}
-
-        # Create a dictionnary for the polysol
-        self.polysol = {}
-
-        # Create structure to store the GFs and the assembled d vector
-        self.Gassembled = None
-        self.dassembled = None
-
+        # Parent class init
+        super(planarfault,self).__init__(name,
+                                         utmzone=utmzone,
+                                         ellps=ellps,
+                                         lon0=lon0,
+                                         lat0=lat0,
+                                         verbose=verbose)
+        
         # All done
         return
 
@@ -131,7 +98,7 @@ class dippingfault(object):
         A = fin.readline()
         tmpflt=[]
         while len(A.split()) > 0:
-            if A.split()[0] is '>':
+            if A.split()[0]=='>':
                 if len(tmpflt) > 0:
                     self.addfaults.append(np.array(tmpflt))
                 tmpflt = []
@@ -844,7 +811,7 @@ class dippingfault(object):
         while i<len(A):
             
             # Assert it works
-            assert A[i].split()[0] is '>', 'Not a patch, reformat your file...'
+            assert A[i].split()[0]=='>', 'Not a patch, reformat your file...'
             # Get the Patch Id
             self.index_parameter.append([np.int(A[i].split()[3]),np.int(A[i].split()[4]),np.int(A[i].split()[5])])
             # Get the slip value
@@ -926,13 +893,13 @@ class dippingfault(object):
             # Select the string for the color
             string = '  '
             if add_slip is not None:
-                if add_slip is 'strikeslip':
+                if add_slip=='strikeslip':
                     slp = self.slip[p,0]*scale
                     string = '-Z{}'.format(slp)
-                elif add_slip is 'dipslip':
+                elif add_slip=='dipslip':
                     slp = self.slip[p,1]*scale
                     string = '-Z{}'.format(slp)
-                elif add_slip is 'total':
+                elif add_slip=='total':
                     slp = np.sqrt(self.slip[p,0]**2 + self.slip[p,1]**2)*scale
                     string = '-Z{}'.format(slp)
 
@@ -1049,13 +1016,13 @@ class dippingfault(object):
             if scale.__class__ is float:
                 sca = scale
             elif scale.__class__ is str:
-                if scale is 'total':
+                if scale=='total':
                     sca = np.sqrt(slip[0]**2 + slip[1]**2 + slip[2]**2)*factor
-                elif scale is 'strikeslip':
+                elif scale=='strikeslip':
                     sca = slip[0]*factor
-                elif scale is 'dipslip':
+                elif scale=='dipslip':
                     sca = slip[1]*factor
-                elif scale is 'tensile':
+                elif scale=='tensile':
                     sca = slip[2]*factor
                 else:
                     print('Unknown Slip Direction in computeSlipDirection')
@@ -1244,16 +1211,16 @@ class dippingfault(object):
 
         # Get the number of data
         Nd = data.lon.shape[0]
-        if data.dtype is 'insar':
+        if data.dtype=='insar':
             Ndt = Nd
             data.obs_per_station = 1
-        elif data.dtype is 'gps':
+        elif data.dtype=='gps':
             Ndt = data.lon.shape[0]*2
             data.obs_per_station = 2
             if vertical:
                 data.obs_per_station = 3
                 Ndt += data.lon.shape[0]
-        elif data.dtype is 'opticorr':
+        elif data.dtype=='opticorr':
             Ndt = 2 * Nd
             data.obs_per_station = 2
 
@@ -1273,16 +1240,16 @@ class dippingfault(object):
             G['tensile'] = np.zeros((Ndt, Np))
 
         # Initializes the data vector and the data covariance
-        if data.dtype is 'insar':
+        if data.dtype=='insar':
             self.d[data.name] = data.vel
             vertical = True                 # In InSAR, you need to use the vertical, no matter what....
-        elif data.dtype is 'gps':
+        elif data.dtype=='gps':
             if vertical:
                 self.d[data.name] = data.vel_enu.T.flatten()
             else:
                 self.d[data.name] = data.vel_enu[:,0:2].T.flatten()
 
-        elif data.dtype is 'opticorr':
+        elif data.dtype=='opticorr':
             self.d[data.name] = np.hstack((data.east.flatten(), data.north.flatten()))
 
         # Initialize the slip vector
@@ -1322,7 +1289,7 @@ class dippingfault(object):
                 ss = ss.T.flatten()
                 ds = ds.T.flatten()
                 op = op.T.flatten()
-            elif data.dtype is 'insar':        # If InSAR, do the dot product with the los
+            elif data.dtype=='insar':        # If InSAR, do the dot product with the los
                 ss_los = []
                 ds_los = []
                 op_los = []
@@ -1405,7 +1372,7 @@ class dippingfault(object):
         for data in datas:
 
             # Check something
-            if data.dtype is not 'gps':
+            if data.dtype!='gps':
                 print('This has not been implemented for other data set than gps')
                 return
 
@@ -1541,7 +1508,7 @@ class dippingfault(object):
         datatype = data.dtype
 
         # Cut the Matrices following what data do we have and set the GFs
-        if datatype is 'gps':
+        if datatype=='gps':
          
             # Initialize
             GssE = None; GdsE = None; GtsE = None
@@ -1568,7 +1535,7 @@ class dippingfault(object):
             # set the GFs
             self.setGFs(data, strikeslip=[GssE, GssN, GssU], dipslip=[GdsE, GdsN, GdsU], tensile=[GtsE, GtsN, GtsU], vertical=vertical)
 
-        elif datatype is 'insar':
+        elif datatype=='insar':
 
             # Initialize
             GssLOS = None; GdsLOS = None; GtsLOS = None
@@ -1599,13 +1566,13 @@ class dippingfault(object):
         '''
 
         # Get the number of data per point
-        if data.dtype is 'insar':
+        if data.dtype=='insar':
             data.obs_per_station = 1
-        elif data.dtype is 'gps':
+        elif data.dtype=='gps':
             data.obs_per_station = 2
             if vertical:
                 data.obs_per_station = 3
-        elif data.dtype is 'opticorr':
+        elif data.dtype=='opticorr':
             data.obs_per_station = 2
 
         # Create the storage for that dataset
@@ -1614,16 +1581,16 @@ class dippingfault(object):
         G = self.G[data.name]
 
         # Initializes the data vector
-        if data.dtype is 'insar':
+        if data.dtype=='insar':
             self.d[data.name] = data.vel
             vertical = True                 # In InSAR, you need to use the vertical, no matter what....
-        elif data.dtype is 'gps':
+        elif data.dtype=='gps':
             if vertical:
                 self.d[data.name] = data.vel_enu.T.flatten()
             else:
                 self.d[data.name] = data.vel_enu[:,0:2].T.flatten()
 
-        elif data.dtype is 'opticorr':
+        elif data.dtype=='opticorr':
             self.d[data.name] = np.hstack((data.east.T.flatten(), data.north.T.flatten()))
             
 
@@ -1751,7 +1718,7 @@ class dippingfault(object):
                 if polys.__class__ is not str:
                     self.poly[data.name] = polys*data.obs_per_station
                 else:
-                    if data.dtype is 'gps':
+                    if data.dtype=='gps':
                         self.poly[data.name] = polys
                     else:
                         print('Data type must be gps to implement a Helmert transform')
@@ -1761,7 +1728,7 @@ class dippingfault(object):
                 if polys[d].__class__ is not str:
                     self.poly[datas[d].name] = polys[d]*datas[d].obs_per_station
                 else:
-                    if datas[d].dtype is 'gps':
+                    if datas[d].dtype=='gps':
                         self.poly[datas[d].name] = polys[d]
                     else:
                         print('Data type must be gps to implement a Helmert transform')
@@ -1772,7 +1739,7 @@ class dippingfault(object):
         Nps = N*len(slipdir)
         Npo = 0
         for data in datas :
-            if self.poly[data.name] is 'full':
+            if self.poly[data.name]=='full':
                 if not hasattr(self, 'helmert'):
                     self.helmert = {}
                 if data.obs_per_station==3:
@@ -1781,7 +1748,7 @@ class dippingfault(object):
                 else:   
                     Npo += 4                    # 2D Helmert transform is 4 parameters
                     self.helmert[data.name] = 4
-            elif self.poly[data.name] is 'strain':
+            elif self.poly[data.name]=='strain':
                 if not hasattr(self, 'strain'):
                     self.strain = {}
                 if data.obs_per_station==2:
@@ -1842,7 +1809,7 @@ class dippingfault(object):
             if self.poly[data.name].__class__ is not str:
                 if self.poly[data.name] > 0:
 
-                    if data.dtype is 'gps':
+                    if data.dtype=='gps':
                         orb = np.zeros((Ndlocal, self.poly[data.name]))
                         nn = Ndlocal/data.obs_per_station
                         orb[:nn, 0] = 1.0
@@ -1850,7 +1817,7 @@ class dippingfault(object):
                         if data.obs_per_station == 3:
                             orb[2*nn:3*nn, 2] = 1.0
 
-                    elif data.dtype is 'insar':
+                    elif data.dtype=='insar':
                         orb = np.zeros((Ndlocal, self.poly[data.name]))
                         orb[:] = 1.0 * data.factor
                         if self.poly[data.name] >= 3:
@@ -1867,7 +1834,7 @@ class dippingfault(object):
                             orb[:,3] = ((data.x-x0)/(np.abs(data.x-x0)).max() * 
                                         (data.y-y0)/(np.abs(data.y-y0)).max())
 
-                    elif data.dtype is 'opticorr':
+                    elif data.dtype=='opticorr':
                         orb = np.zeros((Ndlocal, self.poly[data.name]))
                         assert False
 
@@ -1876,7 +1843,7 @@ class dippingfault(object):
                     G[el:el+Ndlocal, polstart:polend] = orb
                     polstart += self.poly[data.name]
             else:
-                if self.poly[data.name] is 'full':
+                if self.poly[data.name]=='full':
                     orb = self.getHelmertMatrix(data)
                     if data.obs_per_station==3:
                         nc = 7
@@ -1886,7 +1853,7 @@ class dippingfault(object):
                     polend = polstart + nc
                     G[el:el+Ndlocal, polstart:polend] = orb
                     polstart += nc
-                if self.poly[data.name] is 'strain':
+                if self.poly[data.name]=='strain':
                     orb = self.get2DstrainEst(data)
                     if data.obs_per_station == 2:
                         nc = 6
@@ -1908,7 +1875,7 @@ class dippingfault(object):
         '''
 
         # Check
-        assert (data.dtype is 'gps')
+        assert (data.dtype=='gps')
 
         # Get the number of gps stations
         ns = data.station.shape[0]
@@ -1983,7 +1950,7 @@ class dippingfault(object):
         '''
 
         # Check
-        assert (data.dtype is 'gps')
+        assert (data.dtype=='gps')
 
         # Get the number of stations
         ns = data.station.shape[0]
@@ -2250,7 +2217,7 @@ class dippingfault(object):
             * lim       : if not None, list of two float, the first one is the distance above which d=lim[1].
         '''
 
-        if distance is 'center':
+        if distance=='center':
 
             # Get the centers
             x1, y1, z1 = self.getcenter(patch1)
@@ -2309,7 +2276,7 @@ class dippingfault(object):
             datname = data.name
         ReceiverFile = 'edks_{}.idEN'.format(datname)
 
-        if data.dtype is 'insar':
+        if data.dtype=='insar':
             useRecvDir = True # True for InSAR, uses LOS information
         else:
             useRecvDir = False # False for GPS, uses ENU displacements
@@ -2676,7 +2643,7 @@ class dippingfault(object):
         ax = fig.add_subplot(111, projection='3d')
 
         # Set the axes
-        if ref is 'utm':
+        if ref=='utm':
             ax.set_xlabel('Easting (km)')
             ax.set_ylabel('Northing (km)')
         else:
@@ -2685,23 +2652,23 @@ class dippingfault(object):
         ax.set_zlabel('Depth (km)')
 
         # Plot the surface trace
-        if ref is 'utm':
+        if ref=='utm':
             if self.xf is None:
                 self.trace2xy()
             ax.plot(self.xf, self.yf, '-b')
         else:
             ax.plot(self.lon, self.lat,'-b')
 
-        if add and (ref is 'utm'):
+        if add and (ref=='utm'):
             for fault in self.addfaultsxy:
                 ax.plot(fault[:,0], fault[:,1], '-k')
-        elif add and (ref is not 'utm'):
+        elif add and (ref!='utm'):
             for fault in self.addfaults:
                 ax.plot(fault[:,0], fault[:,1], '-k')
 
         # Plot the discretized trace
         if self.xi is not None:
-            if ref is 'utm':
+            if ref=='utm':
                 ax.plot(self.xi, self.yi, '.r')
             else:
                 if self.loni is None:
@@ -2744,7 +2711,7 @@ class dippingfault(object):
                 y = []
                 z = []
                 for i in range(ncorners):
-                    if ref is 'utm':
+                    if ref=='utm':
                         x.append(self.patch[p][i][0])
                         y.append(self.patch[p][i][1])
                         z.append(-1.0*self.patch[p][i][2])

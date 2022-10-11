@@ -49,7 +49,8 @@ class uncertainties(object):
                     print("UTM zones are not equivalent, this is a problem")
                     self.ready = False
                     return
-            self.putm = faults[0].putm   
+            self.xy2ll = faults[0].xy2ll
+            self.ll2xy = faults[0].ll2xy
         else:
             self.utmzone = faults.utmzone
                                      

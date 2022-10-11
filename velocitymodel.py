@@ -103,42 +103,10 @@ class velocitymodel(SourceInv):
         self.depth = np.array(Depth)
 
         # LonLat2UTM
-        self.x, self.y = self.lonlat2xy(self.lon, self.lat)
+        self.x, self.y = self.ll2xy(self.lon, self.lat)
 
         # All done
         return
-
-    def lonlat2xy(self, lon, lat):
-        '''
-        Lon/Lat to UTM transformation.
-        Args:
-            * lon       : Longitude array
-            * lat       : Latitude array
-        Returns:
-            * x         : Easting (km)
-            * y         : Northing (km)
-        '''
-
-        x, y = self.putm(lon, lat)
-        x /= 1000.
-        y /= 1000.
-
-        # All done
-        return x,y
-
-    def xy2lonlat(self, x, y):
-        '''
-        UTM to Lon/Lat transformation.
-        Args:
-            * x         : Easting (km)
-            * y         : Northing (km)
-        Returns:
-            * lon       : Longitude.
-            * lat       : Latitude.
-        '''
-
-        # All done
-        return self.putm(x*1000., y*1000., inverse=True)
 
     def SelectBox(self, box):
         '''
@@ -151,8 +119,8 @@ class velocitymodel(SourceInv):
         import shapely.geometry as geom
         
         # Transform box into xy
-        xul, yul = self.lonlat2xy(box[0], box[1])
-        xbr, ybr = self.lonlat2xy(box[2], box[3])
+        xul, yul = self.ll2xy(box[0], box[1])
+        xbr, ybr = self.ll2xy(box[2], box[3])
 
         # Make a polygon with the box
         poly = geom.Polygon([ [xul,yul], [xbr,yul], [xbr,ybr], [xul,ybr], [xul,yul] ])
@@ -201,8 +169,8 @@ class velocitymodel(SourceInv):
             box = [self.lon.min(), self.lat.max(), self.lon.max(), self.lat.min()]
 
         # Compute the x, y and depth vectors
-        xul, yul = self.lonlat2xy(box[0], box[1])
-        xbr, ybr = self.lonlat2xy(box[2], box[3])
+        xul, yul = self.ll2xy(box[0], box[1])
+        xbr, ybr = self.ll2xy(box[2], box[3])
         dmi = self.depth.min()
         dma = self.depth.max()
         XX = np.linspace(xul,xbr,Nlon)
@@ -312,14 +280,14 @@ class velocitymodel(SourceInv):
         '''
 
         # Get data
-        if data is 'all':
+        if data=='all':
             d = self.Vp
             prof = self.depth
-        elif data is 'vertical':
+        elif data=='vertical':
             d = self.VpVert
             std = self.StdVpVert
             prof = self.DVert
-        elif data is 'model':
+        elif data=='model':
             d = self.SimVpVert
             prof = self.SimDepth
 
@@ -338,16 +306,16 @@ class velocitymodel(SourceInv):
 
         # Convert to Vs
         vs = np.sqrt( (1-2*poisson)/(1-poisson) * d**2 * 0.5 )
-        if data is 'vertical':
+        if data=='vertical':
             svs = np.sqrt( (1-2*poisson)/(1-poisson) * std**2 * 0.5 )
 
         # Stores Vs
-        if data is 'all':
+        if data=='all':
             self.Vs = vs
-        elif data is 'vertical':
+        elif data=='vertical':
             self.VsVert = vs
             self.StdVsVert = svs
-        elif data is 'model':
+        elif data=='model':
             self.SimVsVert = vs
 
         # All done
@@ -695,7 +663,7 @@ class velocitymodel(SourceInv):
         '''
 
         # Get the fault depths
-        if fault.patchType is ('triangletent'):
+        if fault.patchType=='triangletent':
             depths = np.array([tent[2] for tent in fault.tent])
         else:
             depths = np.array([center[2] for center in fault.getcenters()])
@@ -850,11 +818,11 @@ class velocitymodel(SourceInv):
         carte.set_zlabel('Depth (km)')
 
         # Get data
-        if data is 'vp':
+        if data=='vp':
             d = self.Vp
-        elif data is 'vs':
+        elif data=='vs':
             d = self.Vs
-        elif data is 'density':
+        elif data=='density':
             d = self.Rho
 
         # Remove the nans

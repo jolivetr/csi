@@ -9,10 +9,12 @@ Edited by T. Shreve, May 2019
 import numpy as np
 import pyproj as pp
 import matplotlib.pyplot as plt
-import scipy.interpolate as sciint
 from . import triangularDisp as tdisp
 from scipy.linalg import block_diag
 import scipy.spatial.distance as scidis
+import scipy.interpolate as sciint
+import scipy.signal as scisig
+import scipy.optimize as sciopt
 import copy
 import sys
 import os
@@ -52,7 +54,7 @@ class Fault(SourceInv):
             print ("---------------------------------")
             print ("Initializing fault {}".format(self.name))
         self.verbose = verbose
-
+        
         self.type = "Fault"
 
         # Specify the type of patch
@@ -224,11 +226,11 @@ class Fault(SourceInv):
         A = fin.readline()
         tmpflt=[]
         while len(A.split()) > 0:
-            if A.split()[0] is '>':
+            if A.split()[0] == '>':
                 if len(tmpflt) > 0:
                     self.addfaults.append(np.array(tmpflt))
                 tmpflt = []
-            elif A.split()[0] is '#':
+            elif A.split()[0] == '#':
                 pass # comment line, ignore
             else:
                 lon = float(A.split()[0])
@@ -342,7 +344,7 @@ class Fault(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def setTrace(self,delta_depth=0.):
+    def setTrace(self,delta_depth=0., sort='y'):
         '''
         Uses the patches to build a fault trace. Fault trace is made of the
         vertices that are shallower than fault top + delta_depth
@@ -371,7 +373,10 @@ class Fault(SourceInv):
                 self.yf.append(v[1])
         self.xf = np.array(self.xf)
         self.yf = np.array(self.yf)
-        i = np.argsort(self.yf)
+        if sort=='y':
+            i = np.argsort(self.yf)
+        elif sort=='x':
+            i = np.argsort(self.xf)
         self.xf = self.xf[i]
         self.yf = self.yf[i]
 
@@ -517,6 +522,8 @@ class Fault(SourceInv):
                 xi.append(xt)
                 yi.append(yt)
             else:
+                maxcount = 10**6 #maximum number of iteration 
+                count = 0 
                 # While I am to far away from my goal and I did not pass the last x
                 while ((np.abs(d-every)>tol) and (xt<xlast)):
                     # I add the distance*frac that I need to go
@@ -530,6 +537,12 @@ class Fault(SourceInv):
                     yt = f_inter(xt)
                     # I compute the corresponding distance
                     d = np.sqrt( (xt-xi[-1])**2 + (yt-yi[-1])**2 )
+                    if count > maxcount:
+                        print("ERROR: looks like you are in an infinite loop")
+                        print("You should change parameters like fracstep and every")
+                        assert False
+                    count+=1
+
                 # When I stepped out of that loop, append
                 if cum_error:
                     total_error += every - d
@@ -548,25 +561,114 @@ class Fault(SourceInv):
             self.xi = np.array(yi)
 
         # Compute the lon/lat
-        self.loni, self.lati = self.putm(self.xi*1000., self.yi*1000.,
-                                         inverse=True)
+        self.loni, self.lati = self.xy2ll(self.xi, self.yi)
 
         # All done
         return
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def cumdistance(self, discretized=False):
+    def smoothTrace(self, winsize=10, std=1., discretized=True):
+        '''
+        Smoothes the trace of the fault using a median filter (scipy.signal.medfilt)
+
+        Kwargs:
+            * std               : Standard deviation of the Gaussian kernel in km
+            * discretized       : Use the discretized fault trace (self.xi and self.yi) (default True)
+
+        Returns:
+            * None
+        '''
+    
+        # Get the fault trace
+        if discretized:
+            xt = self.xi
+            yt = self.yi
+        else:
+            xt = self.xf
+            yt = self.yf
+
+        # Smooth it
+        win = scisig.windows.gaussian(winsize, std)
+        x = scisig.convolve(np.concatenate((xt[::-1], xt, xt[::-1])), win,
+                            mode='same', method='fft')/sum(win)
+        y = scisig.convolve(np.concatenate((yt[::-1], yt, yt[::-1])), win, 
+                            mode='same', method='fft')/sum(win)
+
+        # Keep what I need
+        x = x[len(xt):2*len(xt)]
+        y = y[len(yt):2*len(yt)]
+
+        # Save it 
+        if discretized:
+            self.xi = x
+            self.yi = y
+            self.loni, self.lati = self.xy2ll(self.xi, self.yi)
+        else:
+            self.xf = x
+            self.yf = y
+            self.lon, self.lat = self.xy2ll(self.xi, self.yi)
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def strikeOfTrace(self, discretized=True, npoints=2):
+        '''
+        Computes the strike of the fault trace from the discretized (default) 
+        fault trace.
+
+        Kwargs:
+            * discretized       : Use the discretized fault trace (self.xi and self.yi) (default True)
+            * npoints           : Number of points to average strike
+
+        Return:
+            * None. Stores the strike in self.strike
+        '''
+
+        # Get the fault trace
+        if discretized:
+            xt = self.xi
+            yt = self.yi
+        else:
+            xt = self.xf
+            yt = self.yf
+
+        # Iterate over these guys
+        strike = []
+        for i in range(len(xt)):
+            s = []
+            for n in range(1, npoints):
+                istart = np.max((0, i-n))
+                iend = np.min((len(xt)-1, i+n))
+                s.append(np.pi/2.-np.arctan2(yt[iend]-yt[istart],xt[iend]-xt[istart]))
+            strike.append(np.mean(s))
+
+        # Save strike 
+        self.strike = strike
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def cumdistance(self, discretized=False, recompute=True):
         '''
         Computes the distance between the first point of the fault and every
         other point. The distance is cumulative along the fault.
 
         Args:
             * discretized           : if True, use the discretized fault trace (default False)
+            * recompute             : if False, just returns the attribute cumdis
 
         Returns:
             * dis                   : Cumulative distance array
         '''
+
+        # Check 
+        if not recompute:
+            return self.cumdis
 
         # Get the x and y positions
         if discretized:
@@ -584,12 +686,59 @@ class Fault(SourceInv):
             d = np.sqrt((x[i]-x[i-1])**2 + (y[i]-y[i-1])**2)
             dis[i] = dis[i-1] + d
 
+        # Save
+        self.cumdis = dis
+    
         # all done
         return dis
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def distance2trace(self, lon, lat, discretized=False, coord='ll'):
+    def cumdis2xy(self, distance, recompute=True, mode='lonlat', discretized=False):
+        '''
+        For a given {distance}, returns the x and y position along strike.
+
+        Args:   
+            * distance          : Along strike distance
+
+        Kwargs:
+            * recompute         : recompute the interpolator
+            * mode              : 'lonlat' returns lon/lat while 'xy' returns x and y
+            * discretized       : use the discretized fault trace
+        
+        Returns:
+            * xy                : tuple of floats
+        '''
+
+        # Get the coordinates
+        if discretized:
+            x,y = self.xi,self.yi
+        else:
+            x,y = self.xy,self.yf
+
+        # Cumulative distance is needed
+        cumdis = self.cumdistance(discretized=discretized, recompute=recompute)
+        
+        # Make the interpolator
+        if recompute:
+            self.intcumdis = sciint.interp2d(x, y, self.cumdis, fill_value=0.) 
+        assert hasattr(self, 'intcumdis'), 'An interpolator is needed'
+
+        # Make a function with this
+        def norm(m):
+            return (self.intcumdis(m[0], m[1])-distance)**2
+        
+        # Minimize from a starting point that is close to the good point
+        istart = np.argmin(np.abs(cumdis-distance))
+        startm = np.array([x[istart], y[istart]])
+        m = sciopt.minimize(norm, startm)
+
+        # All done
+        return tuple(m.x)
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def distance2trace(self, lon, lat, discretized=False, coord='ll', recompute=True):
         '''
         Computes the distance between a point and the trace of a fault.
         This is a slow method, so it has been recoded in a few places
@@ -601,6 +750,7 @@ class Fault(SourceInv):
 
         Kwargs:
             * discretized       : Uses the discretized trace.
+            * recompute         : recompute the cumulative distance
             * coord             : if 'll' or 'lonlat', input in degree. If 'xy' or 'utm', input in km
 
         Returns:
@@ -609,7 +759,7 @@ class Fault(SourceInv):
         '''
 
         # Get the cumulative distance along the fault
-        cumdis = self.cumdistance(discretized=discretized)
+        cumdis = self.cumdistance(discretized=discretized, recompute=recompute)
 
         # ll2xy
         if coord in ('ll', 'lonlat'):
@@ -840,9 +990,15 @@ class Fault(SourceInv):
         **********************
         '''
 
+        # If the data set is surfaceslip, that's where we build the GFs
+        if data.dtype == 'surfaceslip' and method not in ('empty'):
+            G = self.surfaceGFs(data, slipdir=slipdir)
+            data.setGFsInFault(self, G, vertical=vertical)
+            return
+
         # Chech something
         if self.patchType == 'triangletent':
-            assert method is 'edks', 'Homogeneous case not implemented for {} faults'.format(self.patchType)
+            assert method == 'edks', 'Homogeneous case not implemented for {} faults'.format(self.patchType)
 
         # Check something
         if method in ('homogeneous', 'Homogeneous'):
@@ -875,16 +1031,151 @@ class Fault(SourceInv):
                 vertical = True
 
         # Compute the Green's functions
+        # G will be none if data type is not insar, gps, multigps, opticor or tsunami
         if method in ('okada', 'Okada', 'OKADA', 'ok92', 'meade', 'Meade', 'MEADE'):
             G = self.homogeneousGFs(data, vertical=vertical, slipdir=slipdir, verbose=verbose, convergence=convergence)
-        elif method in ('edks', 'EDKS'):
-            G = self.edksGFs(data, vertical=vertical, slipdir=slipdir, verbose=verbose, convergence=convergence)
+        elif method in ('edks', 'EDKS', 'pyedks', 'pythonedks'):
+            if 'py' not in method:
+                G = self.edksGFs(data, vertical=vertical, slipdir=slipdir, verbose=verbose, convergence=convergence, method='fortran')
+            else:
+                G = self.edksGFs(data, vertical=vertical, slipdir=slipdir, verbose=verbose, convergence=convergence, method='python')
+        elif method in ('empty'):
+            G = self.emptyGFs(data, vertical=vertical, slipdir=slipdir, verbose=verbose)
 
         # Separate the Green's functions for each type of data set
         data.setGFsInFault(self, G, vertical=vertical)
 
         # All done
         return
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def surfaceGFs(self, data, slipdir='sd', verbose=True):
+        '''
+        Build the GFs for the surface slip case.
+        We assume the data are within the bounds of the fault.
+
+        Args:
+            * data      : surfaceslip data ojbect
+
+        Kwargs:
+            * slipdir   : any combinatino of s and d. default: 'sd'
+            * verbose   : Default True
+        '''
+
+        # Check
+        assert data.dtype == 'surfaceslip', 'Only works for surfaceslip data type: {}'.format(data.dtype)
+
+        # Number of parameters
+        if self.patchType == 'triangletent':
+            n = len(self.tent)
+        else:
+            raise NotImplementedError
+
+        # Initialize
+        Gss = None; Gds = None
+        if 's' in slipdir: Gss = np.zeros((len(data.vel), n))
+        if 'd' in slipdir: Gds = np.zeros((len(data.vel), n))
+
+        # Find points at the surface
+        if self.patchType == 'triangletent':
+            # get the index of the points
+            zeroD = np.flatnonzero(np.array([tent[2] for tent in self.tent])==0.)
+            if len(zeroD)==0: 
+                print('No surface patches.')
+                return None
+            # Get their positions
+            x = np.array([tent[0] for tent in self.tent])[zeroD]
+            y = np.array([tent[1] for tent in self.tent])[zeroD]
+            strike = self.getStrikes()[zeroD]
+            # Iterate over the data points
+            for i, (lon, lat) in enumerate(zip(data.lon, data.lat)):
+                # Get the two closest points
+                xd,yd = self.ll2xy(lon, lat)
+                dis = np.sqrt((x-xd)**2 + (y-yd)**2)
+                i1,i2 = np.argsort(dis)[:2]
+                d1 = dis[i1]
+                d2 = dis[i2]
+                # Check that the data point is between the two fault points
+                v1 = np.array([xd-x[i1], yd-y[i1]]); v1 /= np.linalg.norm(v1)
+                v2 = np.array([xd-x[i2], yd-y[i2]]); v2 /= np.linalg.norm(v2)
+                if sum(np.abs((np.arctan2(v1[1],v1[0])*180/np.pi, np.arctan2(v2[1],v2[0])*180/np.pi))) > 90.: # If the point is between the two, then interpolate
+                    if 's' in slipdir:
+                        Gss[i,zeroD[i1]] = d2/(d1+d2); Gss[i,zeroD[i2]] = d1/(d1+d2)
+                    if 'd' in slipdir:
+                        Gds[i,zeroD[i1]] = d2/(d1+d2); Gds[i,zeroD[i2]] = d1/(d1+d2)
+                if data.los is not None:
+                    los = data.los[i]
+                    if 's' in slipdir:
+                        v1 = np.array([-1.*np.sin(strike[i1]), np.cos(strike[i1]), 0])
+                        v2 = np.array([-1.*np.sin(strike[i2]), np.cos(strike[i2]), 0])
+                        Gss[i,zeroD[i1]] *= v1.dot(los)
+                        Gss[i,zeroD[i2]] *= v2.dot(los)
+                    if 'd' in slipdir:
+                        v1 = np.array([0., 0., 1.])
+                        v2 = np.array([0., 0., 1.])
+                        Gds[i,zeroD[i1]] *= v1.dot(los)
+                        Gds[i,zeroD[i2]] *= v2.dot(los)
+        else:
+            raise NotImplementedError
+
+        # Build the dictionnary
+        G = {'strikeslip':Gss, 'dipslip':Gds}
+
+        # All done
+        return G
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def emptyGFs(self, data, vertical=True, slipdir='sd', verbose=True):
+        ''' 
+        Build zero GFs.
+
+        Args:
+            * data          : Data object (gps, insar, optical, ...)
+
+        Kwargs:
+            * vertical      : If True, will produce green's functions for the vertical displacements in a gps object.
+            * slipdir       : Direction of slip along the patches. Can be any combination of s (strikeslip), d (dipslip), t (tensile) and c (coupling)
+            * verbose       : Writes stuff to the screen (overwrites self.verbose)
+
+        Returns:
+            * G             : Dictionnary of GFs
+        '''
+
+        # Create the dictionary
+        G = {'strikeslip':None, 'dipslip':None, 'tensile':None, 'coupling':None}
+
+        # Get shape
+        if self.patchType == 'triangletent':
+            nm = len(self.tent)
+        else:
+            nm = len(self.patch)
+
+        # Get shape
+        if data.dtype in ('insar', 'surfaceslip'):
+            nd = len(data.vel)
+        elif data.dtype in ('opticor'):
+            nd = data.vel.shape[0]*2
+        elif data.dtype in ('gps'):
+            nd = data.vel_enu.shape[0]
+            if vertical:
+                nd *= 3
+            else:
+                nd *= 2
+
+        # Build dictionnary
+        if 's' in slipdir:
+            G['strikeslip'] = np.zeros((nd,nm))
+        if 'd' in slipdir:
+            G['dipslip'] = np.zeros((nd,nm))
+        if 't' in slipdir:
+            G['tensile'] = np.zeros((nd,nm))
+        if 'c' in slipdir:
+            G['coupling'] = np.zeros((nd,nm))
+
+        # All done
+        return G
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -909,6 +1200,9 @@ class Fault(SourceInv):
         Returns:
             * G             : Dictionary of the built Green's functions
         '''
+
+        if data.dtype not in ('insar', 'gps', 'opticor', 'tsunami', 'multigps'):
+            return None
 
         # Check that we are not in this case
         assert self.patchType != 'triangletent',\
@@ -942,9 +1236,6 @@ class Fault(SourceInv):
             SLP.append(1.0)
         else:                           # Else
             SLP.append(0.0)
-
-        # Create the dictionary
-        G = {'strikeslip':[], 'dipslip':[], 'tensile':[], 'coupling':[]}
 
         # Create the matrices to hold the whole thing
         Gss = np.zeros((3, len(data.x), len(self.patch)))
@@ -1078,6 +1369,8 @@ class Fault(SourceInv):
 
         # Store
         self.edksSources = sources
+        self.plotSources = [sources[0], sources[1]/1e3, sources[2]/1e3, sources[3]/1e3, 
+                            sources[4]*np.pi/180., sources[5]*np.pi/180., sources[6]/1e6]
 
         # All done
         return
@@ -1085,7 +1378,7 @@ class Fault(SourceInv):
 
     # ----------------------------------------------------------------------
     def edksGFs(self, data, vertical=True, slipdir='sd', verbose=True,
-                      convergence=None):
+                      convergence=None, method='fortran'):
         '''
         Builds the Green's functions based on the solution by Zhao & Rivera 2002.
         The corresponding functions are in the EDKS code that needs to be installed and
@@ -1114,6 +1407,9 @@ class Fault(SourceInv):
         Returns:
             * G             : Dictionary of the built Green's functions
         '''
+
+        if data.dtype not in ('insar', 'gps', 'opticor', 'tsunami', 'multigps'):
+            return None
 
         # Print
         if verbose:
@@ -1226,15 +1522,27 @@ class Fault(SourceInv):
         if verbose:
             print('{} sources for {} patches and {} data points'.format(len(Ids), len(self.patch), len(xr)))
 
+        # Create interpolation class if python method is selected
+        if method in ('python'):
+            inter = interpolateEDKS(stratKernels, verbose=verbose)
+            inter.readHeader()
+            inter.readKernel()
+
         # Run EDKS Strike slip
         if 's' in slipdir:
             if verbose:
                 print('Running Strike Slip component for data set {}'.format(data.name))
-            iGss = np.array(sum_layered(xs, ys, zs,
-                                        strike, dip, np.zeros(dip.shape), slip,
-                                        np.sqrt(Areas), np.sqrt(Areas), 1, 1,
-                                        xr, yr, stratKernels, prefix, BIN_EDKS='EDKS_BIN',
-                                        cleanUp=self.cleanUp, verbose=verbose))
+            if method in ('fortran'):
+                iGss = np.array(sum_layered(xs, ys, zs, 
+                                            strike, dip, np.zeros(dip.shape), slip, 
+                                            np.sqrt(Areas), np.sqrt(Areas), 1, 1,
+                                            xr, yr, stratKernels, prefix, BIN_EDKS='EDKS_BIN',
+                                            cleanUp=self.cleanUp, verbose=verbose))
+            elif method in ('python'):
+                iGss = np.array(inter.interpolate(xs, ys, zs, strike*np.pi/180., 
+                                                  dip*np.pi/180., np.zeros(dip.shape),
+                                                  Areas, slip, 
+                                                  xr, yr, method='linear'))
             if verbose:
                 print('Summing sub-sources...')
             Gss = np.zeros((3, iGss.shape[1],np.unique(Ids).shape[0]))
@@ -1248,11 +1556,18 @@ class Fault(SourceInv):
         if 'd' in slipdir:
             if verbose:
                 print('Running Dip Slip component for data set {}'.format(data.name))
-            iGds = np.array(sum_layered(xs, ys, zs,
-                                        strike, dip, np.ones(dip.shape)*90.0, slip,
+            if method in ('fortran'):
+                iGds = np.array(sum_layered(xs, ys, zs, 
+                                        strike, dip, np.ones(dip.shape)*90.0, slip, 
                                         np.sqrt(Areas), np.sqrt(Areas), 1, 1,
                                         xr, yr, stratKernels, prefix, BIN_EDKS='EDKS_BIN',
                                         cleanUp=self.cleanUp, verbose=verbose))
+            elif method in ('python'):
+                iGds = np.array(inter.interpolate(xs, ys, zs, strike*np.pi/180., 
+                                                  dip*np.pi/180., 
+                                                  np.ones(dip.shape)*np.pi/2.,
+                                                  Areas, slip, 
+                                                  xr, yr, method='linear'))
             if verbose:
                 print('Summing sub-sources...')
             Gds = np.zeros((3, iGds.shape[1], np.unique(Ids).shape[0]))
@@ -1267,6 +1582,8 @@ class Fault(SourceInv):
             assert False, 'Sorry, this is not working so far... Bryan should get it done soon...'
             if verbose:
                 print('Running tensile component for data set {}'.format(data.name))
+            if method not in ('fortran'): 
+                raise NotImplementedError('Tensile case not implemented in python yet')
             iGts = np.array(sum_layered(xs, ys, zs,
                                         strike, dip, np.zeros(dip.shape), slip,
                                         np.sqrt(Areas), np.sqrt(Areas), 1, 1,
@@ -1292,7 +1609,8 @@ class Fault(SourceInv):
     # ----------------------------------------------------------------------
     def setGFsFromFile(self, data, strikeslip=None, dipslip=None,
                                    tensile=None, coupling=None,
-                                   custom=None, vertical=False, dtype='d'):
+                                   custom=None, vertical=False, dtype='d', 
+                                   inDir='.'):
         '''
         Sets the Green's functions reading binary files. Be carefull, these have to be in the
         good format (i.e. if it is GPS, then GF are E, then N, then U, optional, and
@@ -1313,6 +1631,28 @@ class Fault(SourceInv):
         Returns:
             * None
         '''
+
+        # Check name conventions
+        if strikeslip is None:
+            if os.path.isfile(os.path.join(inDir,'{}_{}_SS.gf'.format(self.name.replace(' ','_'), 
+                                                   data.name.replace(' ','_')))):
+                strikeslip = os.path.join(inDir, '{}_{}_SS.gf'.format(self.name.replace(' ','_'), 
+                                                   data.name.replace(' ','_')))
+        if dipslip is None:
+            if os.path.isfile(os.path.join(inDir,'{}_{}_DS.gf'.format(self.name.replace(' ','_'), 
+                                                   data.name.replace(' ','_')))):
+                dipslip = os.path.join(inDir, '{}_{}_DS.gf'.format(self.name.replace(' ','_'), 
+                                                   data.name.replace(' ','_')))
+        if tensile is None:
+            if os.path.isfile(os.path.join(inDir,'{}_{}_TS.gf'.format(self.name.replace(' ','_'), 
+                                                   data.name.replace(' ','_')))):
+                tensile = os.path.join(inDir, '{}_{}_TS.gf'.format(self.name.replace(' ','_'), 
+                                                   data.name.replace(' ','_')))
+        if coupling is None:
+            if os.path.isfile(os.path.join(inDir, '{}_{}_Coupling.gf'.format(self.name.replace(' ','_'), 
+                                                   data.name.replace(' ','_')))):
+                coupling = os.path.join(inDir, '{}_{}_Coupling.gf'.format(self.name.replace(' ','_'), 
+                                                   data.name.replace(' ','_')))
 
         if self.verbose:
             print('---------------------------------')
@@ -1397,7 +1737,7 @@ class Fault(SourceInv):
         '''
 
         # Get the number of data per point
-        if data.dtype == 'insar' or data.dtype == 'tsunami':
+        if data.dtype in ('insar', 'tsunami', 'surfaceslip'):
             data.obs_per_station = 1
         elif data.dtype in ('gps', 'multigps'):
             data.obs_per_station = 0
@@ -1428,6 +1768,8 @@ class Fault(SourceInv):
             elif data.dtype == 'tsunami':
                 self.d[data.name] = data.d
                 vertical = True
+            elif data.dtype == 'surfaceslip':
+                self.d[data.name] = data.vel
             elif data.dtype in ('gps', 'multigps'):
                 if vertical:
                     self.d[data.name] = data.vel_enu.T.flatten()
@@ -2182,6 +2524,97 @@ class Fault(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
+    def buildCmXY(self, sigma, lam, lam0=None, extra_params=None, lim=None,
+                                  verbose=True):
+        '''
+        Builds a model covariance matrix using the equation described in
+        Radiguet et al 2010 with a different characteristic lengthscale along
+        the horizontal and vertical directions. We use
+
+        :math:`C_m(i,j) = \\frac{\sigma \lambda_0}{ \lambda_x }^2 e^{-\\frac{||i,j||_{x2}}{ \lambda_x }} \\frac{\sigma \lambda_0}{ \lambda_z }^2 e^{-\\frac{||i,j||_{z2}}{ \lambda_z }}`
+
+        extra_params allows to add some diagonal terms and expand the size
+        of the matrix, in case the fault object is also hosting the estimation
+        of transformation parameters.
+
+        Model covariance is stored in self.Cm
+
+        Args:
+            * sigma         : Amplitude of the correlation.
+            * lam           : Characteristic length scale (lamx, lamz)
+
+        Kwargs:
+            * lam0          : Normalizing distance. if None, lam0=min(distance between patches)
+            * extra_params  : A list of extra parameters.
+            * lim           : Limit distance parameter (see self.distancePatchToPatch)
+            * verbose       : Talk to me (overwrites self.verrbose)
+
+        Returns:
+            * None
+        '''
+
+        # print
+        if verbose:
+            print ("---------------------------------")
+            print ("---------------------------------")
+            print ("Assembling the Cm matrix ")
+            print ("Sigma = {}".format(sigma))
+            print ("Lambda = {}".format(tuple(lam)))
+
+        # Geth the desired slip directions
+        slipdir = self.slipdir
+
+        # Get the patch centers
+        if self.patchType=='triangulartent':
+            self.centers = self.Vertices
+        else:
+            self.centers = np.array(self.getcenters())
+
+        # Sets the lambda0 value
+        if lam0 is None:
+            xd = ((np.unique(self.centers[:,0]).max() - np.unique(self.centers[:,0]).min())
+                / (np.unique(self.centers[:,0]).size))
+            yd = ((np.unique(self.centers[:,1]).max() - np.unique(self.centers[:,1]).min())
+                / (np.unique(self.centers[:,1]).size))
+            zd = ((np.unique(self.centers[:,2]).max() - np.unique(self.centers[:,2]).min())
+                / (np.unique(self.centers[:,2]).size))
+            lam0 = np.sqrt(xd**2 + yd**2 + zd**2)
+        if verbose:
+            print("Lambda0 = {}".format(lam0))
+        C = (sigma * lam0 / lam[0]) * (sigma * lam0 / lam[1])
+
+        # Creates the principal Cm matrix
+        if self.N_slip==None:
+            self.N_slip = self.slip.shape[0]
+        Np = self.N_slip * len(slipdir)
+        if extra_params is not None:
+            Np += len(extra_params)
+        Cm = np.zeros((Np, Np))
+
+        # Loop over the patches
+        Hdistances,Vdistances = self.distancesMatrix(distance='center', lim=lim)
+        Cmt = C * np.exp(-0.5 * Hdistances / lam[0]) * np.exp(-0.5 * Vdistances / lam[1])
+
+        # Store that into Cm
+        st = 0
+        for i in range(len(slipdir)):
+            se = st + self.N_slip
+            Cm[st:se, st:se] = Cmt
+            st += self.N_slip
+
+        # Put the extra values
+        if extra_params is not None:
+            for i in range(len(extra_params)):
+                Cm[st+i, st+i] = extra_params[i]
+
+        # Store Cm into self
+        self.Cm = Cm
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
     def buildCmSlipDirs(self, sigma, lam, lam0=None, extra_params=None,
                                           lim=None, verbose=True):
         '''
@@ -2438,13 +2871,13 @@ class Fault(SourceInv):
 
         # Select the string for the color
         if slip is not None:
-            if slip is 'coupling':
+            if slip == 'coupling':
                 slp = self.coupling[:]
-            elif slip is 'strikeslip':
+            elif slip == 'strikeslip':
                 slp = self.slip[:,0]*scale
-            elif slip is 'dipslip':
+            elif slip == 'dipslip':
                 slp = self.slip[:,1]*scale
-            elif slip is 'total':
+            elif slip == 'total':
                 slp = np.sqrt(self.slip[:,0]**2 + self.slip[:,1]**2)*scale
             else:
                 try:
@@ -2738,6 +3171,118 @@ class Fault(SourceInv):
                     self.mu[p] = mu[d]
 
         # All done
+        return          
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def calcGFsCp(self, datasets, edks=False, **edks_params):
+        '''
+        Calculate Green's Functions using Okada or EDKS 
+        Used in class uncertainties
+        
+        :Args:
+            * datasets : List of data objects
+                ex: dataset=[gps]+[insar1,insar2]
+        
+        :Kwargs:
+            * edks : If True, GFs calculated using a layered Earth model calculated with EDKS.
+                     If False, GFs with Okada
+                     
+        If edks is True, please specify in **edks_params: 
+            ex: Cp_dip(fault,datasets,[40,50],multi_segments=2,edks=True,edksdir='PATH',modelname='CIA',sourceSpacing=0.5)
+            * modelname : xxx.edks = Filename of the EDKS kernels
+            * sourceSpacing      : source spacing to calculate the Green's Functions
+                OR sourceNumber   : Number of sources per patches.
+                OR sourceArea     : Maximum Area of the sources.
+                
+        :Returns:
+            * Gassembled
+        '''
+        if edks is False:
+            for data in datasets:
+                self.buildGFs(data, slipdir='sd')
+            self.assembleGFs(datasets, slipdir='sd', polys=None)
+        else:
+            self.kernelsEDKS = edks_params['modelname']+'.edks'
+            if 'Spacing' in str(edks_params.items()[1][0]):
+                self.sourceSpacing = edks_params['sourceSpacing']
+            elif 'Number' in str(edks_params.items()[1][0]):
+                self.sourceNumber = edks_params['sourceNumber']
+            else:
+                self.sourceArea = edks_params['sourceArea']
+        
+            for data in datasets:
+                self.buildGFs(data, slipdir='sd', method= 'edks')
+            self.assembleGFs(datasets, slipdir='sd', polys=None)
+           
+        return self.Gassembled
+    # ----------------------------------------------------------------------
+        
+    # ----------------------------------------------------------------------
+    # Interpolate slip/coupling on the fault
+    def interpolateSlip(self, lon, lat, slip='strikeslip', rebuild=False, coord='LL'):
+        '''
+        Creates an interpolator and interpolates the slip values to the 
+        position given in {lon} and {lat}.
+
+        :Args:
+            * lon           : Longitude
+            * lat           : Latitude
+        
+        :Kwargs:
+            * slip          : Which slip value to take
+            * rebuild       : Rebuild the interpolator
+            * coord         : LL or utm (in km)
+        '''
+
+        # String 
+        strVal = slip+'Int'
+
+        # Check if an interpolator exists
+        if not hasattr(self, strVal) or rebuild:
+            if slip == 'strikeslip':
+                value = self.slip[:,0]
+            elif slip == 'dipslip':
+                value = self.slip[:,1]
+            elif slip == 'tensile':
+                value = self.slip[:,2]
+            elif slip == 'coupling':
+                value = self.coupling
+            x = [c[0] for c in self.getcenters()]
+            y = [c[1] for c in self.getcenters()]
+            interp = sciint.LinearNDInterpolator(np.vstack((x,y)).T, value)
+            setattr(self, strVal, interp)
+
+        # Coordinates
+        if coord == 'LL':
+            x,y = self.ll2xy(lon, lat)
+        else:
+            x,y = lon,lat
+
+        # All done
+        return getattr(self, strVal)(x,y)
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    # pickle myself
+    def pickle(self, filename):
+        '''
+        Pickle myself.
+
+        :Args:
+            * filename      : Name of the pickle fault.
+        '''
+
+        # Open the file
+        fout = open(filename, 'wb')
+
+        # Pickle
+        pickle.dump(self, fout)
+
+        # Close 
+        fout.close()
+
+        # All done
         return
     # ----------------------------------------------------------------------
 
@@ -2874,39 +3419,41 @@ class Fault(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def _rotatedisp(self, Gss, Gds, azimuth):
+    def _rotatedisp(self, Gss, Gds, azim):
         '''
         A rotation function for Green function.
 
-        Args:
+        :Args:   
             * Gss           : Strike slip GFs
             * Gds           : Dip slip GFs
-            * azimtuh       : Direction to rotate (degrees)
+            * azim          : Direction to rotate (degrees)
 
         Return:
             * rotatedGar    : Displacements along azimuth
             * rotatedGrp    : Displacements perp. to azimuth direction
         '''
+        
+        # Save
+        azimuth = copy.deepcopy(azim)
+
+        # Check nature of azimuth (float or array)
+        if type(azimuth) in [float,int,np.float64]:
+            azimuth = azimuth*np.ones((self.N_slip,))
 
         # Make azimuth positive
-        if azimuth < 0.:
-            azimuth += 360.
-
+        azimuth[azimuth< 0.] += 360.
+        
         # Get strikes and dips
-        #if self.patchType is 'triangletent':
-        #    strike = super(self.__class__, self).getStrikes()
-        #    dip = super(self.__class__, self).getDips()
-        #else:
         strike, dip = self.getStrikes(), self.getDips()
 
         # Convert angle in radians
         azimuth *= ((np.pi) / 180.)
-        rotation = np.arctan2(np.tan(strike) - np.tan(azimuth),
+        rotation = np.arctan2(np.tan(strike) - np.tan(azimuth), 
                             np.cos(dip)*(1.+np.tan(azimuth)*np.tan(strike)))
 
-        # If azimuth within ]90, 270], change rotation
-        if azimuth*(180./np.pi) > 90. and azimuth*(180./np.pi)<=270.:
-            rotation += np.pi
+        # If strike within ]90, 270], change rotation
+        rotation[np.logical_and(azimuth*(180./np.pi)>90.,azimuth*(180./np.pi)<=270.)] += np.pi
+        rotation[np.logical_and(strike*(180/np.pi)>90.,strike*(180./np.pi)<=270)] -= np.pi
 
         # Store rotation angles
         self.rotation = rotation.copy()
@@ -2926,18 +3473,23 @@ class Fault(SourceInv):
         Gss and Gds are of a shape (3xnumber of sites, number of fault patches)
         The 3 is for East, North and Up displacements
 
-        Args:
+        :Args:   
             * Gss           : Strike slip GFs
             * Gds           : Dip slip GFs
             * convergence   : [azimuth in degrees, rate]
-
-        Returns:
+    
+        :Returns:
             * Gar           : Along coupling Greens functions
 
         '''
 
         # For now, convergence is constant alnog strike
         azimuth, rate = convergence
+
+        # Check 
+        if type(azimuth) in (float, int):
+            azimuth = np.ones((self.slip.shape[0], ))*azimuth
+            rate = np.ones((self.slip.shape[0], ))*rate
 
         # Create the holders
         Gar = np.zeros(Gss.shape)
@@ -2949,8 +3501,8 @@ class Fault(SourceInv):
         Gar[2,:,:], Grp[2,:,:] = self._rotatedisp(Gss[2,:,:], Gds[2,:,:], azimuth)
 
         # Multiply and sum
-        Gar *= rate
-
+        Gar *= rate 
+        
         # All done (we only retun Gar as Grp should be 0)
         return Gar
     # ----------------------------------------------------------------------

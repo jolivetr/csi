@@ -173,13 +173,13 @@ class fault3D(RectangularPatches):
             # Get the top of the row
             xt = self.xi
             yt = self.yi
-            lont, latt = self.putm(xt*1000., yt*1000., inverse=True)
+            lont, latt = self.xy2ll(xt,yt)
             zt = self.zi.round(decimals=10)
 
             # Compute the bottom row
             xb = xt + self.width*np.cos(self.dip)*sdr
             yb = yt + self.width*np.cos(self.dip)*cdr
-            lonb, latb = self.putm(xb*1000., yb*1000., inverse=True)
+            lonb, latb = self.xy2ll(xb,yb)
             zb = zt + self.width*np.sin(self.dip)
 
             # fill D

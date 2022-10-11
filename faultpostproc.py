@@ -26,6 +26,7 @@ class faultpostproc(SourceInv):
     Kwargs:
         * Mu            : Shear modulus. Default is 24e9 GPa, because it is the PREM value for the upper 15km. Can be a scalar or a list/array of len=len(fault.patch)
         * samplesh5     : file name of h5 file containing samples
+        * AlTarV        : AlTar version 1 or version 2 (default 1 for backwards compatibility)
         * utmzone       : UTM zone  (optional, default=None)
         * lon0          : Longitude of the center of the UTM zone
         * lat0          : Latitude of the center of the UTM zone
@@ -34,7 +35,7 @@ class faultpostproc(SourceInv):
      
     '''
 
-    def __init__(self, name, fault, Mu=24e9, samplesh5=None, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
+    def __init__(self, name, fault, Mu=24e9, samplesh5=None, AlTarV=1, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
 
         # Base class init
         super(faultpostproc,self).__init__(name,
@@ -44,7 +45,8 @@ class faultpostproc(SourceInv):
 
         # Initialize the data set 
         self.name = name
-        self.fault = copy.deepcopy(fault) # we don't want to modify fault slip
+# no longer works        self.fault = copy.deepcopy(fault) # we don't want to modify original fault slip
+        self.fault = fault
         self.patchDepths = None
         self.MTs = None
 
@@ -70,6 +72,8 @@ class faultpostproc(SourceInv):
 
         # Check to see if we're reading in an h5 file for posterior samples
         self.samplesh5 = samplesh5
+        # get the AlTar version to know format of h5 file
+        self.AlTarV = AlTarV
 
         # All done
         return
@@ -98,21 +102,64 @@ class faultpostproc(SourceInv):
                 print('Cannot import h5py. Computing scalar moments only')
                 return
             self.hfid = h5py.File(self.samplesh5, 'r')
-            samples = self.hfid['Sample Set']
+            if self.AlTarV == 1:  # AlTar v 1.x h5 file reading
+                samples = self.hfid['Sample Set']
 
-            if indss is None or indds is None:
-                nsamples = np.arange(0, samples.shape[0], decim).size
-                self.fault.slip = np.zeros((self.numPatches,3,nsamples))
-                self.fault.slip[:,0,:] = samples[::decim,:self.numPatches].T
-                self.fault.slip[:,1,:] = samples[::decim,self.numPatches:2*self.numPatches].T
+                if indss is None or indds is None:
+                    nsamples = np.arange(0, samples.shape[0], decim).size
+                    self.fault.slip = np.zeros((self.numPatches,3,nsamples))
+                    self.fault.slip[:,0,:] = samples[::decim,:self.numPatches].T
+                    self.fault.slip[:,1,:] = samples[::decim,self.numPatches:2*self.numPatches].T
 
+                else:
+                    assert indss[1]-indss[0] == self.numPatches, 'indss[1] - indss[0] different from number of patches'
+                    assert indss[1]-indss[0] == self.numPatches, 'indds[1] - indds[0] different from number of patches'
+                    nsamples =  np.arange(0, samples.shape[0], decim).size
+                    self.fault.slip = np.zeros((self.numPatches,3,nsamples))
+                    self.fault.slip[:,0,:] = samples[::decim,indss[0]:indss[1]].T
+                    self.fault.slip[:,1,:] = samples[::decim,indds[0]:indds[1]].T
+            elif self.AlTarV == 2: # AlTar v 2.x h5 file reading EJF Jan. 2021
+                paramGroup=self.hfid['ParameterSets']
+                numParamSets=len(paramGroup)
+                if 'dipslip' in paramGroup:
+                    print('reading dipslip samples')
+                    totSamples=len(paramGroup['dipslip'])
+                    ds = paramGroup['dipslip'][::decim,:]   # copying results to variable might be inefficient, but easier to follow
+                    numSamp=len(ds)     # count actual number of samples after possible decimation
+                else:
+                    ds = None
+                    
+                if 'strikeslip' in paramGroup:
+                    print('reading strikeslip samples')
+                    totSamples=len(paramGroup['strikeslip'])
+                    ss = paramGroup['strikeslip'][::decim,:]
+                    numSamp=len(ss)
+                else:
+                    ss = None
+                   
+                # now load slip values into fault
+                self.fault.slip = np.zeros((self.numPatches,3,numSamp))  # create array set to all zeros
+                if ss is not None:
+                    if indss is None:
+                        self.fault.slip[:,0,:] = ss.T
+                    else:
+                        assert indss[1]-indss[0] == self.numPatches, 'indss[1] - indss[0] different from number of patches'
+                        self.fault.slip[:,0,:] = ss[:,indss[0]:indss[1]].T
+                        
+                if ds is not None:
+                    if indds is None:
+                        self.fault.slip[:,1,:] = ds.T
+                    else:
+                        assert indss[1]-indss[0] == self.numPatches, 'indds[1] - indds[0] different from number of patches'
+                        self.fault.slip[:,1,:] = ds[:,indds[0]:indds[1]].T
+                    
+# not used                if 'ramp' in paramGroup:
+#                    print('reading ramp samples')
+#                    ramp = paramGroup['ramp'][::decim,:]
+#                else:
+#                    ramp = None
             else:
-                assert indss[1]-indss[0] == self.numPatches, 'indss[1] - indss[0] different from number of patches'
-                assert indss[1]-indss[0] == self.numPatches, 'indds[1] - indds[0] different from number of patches'
-                nsamples =  np.arange(0, samples.shape[0], decim).size
-                self.fault.slip = np.zeros((self.numPatches,3,nsamples))
-                self.fault.slip[:,0,:] = samples[::decim,indss[0]:indss[1]].T
-                self.fault.slip[:,1,:] = samples[::decim,indds[0]:indds[1]].T
+                print('AlTar version',AlTarV,'not supported')
 
 
         return
@@ -128,39 +175,6 @@ class faultpostproc(SourceInv):
             self.hfid.close()
 
         return
-            
-    def lonlat2xy(self, lon, lat):
-        '''
-        Uses the transformation in self to convert  lon/lat vector to x/y utm.
-
-        Args:
-            * lon           : Longitude array.
-            * lat           : Latitude array.
-
-        Returns:
-            * None
-        '''
-
-        x, y = self.putm(lon,lat)
-        x /= 1000.
-        y /= 1000.
-
-        return x, y
-
-    def xy2lonlat(self, x, y):
-        '''
-        Uses the transformation in self to convert x.y vectors to lon/lat.
-
-        Args:
-            * x             : Xarray
-            * y             : Yarray
-
-        Returns:
-            * lon, lat      : 2 float arrays
-        '''
-
-        lon, lat = self.putm(x*1000., y*1000., inverse=True)
-        return lon, lat
 
     def patchNormal(self, p):
         '''
@@ -174,6 +188,7 @@ class faultpostproc(SourceInv):
         '''
 
         if self.fault.patchType == 'triangle':
+
             normal = self.fault.getpatchgeometry(p, retNormal=True)[-1]
             return normal
 
@@ -459,7 +474,7 @@ class faultpostproc(SourceInv):
         self.centroid = [xc, yc, zc]
 
         # Convert to lon lat
-        lonc, latc = self.putm(xc*1000., yc*1000., inverse=True)
+        lonc, latc = self.xy2ll(xc,yc)
         self.centroidll = [lonc, latc, zc]
 
         # Plot scatter
@@ -539,7 +554,7 @@ class faultpostproc(SourceInv):
         from numpy.linalg import eigh
 
         # Get Mout in the righ tconvention
-        if form is 'aki':
+        if form=='aki':
             Mout = self._aki2harvard(Mout)
 
         # Calculate the Eigenvectors for Mout
@@ -547,7 +562,8 @@ class faultpostproc(SourceInv):
         inds   = np.argsort(V)
         S      = S[:,inds]
         S[:,2] = np.cross(S[:,0],S[:,1])
-        V1 = copy.deepcopy(S)
+# no longer works        V1 = copy.deepcopy(S)
+        V1 = S
 
         # Angles
         angles = []
@@ -559,13 +575,15 @@ class faultpostproc(SourceInv):
             inds   = np.argsort(V)                        
             S      = S[:,inds]         
             S[:,2] = np.cross(S[:,0],S[:,1])
-            V2 = copy.deepcopy(S)
+#            V2 = copy.deepcopy(S)
+            V2 = S
             # Calculate theta
             th = np.arccos((np.trace(np.dot(V1,V2.transpose()))-1.)/2.)
             # find the good value
             for j in range(3):
                 k       = (j+1)%3
-                V3      = copy.deepcopy(V2)
+#                V3      = copy.deepcopy(V2)
+                V3 = V2
                 V3[:,j] = -V3[:,j]
                 V3[:,k] = -V3[:,k]
                 x       = np.arccos((np.trace(np.dot(V1,V3.transpose()))-1.)/2.) 
@@ -752,7 +770,7 @@ class faultpostproc(SourceInv):
         else:
             fout = sys.stdout
 
-        if form is 'full':
+        if form=='full':
             # Write the BS header
             fout.write(' PDE 1999  1  1  9 99 99.00  99.9900   99.9900  99.0 5.3 5.0 BULLSHIT \n')
             fout.write('event name:    thebigbaoum \n')
@@ -767,7 +785,7 @@ class faultpostproc(SourceInv):
             fout.write('Mrt:           {:7e}       \n'.format(M[0,1]*1e7))
             fout.write('Mrp:           {:7e}       \n'.format(M[0,2]*1e7))
             fout.write('Mtp:           {:7e}       \n'.format(M[1,2]*1e7))
-        elif form is 'line':
+        elif form=='line':
             # get the largest mantissa
             mantissa = 0
             A = [M[0,0], M[1,1], M[2,2], M[0,1], M[0,2], M[1,2]]

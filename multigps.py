@@ -256,7 +256,9 @@ class multigps(gps):
         subTrans = transformation[1]
 
         # Get the solution
-        Tvec = fault.polysol[self.name]['{}'.format(transformation)]
+        Tvec = fault.polysol[self.name]
+        if type(Tvec) is not np.ndarray:
+            Tvec = Tvec['{}'.format(transformation)]
 
         # Assert
         assert type(mainTrans) in (str, type(None)), 'First Item of transformation list needs to be string'

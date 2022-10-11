@@ -127,36 +127,6 @@ class timeseries(SourceInv):
         # All done
         return
 
-    def lonlat2xy(self):
-        '''
-        Pass the position into the utm coordinate system.
-
-        Returns:
-            * None
-        '''
-
-        x, y = self.putm(self.lon, self.lat)
-        self.x = x/1000.
-        self.y = y/1000.
-
-        # All done
-        return
-
-    def xy2lonlat(self):
-        '''
-        Pass the position from utm to lonlat.
-
-        Returns:
-            * None
-        '''
-
-        lon, lat = self.putm(x*1000., y*1000.)
-        self.lon = lon
-        self.lat = lat
-
-        # all done
-        return
-
     def readAscii(self, infile, header=0):
         '''
         Reads from an ascii file. Format of the file is
@@ -629,11 +599,11 @@ class timeseries(SourceInv):
         '''
 
         # Get the good data
-        if data is 'data':
+        if data=='data':
             v = self.value
-        elif data is 'synth':
+        elif data=='synth':
             v = self.synth
-        elif data is 'derivative':
+        elif data=='derivative':
             v = self.derivative
 
         # List 

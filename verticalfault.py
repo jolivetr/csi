@@ -252,7 +252,7 @@ class verticalfault(RectangularPatches):
         self.z_patches = z
 
         # Interpolate the resolution
-        if interpolation is not 'nointerpolation':
+        if interpolation != 'nointerpolation':
             fint = sciint.interp1d(Depthpoints, Resolpoints, kind=interpolation)
             resol = fint(z)
         else:

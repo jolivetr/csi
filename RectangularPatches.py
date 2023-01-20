@@ -3079,7 +3079,7 @@ class RectangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def plot(self, figure=134, slip='total', 
+    def plot(self, figure=134, slip='total', Fault=True, Map=True,
              equiv=False, show=True, axesscaling=True, 
              norm=None, linewidth=1.0, plot_on_2d=True, 
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
@@ -3111,7 +3111,8 @@ class RectangularPatches(Fault):
         latmax = np.max([p[:,1] for p in self.patchll])+expand
 
         # Create a figure
-        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize)
+        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize, 
+                      Map=Map, Fault=Fault)
 
         # Draw the coastlines
         if drawCoastlines:

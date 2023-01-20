@@ -1658,6 +1658,7 @@ class opticorr(SourceInv):
 #        return
 
     def plot(self, faults=None, figure=None, gps=None, decim=False, norm=None, 
+             Map=True, Fault=True,
              data='data', show=True, drawCoastlines=True, expand=0.2, 
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel=''):
         '''
@@ -1689,7 +1690,7 @@ class opticorr(SourceInv):
         latmax = self.lat.max()+expand
 
         # Create a figure
-        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax)
+        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, Fault=Fault, Map=Map)
 
         # Draw the coastlines
         if drawCoastlines:
@@ -1729,7 +1730,7 @@ class opticorr(SourceInv):
         # All done
         return
 
-    def write2binary(self, prefix, dtype=np.float):
+    def write2binary(self, prefix, dtype=float):
         '''
         Writes the records in a binary file. 
         

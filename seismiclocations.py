@@ -2147,9 +2147,9 @@ class seismiclocations(SourceInv):
         # All done
         return d
 
-    def plot(self, faults=None, figure=None, norm=None, data='mag', show=True, 
-             drawCoastlines=True, expand=0.2, linewidth=0.3, figsize=None, markersize=10,
-             cmap='jet', alpha=1., box=None, titleyoffset=1.1, 
+    def plot(self, faults=None, figure=None, norm=None, data='mag', show=True, Map=True, Fault=True,
+             drawCoastlines=True, resolution='auto', expand=0.2, linewidth=0.3, figsize=None, markersize=10,
+             cmap='jet', alpha=1., box=None, titleyoffset=1.1, zorder=1,
              shadedtopo=None, landcolor='lightgrey', seacolor=None,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], 
              cborientation='horizontal', cblabel=''):
@@ -2194,7 +2194,8 @@ class seismiclocations(SourceInv):
             figsize=[None, None]
         fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 
                                      latmin=latmin, latmax=latmax, 
-                                     figsize=figsize)
+                                     figsize=figsize,
+                                     Map=Map, Fault=Fault)
 
         # Shaded topo
         if shadedtopo is not None:
@@ -2205,7 +2206,7 @@ class seismiclocations(SourceInv):
 
         # Draw the coastlines
         if drawCoastlines:
-            fig.drawCoastlines(landcolor=landcolor, seacolor=seacolor, 
+            fig.drawCoastlines(landcolor=landcolor, seacolor=seacolor, resolution=resolution,
                                drawOnFault=True, zorder=0)
 
         # Get the data to plot
@@ -2228,10 +2229,13 @@ class seismiclocations(SourceInv):
             markersize = np.log(self.mag**markersize)
 
         # Plot earthquakes
-        fig.earthquakes(self, plot='2d3d', color=d, markersize=markersize,
+        plot = ''
+        if Map: plot += '2d'
+        if Fault: plot += '3d'
+        fig.earthquakes(self, plot=plot, color=d, markersize=markersize,
                               norm=norm, colorbar=colorbar, cbaxis=cbaxis, 
                               cmap=cmap, cborientation=cborientation, cblabel=cblabel, 
-                              zorder=2, alpha=alpha, linewidth=linewidth)
+                              zorder=zorder, alpha=alpha, linewidth=linewidth)
 
         # Plot the fault trace if asked
         if faults is not None:
@@ -2247,6 +2251,9 @@ class seismiclocations(SourceInv):
 
         # Show
         if show:
+            showFig = []
+            if Map: showFig.append('map')
+            if Fault: showFig.append('fault')
             fig.show(showFig=['map', 'fault'])
         
         # Save the whole thing

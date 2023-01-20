@@ -2639,7 +2639,8 @@ class insar(SourceInv):
         assert len(x)>5, 'There is less than 5 points in your profile...'
 
         # Plot the insar
-        self.plot(faults=fault, norm=norm, show=False, alpha=alpha, plotType=plotType, expand=0., drawCoastlines=drawCoastlines)
+        self.plot(faults=fault, norm=norm, show=False, alpha=alpha, plotType=plotType, expand=0., drawCoastlines=drawCoastlines, 
+                  Map=True, Fault=False)
 
         # plot the box on the map
         b = self.profiles[name]['Box']
@@ -2828,6 +2829,7 @@ class insar(SourceInv):
         # All done
 
     def plot(self, faults=None, figure=None, gps=None, norm=None, data='data', show=True, 
+             Map=True, Fault=True,
              drawCoastlines=True, expand=0.2, edgewidth=1, figsize=None, markersize=1.,
              plotType='scatter', cmap='jet', alpha=1., box=None, titleyoffset=1.1,
              landcolor='lightgrey', seacolor=None, shadedtopo=None, title=True, los=None,
@@ -2875,6 +2877,7 @@ class insar(SourceInv):
             figsize=(None, None)
         fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 
                                      latmin=latmin, latmax=latmax, 
+                                     Map=Map, Fault=Fault,
                                      figsize=figsize)
 
         # Shaded topo

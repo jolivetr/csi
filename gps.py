@@ -3647,11 +3647,12 @@ class gps(SourceInv):
         return
 
     def plot(self, faults=None, figure=135, name=False, legendscale=10., scale=None, figsize=None,
-            plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True,
-            colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
-            landcolor='lightgrey', seacolor=None, shadedtopo=None,
-            vertical=False, verticalsize=[30], box=None,
-            data=['data'], color=['k'], titleyoffset=1.1, alpha=1.):
+             plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True,
+             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
+             landcolor='lightgrey', seacolor=None, shadedtopo=None,
+             Map=True, Fault=True,
+             vertical=False, verticalsize=[30], box=None,
+             data=['data'], color=['k'], titleyoffset=1.1, alpha=1.):
         '''
         Plot the network
 
@@ -3695,7 +3696,7 @@ class gps(SourceInv):
             figsize=(None, None)
         fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 
                                      latmin=latmin, latmax=latmax, 
-                                     figsize=figsize)
+                                     figsize=figsize, Map=Map, Fault=Fault)
 
         # Shaded topo
         if shadedtopo is not None:

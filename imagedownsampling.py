@@ -1190,9 +1190,9 @@ class imagedownsampling(object):
 
         # Plot the original 
         original.plot(faults=self.faults, plotType='scatter', norm=norm, 
-                        show=False, drawCoastlines=False)
+                        show=False, drawCoastlines=False, Map=True, Fault=False)
         downsampled.plot(faults=self.faults, plotType='decimate', norm=norm, 
-                        show=False, drawCoastlines=False)
+                        show=False, drawCoastlines=False, Map=True, Fault=False)
 
         # Gradient?
         if hasattr(self, 'Gradient'):

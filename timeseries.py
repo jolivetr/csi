@@ -165,9 +165,9 @@ class timeseries(SourceInv):
             mi = np.int(tmp[4])
             sd = np.int(tmp[5])
             time.append(dt.datetime(yr, mo, da, hr, mi, sd))
-            value.append(np.float(tmp[6]))
+            value.append(float(tmp[6]))
             if len(tmp)>7:
-                error.append(np.float(tmp[7]))
+                error.append(float(tmp[7]))
             else:
                 error.append(0.0)
 

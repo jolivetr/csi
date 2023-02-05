@@ -112,11 +112,11 @@ class seismiclocations(SourceInv):
             da = np.int(tmp[2])
             hr = np.int(tmp[3])
             mi = np.int(tmp[4])
-            sd = np.int(np.floor(np.float(tmp[5])))
-            lat = np.float(tmp[7])
-            lon = np.float(tmp[6])
-            depth = np.float(tmp[8])
-            mag = np.float(tmp[9])
+            sd = np.int(np.floor(float(tmp[5])))
+            lat = float(tmp[7])
+            lon = float(tmp[6])
+            depth = float(tmp[8])
+            mag = float(tmp[9])
 
             # Create the time object
             d = dt.datetime(yr, mo, da, hr, mi, sd)
@@ -258,15 +258,15 @@ class seismiclocations(SourceInv):
             da = np.int(tmp[3])
             hr = np.int(tmp[4])
             mi = np.int(tmp[5])
-            sd = np.int(np.floor(np.float(tmp[6])))
-            lat = np.float(tmp[7][:-1]) + np.float(tmp[8])/60.
+            sd = np.int(np.floor(float(tmp[6])))
+            lat = float(tmp[7][:-1]) + float(tmp[8])/60.
             if tmp[7][-1] in ('s', 'S'):
                 lat *= -1.
-            lon = np.float(tmp[9][:-1]) + np.float(tmp[10])/60.
+            lon = float(tmp[9][:-1]) + float(tmp[10])/60.
             if tmp[9][-1] in ('w', 'W'):
                 lon *= -1.
-            depth = np.float(tmp[11])
-            mag = np.float(tmp[12])
+            depth = float(tmp[11])
+            mag = float(tmp[12])
 
             # Create the time object
             d = dt.datetime(yr, mo, da, hr, mi, sd)
@@ -345,10 +345,10 @@ class seismiclocations(SourceInv):
             da = np.int(tmp[2])
             hr = np.int(tmp[3])
             mi = np.int(tmp[4])
-            lat = np.float(tmp[7])
-            lon = np.float(tmp[8])
-            depth = np.float(tmp[9])
-            mag = np.float(tmp[10])
+            lat = float(tmp[7])
+            lon = float(tmp[8])
+            depth = float(tmp[9])
+            mag = float(tmp[10])
 
             # Create the time object
             if mi>=60:
@@ -432,10 +432,10 @@ class seismiclocations(SourceInv):
             da = np.int(tmp[2])
             hr = np.int(tmp[3])
             mi = np.int(tmp[4])
-            lat = np.float64(tmp[6])
-            lon = np.float64(tmp[7])
-            depth = np.float64(tmp[8])
-            mag = np.float64(tmp[imag])
+            lat = float64(tmp[6])
+            lon = float64(tmp[7])
+            depth = float64(tmp[8])
+            mag = float64(tmp[imag])
 
             # Create the time object
             d = dt.datetime(yr, mo, da, hr, mi)
@@ -504,10 +504,10 @@ class seismiclocations(SourceInv):
 
             # Get values
             time = dt.datetime.strptime(tmp[4], "%Y-%m-%dT%H:%M:%S.%f")
-            lon = np.float(tmp[0])
-            lat = np.float(tmp[1])
-            depth = np.float(tmp[2])
-            mag = np.float(tmp[3])
+            lon = float(tmp[0])
+            lat = float(tmp[1])
+            depth = float(tmp[2])
+            mag = float(tmp[3])
 
             # Store
             self.time.append(time)
@@ -574,10 +574,10 @@ class seismiclocations(SourceInv):
             # Get values
             time = dt.datetime.strptime(tmp[0], "%Y-%m-%dT%H:%M:%S.%fZ")
             if len(tmp)>=5:
-                lon = np.float(tmp[1])
-                lat = np.float(tmp[2])
-                depth = np.float(tmp[3])
-                mag = np.float(tmp[4])
+                lon = float(tmp[1])
+                lat = float(tmp[2])
+                depth = float(tmp[3])
+                mag = float(tmp[4])
                 self.time.append(time)
                 self.lon.append(lon)
                 self.lat.append(lat)
@@ -646,7 +646,7 @@ class seismiclocations(SourceInv):
                     da = np.int(line[2])
                     hr = np.int(line[3])
                     mn = np.int(line[4])
-                    sd = np.int(np.float(line[5]))
+                    sd = np.int(float(line[5]))
                     time = dt.datetime(yr, mo, da, hr, mn, sd)
 
                     # cmt informations
@@ -657,7 +657,7 @@ class seismiclocations(SourceInv):
                         name = line[0]
                         value = line[1].split()[0]
                         if name not in ('event name'):
-                            value = np.float(value)
+                            value = float(value)
                         info[name] = value
                         i += 1
 

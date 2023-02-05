@@ -541,7 +541,7 @@ class imagecovariance(object):
             * dname     : Name of the covariance estimator. If image is opticorr, the datasets used are "dname East" and "dname North".
 
         Kwargs:
-            * write2file: Write to a binary file (np.float32).
+            * write2file: Write to a binary file (float32).
 
         Returns:
             * None
@@ -590,7 +590,7 @@ class imagecovariance(object):
 
         # Write 2 a file?
         if write2file is not None:
-            Cd.astype(np.float32).tofile(write2file)
+            Cd.astype(float32).tofile(write2file)
 
         # All done
         return Cd

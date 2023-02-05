@@ -381,7 +381,7 @@ class Pressure(SourceInv):
         # Get the slip value
         if not donotreadvolume:
             if len(A[0].split())>3:
-                deltaVlm = np.array([np.float(A[0].split()[3])])
+                deltaVlm = np.array([float(A[0].split()[3])])
                 print("read from file, volume change is ", deltaVlm)
             else:
                 deltaVlm = 0.0

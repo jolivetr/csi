@@ -155,8 +155,8 @@ class dippingfault(RectangularPatches):
         Lon = []
         Lat = []
         for i in range(len(A)):
-            Lon.append(np.float(A[i].split()[0]))
-            Lat.append(np.float(A[i].split()[1]))
+            Lon.append(float(A[i].split()[0]))
+            Lat.append(float(A[i].split()[1]))
             
         # Create the trace 
         self.trace(Lon, Lat)
@@ -507,14 +507,14 @@ class dippingfault(RectangularPatches):
             if not text[0]=='#':
 
                 # Get values
-                slip = np.float(text[1])
-                xtl = np.float(text[2]) + x0
-                ytl = np.float(text[3]) + y0
-                depth = np.float(text[4])
-                length = np.float(text[5])
-                width = np.float(text[6])
-                strike = np.float(text[7])*np.pi/180.
-                rake = np.float(text[9])*np.pi/180.
+                slip = float(text[1])
+                xtl = float(text[2]) + x0
+                ytl = float(text[3]) + y0
+                depth = float(text[4])
+                length = float(text[5])
+                width = float(text[6])
+                strike = float(text[7])*np.pi/180.
+                rake = float(text[9])*np.pi/180.
 
                 D.append(depth)
 
@@ -816,7 +816,7 @@ class dippingfault(RectangularPatches):
             self.index_parameter.append([np.int(A[i].split()[3]),np.int(A[i].split()[4]),np.int(A[i].split()[5])])
             # Get the slip value
             if len(A[i].split()>7):
-                slip = np.array([np.float(A[i].split()[7]), np.float(A[i].split()[8]), np.float(A[i].split()[9])])
+                slip = np.array([float(A[i].split()[7]), float(A[i].split()[8]), float(A[i].split()[9])])
             else:
                 slip = np.array([0.0, 0.0, 0.0])
             self.slip.append(slip)

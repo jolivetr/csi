@@ -121,7 +121,7 @@ class surfaceslip(SourceInv):
         return
 
     def read_from_binary(self, data, lon, lat, err=None, factor=1.0, downsample=1,
-                               step=0.0, los=None, dtype=np.float32):
+                               step=0.0, los=None, dtype=float32):
         '''
         Read from binary file or from array.
 
@@ -135,7 +135,7 @@ class surfaceslip(SourceInv):
             * factor        : multiplication factor (default is 1.0)
             * step          : constant added to the data (default is 0.0)
             * los           : LOS unit vector 3 component array (3-column array)
-            * dtype         : data type (default is np.float32 if data is a file)
+            * dtype         : data type (default is float32 if data is a file)
 
         Return:
             * None

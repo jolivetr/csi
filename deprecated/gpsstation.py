@@ -338,7 +338,7 @@ class gpsstation:
                 sname = 'var{:2d}'.format(ind)
                 vars()[sname] = np.array(vars()[sname])
                 if inp in ('F', 'f'):
-                    vars()[sname] = vars()[sname].astype(np.float)
+                    vars()[sname] = vars()[sname].astype(float)
                 elif inp in ('I', 'i'):
                     vars()[sname] = vars()[sname].astype(np.int)
 

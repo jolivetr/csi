@@ -30,7 +30,7 @@ def ArraySizes(*args):
     for arg in args:
         if arg.__class__ in (list, tuple):
             arg = np.array(arg)
-        elif arg.__class__ in (float, np.float64, int):
+        elif arg.__class__ in (float, float64, int):
             arg = np.array([arg])
         Arrays.append(arg)
         Sizes.append(arg.shape)

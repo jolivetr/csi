@@ -813,7 +813,7 @@ class dippingfault(RectangularPatches):
             # Assert it works
             assert A[i].split()[0]=='>', 'Not a patch, reformat your file...'
             # Get the Patch Id
-            self.index_parameter.append([np.int(A[i].split()[3]),np.int(A[i].split()[4]),np.int(A[i].split()[5])])
+            self.index_parameter.append([int(A[i].split()[3]),int(A[i].split()[4]),int(A[i].split()[5])])
             # Get the slip value
             if len(A[i].split()>7):
                 slip = np.array([float(A[i].split()[7]), float(A[i].split()[8]), float(A[i].split()[9])])
@@ -906,9 +906,9 @@ class dippingfault(RectangularPatches):
             # Put the parameter number in the file as well if it exists
             parameter = ' ' 
             if hasattr(self,'index_parameter'):
-                i = np.int(self.index_parameter[p,0])
-                j = np.int(self.index_parameter[p,1])
-                k = np.int(self.index_parameter[p,2])
+                i = int(self.index_parameter[p,0])
+                j = int(self.index_parameter[p,1])
+                k = int(self.index_parameter[p,2])
                 parameter = '# {} {} {} '.format(i,j,k)
 
             # Put the slip value
@@ -2597,9 +2597,9 @@ class dippingfault(RectangularPatches):
             sys.stdout.write('\r Patch {}/{}'.format(i,self.slip.shape[0]))
             sys.stdout.flush()
             # integers are needed
-            iss = np.int(istrikeslip[i])
-            ids = np.int(idipslip[i])
-            its = np.int(itensile[i])
+            iss = int(istrikeslip[i])
+            ids = int(idipslip[i])
+            its = int(itensile[i])
             # Create the file names
             pss = None
             pds = None

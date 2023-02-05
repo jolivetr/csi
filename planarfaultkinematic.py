@@ -364,8 +364,8 @@ class planarfaultkinematic(planarfault):
             
             # Moment rate function
             rfile = 'rfile.p%03d'%(p)
-            MRF = np.zeros((Nt,),dtype='float64')
-            t   = np.arange(Nt,dtype='float64')*data.waveform_engine.delta
+            MRF = np.zeros((Nt,),dtype='np.float64')
+            t   = np.arange(Nt,dtype='np.float64')*data.waveform_engine.delta
             hTr = 0.5 * self.tr[p]
             for g in range(len(self.grid[p])):
                 g_t0 = eik_solver.getT0FromFault(self,self.grid[p][g][0],self.grid[p][g][1],
@@ -434,7 +434,7 @@ class planarfaultkinematic(planarfault):
         for w in Wav:
             for s in data.sta_name:
                 for c in w[s].keys():
-                    t = np.arange(w[s][c].npts,dtype='float64') * w[s][c].delta + w[s][c].o + w[s][c].b
+                    t = np.arange(w[s][c].npts,dtype='np.float64') * w[s][c].delta + w[s][c].o + w[s][c].b
                     ta = np.abs(t-mint)
                     tb = np.abs(t-maxt)
                     ita = np.where(ta==ta.min())[0][0]

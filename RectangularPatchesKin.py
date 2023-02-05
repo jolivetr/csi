@@ -914,7 +914,7 @@ class RectangularPatchesKin(RectangularPatches):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def saveBigCd(self, bigCdfile = 'kinematicG.Cd', dtype='float64'):
+    def saveBigCd(self, bigCdfile = 'kinematicG.Cd', dtype='np.float64'):
         '''
         Save bigCd matrix
 
@@ -970,7 +970,7 @@ class RectangularPatchesKin(RectangularPatches):
         
     # ----------------------------------------------------------------------
     def buildBigGD(self,eik_solver,seismic_data,rakes,vmax,Nt,Dt,
-                        rakes_key=None,dtype='float64',
+                        rakes_key=None,dtype='np.float64',
                         fastsweep=False,indexing='Altar'):
         '''
         Build BigG and bigD matrices from Green's functions and data dictionaries
@@ -1079,7 +1079,7 @@ class RectangularPatchesKin(RectangularPatches):
             
     # ----------------------------------------------------------------------
     def saveBigGD(self, bigDfile='kinematicG.data', bigGfile='kinematicG.gf', 
-                        dtype='float64'):
+                        dtype='np.float64'):
         '''
         Save bigG and bigD to binary file
 
@@ -1107,7 +1107,7 @@ class RectangularPatchesKin(RectangularPatches):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def loadBigGD(self, bigDfile='data.kin', bigGfile='gf.kin', dtype='float64'):
+    def loadBigGD(self, bigDfile='data.kin', bigGfile='gf.kin', dtype='np.float64'):
         '''
         Load bigG and bigD to binary file
 
@@ -1122,12 +1122,12 @@ class RectangularPatchesKin(RectangularPatches):
         
         # Load bigG and/or bigD files and convert them to double precision
         if bigDfile != None:
-            self.bigD = np.fromfile(bigDfile, dtype=dtype).astype('float64')
+            self.bigD = np.fromfile(bigDfile, dtype=dtype).astype('np.float64')
 
         if bigGfile is not None:
             assert self.bigD is not None
             Nd = self.bigD.size
-            self.bigG = np.fromfile(bigGfile, dtype=dtype).astype('float64')
+            self.bigG = np.fromfile(bigGfile, dtype=dtype).astype('np.float64')
             assert self.bigG.size%Nd == 0
             Nm = int(self.bigG.size/Nd)
             # Reshape bigG matrix

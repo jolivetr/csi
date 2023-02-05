@@ -97,10 +97,10 @@ class gps(SourceInv):
 
         # Assign input parameters to station attributes
         self.station = copy.deepcopy(sta_name)
-        self.lon = np.array([],dtype='float64')
-        self.lat = np.array([],dtype='float64')
-        self.x   = np.array([],dtype='float64')
-        self.y   = np.array([],dtype='float64')
+        self.lon = np.array([],dtype='np.float64')
+        self.lat = np.array([],dtype='np.float64')
+        self.x   = np.array([],dtype='np.float64')
+        self.y   = np.array([],dtype='np.float64')
         if loc_format=='LL':            
             self.lon = np.append(self.lon,x)
             self.lat = np.append(self.lat,y)
@@ -1162,7 +1162,7 @@ class gps(SourceInv):
             if 'nan' not in A:
 
                 # Get the direction array
-                direction = np.array([np.int(A[3]), np.int(A[4]), np.int(A[5])])
+                direction = np.array([int(A[3]), int(A[4]), int(A[5])])
 
                 # Which direction are we looking at?
                 d = np.flatnonzero(direction==1.)

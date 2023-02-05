@@ -319,9 +319,9 @@ class Pressure(SourceInv):
                 # Put the parameter number in the file as well if it exists --what is this???
             parameter = ' '
             if hasattr(self,'index_parameter'):
-                i = np.int(self.index_parameter[0])
-                j = np.int(self.index_parameter[1])
-                k = np.int(self.index_parameter[2])
+                i = int(self.index_parameter[0])
+                j = int(self.index_parameter[1])
+                k = int(self.index_parameter[2])
                 parameter = '# {} {} {}'.format(i,j,k)
 
             # Put the slip value

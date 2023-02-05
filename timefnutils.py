@@ -406,7 +406,7 @@ def mName2Rep(mName):
 					else:
 						bspflag = False
 
-			order = np.int(model[2])
+			order = int(model[2])
 			r = ['BSPLINE',[order],[tm]]
 			rep.append(r)
 			m = m + tm - 1
@@ -427,7 +427,7 @@ def mName2Rep(mName):
 					else:
 						ispflag = False
 			
-			order = np.int(model[2])
+			order = int(model[2])
 			r = ['ISPLINE',[order],[tm]] 
 			rep.append(r)  
 			m = m + tm - 1
@@ -448,7 +448,7 @@ def mName2Rep(mName):
 					else:
 						sbasflag = False
 
-			master = np.int(model[2])
+			master = int(model[2])
 			r = ['SBAS',master]
 			rep.append(r)
 			m = m + tm - 1 

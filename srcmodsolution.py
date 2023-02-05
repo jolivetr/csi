@@ -259,8 +259,8 @@ class srcmodsolution(SourceInv):
                             self.rupture['Fmax'] = float(Lstr[17])
                             l += 1
                         elif Lstr[3] in ('Nx'):
-                            self.rupture['Nx'] = np.int(Lstr[5])
-                            self.rupture['Nz'] = np.int(Lstr[8])
+                            self.rupture['Nx'] = int(Lstr[5])
+                            self.rupture['Nz'] = int(Lstr[8])
                             l += 1
                     else:
                         if (Lstr[2] in ('TOTAL')) and (Lstr[3] in ('SLIP')):
@@ -349,8 +349,8 @@ class srcmodsolution(SourceInv):
                         self.rupture['Dz'] = float(Lstr[9])
                         l += 1
                     elif Lstr[3] == 'Nx':
-                        self.rupture['Nx'] = np.int(Lstr[5])
-                        self.rupture['Nz'] = np.int(Lstr[8])
+                        self.rupture['Nx'] = int(Lstr[5])
+                        self.rupture['Nz'] = int(Lstr[8])
                         l += 1
                     else:
                         # nothing to do, update l
@@ -358,7 +358,7 @@ class srcmodsolution(SourceInv):
                 elif (Lstr[1] in ('SOURCE')):
                     if (Lstr[2] in ('MODEL')):
                         # Get the number of patches
-                        self.rupture['Npatch'] = np.int(Text[l+1].split()[3])
+                        self.rupture['Npatch'] = int(Text[l+1].split()[3])
                         # Read the patches
                         patch = np.array([ [float(Text[i].split()[j]) for j in range(len(Text[i].split()))]  for i in range(l+9,l+9+self.rupture['Npatch'])])
                         self.rupture['Latitude Patches'] = patch[:,0]
@@ -718,9 +718,9 @@ class srcmodsolution(SourceInv):
             # Put the parameter number in the file as well if it exists
             parameter = ' '
             if hasattr(self,'index_parameter'):
-                i = np.int(self.index_parameter[p,0])
-                j = np.int(self.index_parameter[p,1])
-                k = np.int(self.index_parameter[p,2])
+                i = int(self.index_parameter[p,0])
+                j = int(self.index_parameter[p,1])
+                k = int(self.index_parameter[p,2])
                 parameter = '# {} {} {} '.format(i,j,k)
 
             # Put the slip value

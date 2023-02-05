@@ -956,7 +956,7 @@ class RectangularPatches(Fault):
             assert A[i].split()[0]=='>', 'Not a patch, reformat your file...'
             # Get the Patch Id
             if readpatchindex:
-                self.index_parameter.append([np.int(A[i].split()[3]),np.int(A[i].split()[4]),np.int(A[i].split()[5])])
+                self.index_parameter.append([int(A[i].split()[3]),int(A[i].split()[4]),int(A[i].split()[5])])
             # Get the slip value
             if not donotreadslip:
                 if len(A[i].split())>7:
@@ -1122,9 +1122,9 @@ class RectangularPatches(Fault):
             # Put the parameter number in the file as well if it exists
             parameter = ' ' 
             if hasattr(self,'index_parameter'):
-                i = np.int(self.index_parameter[p,0])
-                j = np.int(self.index_parameter[p,1])
-                k = np.int(self.index_parameter[p,2])
+                i = int(self.index_parameter[p,0])
+                j = int(self.index_parameter[p,1])
+                k = int(self.index_parameter[p,2])
                 parameter = '# {} {} {} '.format(i,j,k)
 
             # Put the slip value
@@ -1854,7 +1854,7 @@ class RectangularPatches(Fault):
 
         # Get the patch
         u = None
-        if patch.__class__ in (int, np.int, np.int64, np.int32):
+        if patch.__class__ in (int,  np.int64, np.int32):
             u = patch
         else:
             if checkindex:
@@ -3581,12 +3581,12 @@ class RectangularPatches(Fault):
             depths = [ [p[j][2] for j in range(4)] for p in self.patch]
             depthRange = np.max(depths)-np.min(depths)
             self.numz = np.rint(depthRange/width)
-            print('The guess is that there is {} patches along dip'.format(np.int(self.numz)))
+            print('The guess is that there is {} patches along dip'.format(int(self.numz)))
             print('If that is not correct, please provide self.numz')
 
         # Get number of Patches along strike
-        nstrike = np.int(npatch // self.numz)
-        self.numz = np.int(self.numz)
+        nstrike = int(npatch // self.numz)
+        self.numz = int(self.numz)
 
         # Create the matrix
         Jmat = np.zeros((npatch,npatch), dtype=int)

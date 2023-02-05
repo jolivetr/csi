@@ -80,7 +80,7 @@ class opticorr(SourceInv):
             * factor        : Factor to multiply the east-north offsets.
             * step          : Add a value to the velocity.
             * header        : Size of the header.
-            * cov           : Read an additional covariance file (binary float32, Nd*Nd elements).
+            * cov           : Read an additional covariance file (binary np.float32, Nd*Nd elements).
 
         Returns:
             * None
@@ -151,7 +151,7 @@ class opticorr(SourceInv):
         # Read the covariance
         if cov:
             nd = self.east.size + self.north.size
-            self.Cd = np.fromfile(filename + '.cov', dtype=float32).reshape((nd,nd))
+            self.Cd = np.fromfile(filename + '.cov', dtype=np.float32).reshape((nd,nd))
             self.Cd *= factor*factor
 
         # Store the factor
@@ -234,7 +234,7 @@ class opticorr(SourceInv):
         # All done
         return
 
-    def read_from_binary(self, east, north, lon, lat, err_east=None, err_north=None, factor=1.0, step=0.0, dtype=float32, remove_nan=True):
+    def read_from_binary(self, east, north, lon, lat, err_east=None, err_north=None, factor=1.0, step=0.0, dtype=np.float32, remove_nan=True):
         '''
         Read from a set of binary files or from a set of arrays.
 
@@ -343,7 +343,7 @@ class opticorr(SourceInv):
         for l in hdr:
             items = l.strip().split('=')
             if items[0].strip()=='data type':
-                assert float(items[1])==4,'data type is not float32'
+                assert float(items[1])==4,'data type is not np.float32'
             if items[0].strip()=='samples':
                 self.samples = int(items[1])
             if items[0].strip()=='lines':
@@ -368,7 +368,7 @@ class opticorr(SourceInv):
 
         # Data
         if component=='EW':
-            self.east = np.fromfile(filename,dtype='float32')
+            self.east = np.fromfile(filename,dtype='np.float32')
             print('read length',len(self.east))
             if remove_nan:
                 u = np.flatnonzero(np.isfinite(self.east))
@@ -376,7 +376,7 @@ class opticorr(SourceInv):
             self.err_east=np.zeros(self.east.shape)  # set to zero error for now
             print('after mask',len(self.east))
         elif component=='NS':
-            self.north = np.fromfile(filename,dtype='float32')
+            self.north = np.fromfile(filename,dtype='np.float32')
             if remove_nan:
                 u = np.flatnonzero(np.isfinite(self.north))
                 self.north = self.north[u]
@@ -597,7 +597,7 @@ class opticorr(SourceInv):
         # Read the covariance
         if cov:
             nd = self.east.size + self.north.size
-            self.Cd = np.fromfile(filePrefix + '.cov', dtype=float32).reshape((nd,nd))
+            self.Cd = np.fromfile(filePrefix + '.cov', dtype=np.float32).reshape((nd,nd))
 
         # Store the factor
         self.factor = factor

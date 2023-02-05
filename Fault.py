@@ -898,7 +898,7 @@ class Fault(SourceInv):
         Saves the Green's functions in different files.
 
         Kwargs:
-            * dtype       : Format of the binary data saved. 'd' for double. 'f' for float32
+            * dtype       : Format of the binary data saved. 'd' for double. 'f' for np.float32
             * outputDir   : Directory to save binary data.
             * suffix      : suffix for GFs name (dictionary)
 
@@ -936,7 +936,7 @@ class Fault(SourceInv):
         Saves the Data in binary files.
 
         Kwargs:
-            * dtype       : Format of the binary data saved. 'd' for double. 'f' for float32
+            * dtype       : Format of the binary data saved. 'd' for double. 'f' for np.float32
             * outputDir   : Directory to save binary data
 
         Returns:
@@ -1626,7 +1626,7 @@ class Fault(SourceInv):
             * tensile       : File containing the Green's functions for tensile related displacements.
             * coupling      : File containing the Green's functions for coupling related displacements.
             * vertical      : Deal with the UP component (gps: default is false, insar: it will be true anyway).
-            * dtype         : Type of binary data. 'd' for double/float64. 'f' for float32
+            * dtype         : Type of binary data. 'd' for double/float64. 'f' for np.float32
 
         Returns:
             * None

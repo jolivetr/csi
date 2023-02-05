@@ -445,7 +445,7 @@ class Pressure(SourceInv):
         Kwargs:
             * dtype       : Format of the binary data saved
                                 'd' for double
-                                'f' for float32
+                                'f' for np.float32
             * outputDir   : Directory to save binary data.
             * suffix      : suffix for GFs name (dictionary)
 
@@ -497,7 +497,7 @@ class Pressure(SourceInv):
                               insar: it will be true anyway).
             * dtype         : Type of binary data.
                                     'd' for double/float64
-                                    'f' for float32
+                                    'f' for np.float32
 
         Returns:
             * None
@@ -554,7 +554,7 @@ class Pressure(SourceInv):
         Kwargs:
             * dtype       : Format of the binary data saved
                                 'd' for double
-                                'f' for float32
+                                'f' for np.float32
             * outputDir   : Directory to save binary data
 
         Returns:

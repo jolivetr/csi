@@ -1456,7 +1456,7 @@ class multifaultsolve(object):
 
         # data type
         if dtype in ('f', 'float'):
-            dtype = float32
+            dtype = np.float32
         elif dtype in ('d', 'double'):
             dtype = float64
 
@@ -1493,7 +1493,7 @@ class multifaultsolve(object):
 
         # data type
         if dtype in ('f', 'float'):
-            dtype = float32
+            dtype = np.float32
         elif dtype in ('d', 'double'):
             dtype = float64
 
@@ -1530,7 +1530,7 @@ class multifaultsolve(object):
 
         # data type
         if dtype in ('f', 'float'):
-            dtype = float32
+            dtype = np.float32
         elif dtype in ('d', 'double'):
             dtype = float64
 

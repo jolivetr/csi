@@ -2733,6 +2733,9 @@ class TriangularPatches(Fault):
                 showFig.append('map')
             fig.show(showFig=showFig)
 
+        # Save the figure
+        self.fig = fig
+
         # All done
         return
     # ----------------------------------------------------------------------

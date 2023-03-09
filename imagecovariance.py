@@ -139,7 +139,7 @@ class imagecovariance(object):
                 ii = np.flatnonzero(np.logical_and(lon>=box[0], lon<=box[1]))
                 jj = np.flatnonzero(np.logical_and(lat>=box[2], lat<=box[3]))
                 # intersection
-                uu = intersect1d(ii,jj)
+                uu = np.intersect1d(ii,jj)
                 # Take them out
                 self.datasets[dname]['x'] = np.delete(self.datasets[dname]['x'], uu)
                 self.datasets[dname]['y'] = np.delete(self.datasets[dname]['y'], uu)
@@ -191,7 +191,7 @@ class imagecovariance(object):
                 ii = np.flatnonzero(np.logical_and(lon>=box[0], lon<=box[1]))
                 jj = np.flatnonzero(np.logical_and(lat>=box[2], lat<=box[3]))
                 # intersection
-                uu = intersect1d(ii,jj)
+                uu = np.intersect1d(ii,jj)
                 # Take them in
                 x = self.datasets[dname]['x'][uu]
                 y = self.datasets[dname]['y'][uu]

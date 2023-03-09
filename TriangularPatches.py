@@ -2054,7 +2054,7 @@ class TriangularPatches(Fault):
             for j in range(npatch):
                 if j == i:
                     continue
-                sharedVertices = intersect1d(refVertInds, faces[j,:])
+                sharedVertices = np.intersect1d(refVertInds, faces[j,:])
                 numSharedVertices = sharedVertices.size
                 if numSharedVertices < 2:
                     continue
@@ -2923,8 +2923,8 @@ class TriangularPatches(Fault):
             d2 = distance[p,1]
 
             # Get the index for the points
-            i1 = intersect1d(np.flatnonzero((d1>=deepdistance[:,0])), np.flatnonzero((d1<deepdistance[:,1])))[0]
-            i2 = intersect1d(np.flatnonzero((d2>deepdistance[:,0])), np.flatnonzero((d2<=deepdistance[:,1])))[0]
+            i1 = np.intersect1d(np.flatnonzero((d1>=deepdistance[:,0])), np.flatnonzero((d1<deepdistance[:,1])))[0]
+            i2 = np.intersect1d(np.flatnonzero((d2>deepdistance[:,0])), np.flatnonzero((d2<=deepdistance[:,1])))[0]
 
             # two cases possible:
             if i1==i2:              # The shallow patch is fully inside the deep patch

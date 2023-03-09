@@ -376,7 +376,7 @@ class creepmeters(SourceInv):
         # Get the dates we want
         u = np.flatnonzero(time>=date1)
         v = np.flatnonzero(time<=date2)
-        w = intersect1d(u,v)
+        w = np.intersect1d(u,v)
         if w.shape[0]<2:
             print('Not enough points for station {}'.format(station))
             store['Fit'] = None

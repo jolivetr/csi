@@ -3134,6 +3134,9 @@ class RectangularPatches(Fault):
                 showFig.append('map')
             fig.show(showFig=showFig)
 
+        # Save fig
+        self.fig = fig
+
         # All done
         return
     # ----------------------------------------------------------------------

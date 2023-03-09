@@ -71,8 +71,8 @@ class gpstimeseries(SourceInv):
         # Loop
         for c in range(len(Cor)):
 
-            self.lon.append(np.float(Cor[c].split()[9]))
-            self.lat.append(np.float(Cor[c].split()[8]))
+            self.lon.append(float(Cor[c].split()[9]))
+            self.lat.append(float(Cor[c].split()[8]))
             self.station.append(Cor[c].split()[0])
 
         # Make np array with that

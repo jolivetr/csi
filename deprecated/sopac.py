@@ -10,36 +10,36 @@ class frep:
         self.win = None
 
     def setslope(self,slope,err,t0,t1):
-        self.amp = np.float(slope)
-        self.err = np.float(err)
-        self.win = [np.float(t0),np.float(t1)]
-        self.rep = ['LINEAR',[np.float(t0)]]
+        self.amp = float(slope)
+        self.err = float(err)
+        self.win = [float(t0),float(t1)]
+        self.rep = ['LINEAR',[float(t0)]]
 
     def setdecay(self,amp,err,t0,tau):
-        self.amp = -1.0 * np.float(amp)
-        self.err = np.float(err)
-        self.win = [np.float(t0),np.inf]
-        self.rep = ['EXP',[np.float(t0)],[np.float(tau)/365.25]] 
+        self.amp = -1.0 * float(amp)
+        self.err = float(err)
+        self.win = [float(t0),np.inf]
+        self.rep = ['EXP',[float(t0)],[float(tau)/365.25]] 
 
     def setoffset(self,amp,err,t0):
-        self.amp = np.float(amp)
-        self.err = np.float(err)
-        self.win=[np.float(t0),np.inf]
-        self.rep = ['STEP',[np.float(t0)]]
+        self.amp = float(amp)
+        self.err = float(err)
+        self.win=[float(t0),np.inf]
+        self.rep = ['STEP',[float(t0)]]
 
     def setannual(self,amp,err,phase):
-        ph = np.float(phase)
+        ph = float(phase)
         gph = np.array([np.cos(ph),np.sin(ph)])
-        self.amp = np.float(amp)*gph
-        self.err = np.float(err)*np.abs(gph)
+        self.amp = float(amp)*gph
+        self.err = float(err)*np.abs(gph)
         self.win =[-np.inf, np.inf]
         self.rep = ['SEASONAL',[1.0]]
         
     def setsemi(self,amp,err,phase):
-        ph = np.float(phase)
+        ph = float(phase)
         gph = np.array([np.cos(ph),np.sin(ph)])
-        self.amp = np.float(amp)*gph
-        self.err = np.float(err)*np.abs(gph)
+        self.amp = float(amp)*gph
+        self.err = float(err)*np.abs(gph)
         self.win =[-np.inf, np.inf]
         self.rep = ['SEASONAL',[0.5]]
 

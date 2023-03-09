@@ -196,11 +196,11 @@ class uncertainties(object):
             K.append(Kdip)
             kernels = np.asarray(K)
             k = np.transpose(np.matmul(kernels, mprior))
-            C1 = np.matmul(k, [[np.float(sigma)**2]])
+            C1 = np.matmul(k, [[float(sigma)**2]])
             CpDip = np.matmul(C1, np.transpose(k))
             
             self.KDip = kernels
-            self.CovDip = np.array([[np.float(sigma)**2]])
+            self.CovDip = np.array([[float(sigma)**2]])
             if self.KernelsFull==[]:
                 self.KernelsFull = self.KDip
             else:
@@ -519,11 +519,11 @@ class uncertainties(object):
             K.append(Kstk)
             kernels = np.asarray(K)
             k = np.transpose(np.matmul(kernels, mprior))
-            C1 = np.matmul(k, [[np.float(sigma)**2]])
+            C1 = np.matmul(k, [[float(sigma)**2]])
             CpStrike = np.matmul(C1, np.transpose(k))
             
             self.KStrike = kernels
-            self.CovStrike = np.array([[np.float(sigma)**2]])
+            self.CovStrike = np.array([[float(sigma)**2]])
             if self.KernelsFull==[]:
                 self.KernelsFull = self.KStrike
             else:
@@ -1020,11 +1020,11 @@ class uncertainties(object):
             K.append(Kpos)
             kernels = np.asarray(K)
             k = np.transpose(np.matmul(kernels, mprior))
-            C1 = np.matmul(k, [[np.float(sigma)**2]])
+            C1 = np.matmul(k, [[float(sigma)**2]])
             CpPosition = np.matmul(C1, np.transpose(k))
             
             self.KPosition = kernels
-            self.CovPosition = np.array([[np.float(sigma)**2]])
+            self.CovPosition = np.array([[float(sigma)**2]])
             if self.KernelsFull==[]:
                 self.KernelsFull = self.KPosition
             else:

@@ -601,7 +601,7 @@ class TriangularTents(TriangularPatches):
                 elif values=='dip':
                     values = np.array([self.getTentInfo(t)[4] for t in self.tent])
                 elif values=='index':
-                    values = np.array([np.float(self.getTentindex(t)) for t in self.tent])
+                    values = np.array([float(self.getTentindex(t)) for t in self.tent])
                 self.slip[:,0] = values
             # Numpy array 
             if type(values) is np.ndarray:

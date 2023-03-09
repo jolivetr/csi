@@ -319,9 +319,9 @@ class Pressure(SourceInv):
                 # Put the parameter number in the file as well if it exists --what is this???
             parameter = ' '
             if hasattr(self,'index_parameter'):
-                i = np.int(self.index_parameter[0])
-                j = np.int(self.index_parameter[1])
-                k = np.int(self.index_parameter[2])
+                i = int(self.index_parameter[0])
+                j = int(self.index_parameter[1])
+                k = int(self.index_parameter[2])
                 parameter = '# {} {} {}'.format(i,j,k)
 
             # Put the slip value
@@ -381,7 +381,7 @@ class Pressure(SourceInv):
         # Get the slip value
         if not donotreadvolume:
             if len(A[0].split())>3:
-                deltaVlm = np.array([np.float(A[0].split()[3])])
+                deltaVlm = np.array([float(A[0].split()[3])])
                 print("read from file, volume change is ", deltaVlm)
             else:
                 deltaVlm = 0.0
@@ -445,7 +445,7 @@ class Pressure(SourceInv):
         Kwargs:
             * dtype       : Format of the binary data saved
                                 'd' for double
-                                'f' for float32
+                                'f' for np.float32
             * outputDir   : Directory to save binary data.
             * suffix      : suffix for GFs name (dictionary)
 
@@ -497,7 +497,7 @@ class Pressure(SourceInv):
                               insar: it will be true anyway).
             * dtype         : Type of binary data.
                                     'd' for double/float64
-                                    'f' for float32
+                                    'f' for np.float32
 
         Returns:
             * None
@@ -554,7 +554,7 @@ class Pressure(SourceInv):
         Kwargs:
             * dtype       : Format of the binary data saved
                                 'd' for double
-                                'f' for float32
+                                'f' for np.float32
             * outputDir   : Directory to save binary data
 
         Returns:

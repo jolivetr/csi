@@ -92,7 +92,7 @@ class timeseries(SourceInv):
             st = start
 
         if (end.__class__ is float) or (end.__class__ is int) :
-            ed = dt.datetime(np.int(end), 1, 1)
+            ed = dt.datetime(int(end), 1, 1)
         if (end.__class__ is list):
             if len(end) == 1:
                 ed = dt.datetime(end[0], 1, 1)
@@ -112,8 +112,8 @@ class timeseries(SourceInv):
         # Initialize a time vector
         if end is not None:
             delta = ed - st
-            delta_sec = np.int(np.floor(delta.days * 24 * 60 * 60 + delta.seconds))
-            time_step = np.int(np.floor(increment * 24 * 60 * 60))
+            delta_sec = int(np.floor(delta.days * 24 * 60 * 60 + delta.seconds))
+            time_step = int(np.floor(increment * 24 * 60 * 60))
             self.time = [st + dt.timedelta(0, t) \
                     for t in range(0, delta_sec, time_step)]
         if time is not None:
@@ -158,16 +158,16 @@ class timeseries(SourceInv):
         # Loop 
         for i in range(header, len(Lines)):
             tmp = Lines[i].split()
-            yr = np.int(tmp[0])
-            mo = np.int(tmp[1])
-            da = np.int(tmp[2])
-            hr = np.int(tmp[3])
-            mi = np.int(tmp[4])
-            sd = np.int(tmp[5])
+            yr = int(tmp[0])
+            mo = int(tmp[1])
+            da = int(tmp[2])
+            hr = int(tmp[3])
+            mi = int(tmp[4])
+            sd = int(tmp[5])
             time.append(dt.datetime(yr, mo, da, hr, mi, sd))
-            value.append(np.float(tmp[6]))
+            value.append(float(tmp[6]))
             if len(tmp)>7:
-                error.append(np.float(tmp[7]))
+                error.append(float(tmp[7]))
             else:
                 error.append(0.0)
 

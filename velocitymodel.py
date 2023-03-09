@@ -91,10 +91,10 @@ class velocitymodel(SourceInv):
         for i in range(hdr,len(A)):
             
             B = A[i].split()
-            Lon.append(np.float(B[clon]))
-            Lat.append(np.float(B[clat]))
-            Depth.append(np.float(B[cdepth]))
-            Vp.append(np.float(B[cvp]))
+            Lon.append(float(B[clon]))
+            Lat.append(float(B[clat]))
+            Depth.append(float(B[cdepth]))
+            Vp.append(float(B[cvp]))
 
         # Make arrays
         self.lon = np.array(Lon)
@@ -545,16 +545,16 @@ class velocitymodel(SourceInv):
         # iterate and fill those in 
         for line in All:
             a = line.split()
-            depths.append(np.float(a[0])*depthfact)
-            rho.append(np.float(a[1]))
-            rhostd.append(np.float(a[2]))
-            vs.append(np.float(a[3]))
-            vsstd.append(np.float(a[4]))
-            vp.append(np.float(a[5]))
-            vpstd.append(np.float(a[6]))
+            depths.append(float(a[0])*depthfact)
+            rho.append(float(a[1]))
+            rhostd.append(float(a[2]))
+            vs.append(float(a[3]))
+            vsstd.append(float(a[4]))
+            vp.append(float(a[5]))
+            vpstd.append(float(a[6]))
             if readshear:
-                shear.append(np.float(a[7]))
-                shearstd.append(np.float(a[8]))
+                shear.append(float(a[7]))
+                shearstd.append(float(a[8]))
     
         # Save those
         self.DVert = np.array(depths)

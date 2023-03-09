@@ -187,7 +187,7 @@ class pointdropper(mp.Process):
             dip = dip.tolist()
             areas = [self.fault.patchArea(p) for p in splittedPatches]
             ids = np.ones((len(x),))*(i)
-            ids = ids.astype(np.int).tolist()
+            ids = ids.astype(int).tolist()
 
             # Save
             Ids += ids
@@ -262,7 +262,7 @@ def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
     if hasattr(fault, 'sourceNumber'):
         number = fault.sourceNumber
         fault.computeArea()
-        charArea = np.array(fault.area)/np.float(number)
+        charArea = np.array(fault.area)/float(number)
 
     # Create a queue
     output = mp.Queue()
@@ -278,8 +278,8 @@ def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
 
     # Create them
     workers = [pointdropper(fault, output, charArea, 
-                            np.int(np.floor(i*npatches/nworkers)), 
-                            np.int(np.floor((i+1)*npatches/nworkers))) for i in range(nworkers)]
+                            int(np.floor(i*npatches/nworkers)), 
+                            int(np.floor((i+1)*npatches/nworkers))) for i in range(nworkers)]
     workers[-1].iend = npatches
 
     # Start them
@@ -651,8 +651,8 @@ class interpolateEDKS(object):
             todo = len(distance.flatten())
             workers = [interpolator(self.interpolators, output, 
                                     depth.flatten(), distance.flatten(), 
-                                    np.int(np.floor(i*todo/nworkers)),
-                                    np.int(np.floor((i+1)*todo/nworkers))) for i in range(nworkers)]
+                                    int(np.floor(i*todo/nworkers)),
+                                    int(np.floor((i+1)*todo/nworkers))) for i in range(nworkers)]
             workers[-1].iend = todo
 
             # Start

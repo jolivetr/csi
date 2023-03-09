@@ -329,11 +329,11 @@ def mName2Rep(mName):
 		model = mName[m].split('/')
 
 		if model[0] in ('LINE'):			# Case Linear
-			r = ['LINEAR',[np.float(model[1])]]
+			r = ['LINEAR',[float(model[1])]]
 			rep.append(r)
 
 		elif model[0] in ('LINEFIN'):
-			r = ['LINEAR_FINITE',[[np.float(model[1]),np.float(model[2])]]]
+			r = ['LINEAR_FINITE',[[float(model[1]),float(model[2])]]]
 			rep.append(r)
 
 		elif model[0] in ('P'):				# Case Polynom
@@ -354,13 +354,13 @@ def mName2Rep(mName):
 
 			tm = tm - 1
 
-			r = ['POLY',[tm],[np.float(model[2])]]
+			r = ['POLY',[tm],[float(model[2])]]
 			rep.append(r)
 		
 			m = m + tm 
 
 		elif model[0] in ('QUAD'):			# Case Quadratic
-			r = ['QUADRATIC',[np.float(model[1])]]
+			r = ['QUADRATIC',[float(model[1])]]
 			rep.append(r)
 
 		elif model[0] in ('OFFSET'):			# Case Offset
@@ -368,24 +368,24 @@ def mName2Rep(mName):
 			rep.append(r)
 
 		elif model[0] in ('EXP'):			# Case exponential
-			t1 = np.float(model[1])
-			tau = np.float(model[2])
+			t1 = float(model[1])
+			tau = float(model[2])
 			r = ['EXP',[t1],[tau]]
 			rep.append(r)
 
 		elif model[0] in ('LOG'):			# Case Logarithm
-			t1 = np.float(model[1])
-			tau = np.float(model[2])
+			t1 = float(model[1])
+			tau = float(model[2])
 			r = ['LOG',[t1],[tau]]
 			rep.append(r)
 	
 		elif model[0] in ('STEP'):			# Case step function
-			t1 = np.float(model[1])
+			t1 = float(model[1])
 			r = ['STEP',[t1]]
 			rep.append(r)
 
 		elif model[0] in ('COS'):			# Case seasonal
-			tau = np.float(model[1])
+			tau = float(model[1])
 			r = ['SEASONAL',[tau]]
 			rep.append(r)
 			m+=1
@@ -406,7 +406,7 @@ def mName2Rep(mName):
 					else:
 						bspflag = False
 
-			order = np.int(model[2])
+			order = int(model[2])
 			r = ['BSPLINE',[order],[tm]]
 			rep.append(r)
 			m = m + tm - 1
@@ -427,7 +427,7 @@ def mName2Rep(mName):
 					else:
 						ispflag = False
 			
-			order = np.int(model[2])
+			order = int(model[2])
 			r = ['ISPLINE',[order],[tm]] 
 			rep.append(r)  
 			m = m + tm - 1
@@ -448,7 +448,7 @@ def mName2Rep(mName):
 					else:
 						sbasflag = False
 
-			master = np.int(model[2])
+			master = int(model[2])
 			r = ['SBAS',master]
 			rep.append(r)
 			m = m + tm - 1 

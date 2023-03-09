@@ -86,8 +86,8 @@ class creepmeters(SourceInv):
         for t in Text:
             tex = t.split()
             self.station.append(tex[0])
-            self.lon.append(np.float(tex[2]))
-            self.lat.append(np.float(tex[1]))
+            self.lon.append(float(tex[2]))
+            self.lat.append(float(tex[1]))
 
         # translate to array
         self.lon = np.array(self.lon)
@@ -243,9 +243,9 @@ class creepmeters(SourceInv):
         for text in Text:
 
             # Get values
-            yr = np.int(text.split()[0])
-            da = np.int(text.split()[1])
-            of = np.float(text.split()[2])
+            yr = int(text.split()[0])
+            da = int(text.split()[1])
+            of = float(text.split()[2])
 
             # Compute the time 
             time = dt.datetime.fromordinal(dt.datetime(yr, 1, 1).toordinal() + da)
@@ -376,7 +376,7 @@ class creepmeters(SourceInv):
         # Get the dates we want
         u = np.flatnonzero(time>=date1)
         v = np.flatnonzero(time<=date2)
-        w = np.intersect1d(u,v)
+        w = intersect1d(u,v)
         if w.shape[0]<2:
             print('Not enough points for station {}'.format(station))
             store['Fit'] = None

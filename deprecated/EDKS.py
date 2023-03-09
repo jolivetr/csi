@@ -381,7 +381,7 @@ def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
     if hasattr(fault, 'sourceNumber'):
         number = fault.sourceNumber
         fault.computeArea()
-        charArea = np.array(fault.area)/np.float(number)
+        charArea = np.array(fault.area)/float(number)
 
     # Loop over the patches
     for i in range(len(fault.patch)):

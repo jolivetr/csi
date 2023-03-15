@@ -50,10 +50,10 @@ class seismic(SourceInv):
 
         # Initialize some things
         self.sta_name = []
-        self.lat  = np.array([],dtype='np.float64')
-        self.lon  = np.array([],dtype='np.float64')
-        self.x    = np.array([],dtype='np.float64')
-        self.y    = np.array([],dtype='np.float64')
+        self.lat  = np.array([],dtype=np.float64)
+        self.lon  = np.array([],dtype=np.float64)
+        self.x    = np.array([],dtype=np.float64)
+        self.y    = np.array([],dtype=np.float64)
     
         # Data
         self.d = {}

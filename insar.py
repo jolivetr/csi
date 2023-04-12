@@ -2881,11 +2881,7 @@ class insar(SourceInv):
                                      figsize=figsize)
 
         # Shaded topo
-        if shadedtopo is not None:
-            smooth = shadedtopo['smooth']
-            al = shadedtopo['alpha']
-            zo = shadedtopo['zorder']
-            fig.shadedTopography(smooth=smooth, alpha=al, zorder=zo)
+        if shadedtopo is not None: fig.shadedTopography(**shadedtopo)
 
         # Draw the coastlines
         if drawCoastlines:

@@ -542,9 +542,9 @@ class geodeticplot(object):
         return
 
     def drawCoastlines(self, color='k', linewidth=1.0, linestyle='solid',
-            resolution='auto', landcolor='lightgrey', seacolor=None, drawMapScale=None,
+            resolution='10m', landcolor='lightgrey', seacolor=None, drawMapScale=None,
             parallels=None, meridians=None, drawOnFault=False, 
-            alpha=0.5, zorder=0):
+            alpha=0.5, zorder=1):
         '''
         Draws the coast lines in the desired area.
 
@@ -552,7 +552,7 @@ class geodeticplot(object):
             * color         : Color of lines
             * linewidth     : Width of lines
             * linestyle     : Style of lines
-            * resolution    : Resolution of the coastline. Can be auto, intermediate, coarse, low, high
+            * resolution    : Resolution of the coastline. Can be 10m, 50m or 110m
             * drawLand      : Fill the continents (True/False)
             * drawMapScale  : Draw a map scale (None or length in km)
             * parallels     : If int, number of parallels. If float, spacing in degrees between parallels. If np.array, array of parallels
@@ -571,8 +571,20 @@ class geodeticplot(object):
         if drawMapScale is not None:
             self.drawScaleBar(drawMapScale, lonlat=None)
 
+        # Ocean color (not really nice since this colors everything in the background)
+        if seacolor=='image':
+            self.carte.stock_img()
+        else:
+            if seacolor is not None: 
+                self.carte.add_feature(cfeature.NaturalEarthFeature('physical', 
+                                                                    'ocean', 
+                                                                    '10m',
+                                                                    edgecolor=color, 
+                                                                    facecolor=seacolor, 
+                                                                    zorder=np.max([zorder-1,0])))
+
         # coastlines in cartopy are multipolygon objects. Polygon has exterior, which has xy
-        self.coastlines = cfeature.GSHHSFeature(scale=resolution,
+        self.coastlines = cfeature.NaturalEarthFeature('physical', 'land', scale='10m',
                                                 edgecolor=color, 
                                                 facecolor=landcolor, 
                                                 linewidth=linewidth, 
@@ -581,10 +593,6 @@ class geodeticplot(object):
 
         # Draw and get the line object
         self.carte.add_feature(self.coastlines)
-
-        # Ocean color (not really nice since this colors everything in the background)
-        if seacolor is not None:
-            self.carte.patch.set_facecolor(seacolor)
 
         ## MapScale
         if drawMapScale is not None:
@@ -1151,7 +1159,8 @@ class geodeticplot(object):
 
     def gps(self, gps, data=['data'], color=['k'], scale=None, 
             legendscale=10., linewidths=.1, name=False, error=True,
-            zorder=5, alpha=1.):
+            zorder=5, alpha=1., width=0.005, headwidth=3, headlength=5, 
+            headaxislength=4.5, minshaft=1, minlength=1, quiverkeypos=(0.1, 0.1)):
         '''
         Args:
             * gps           : gps object from gps.
@@ -1224,7 +1233,11 @@ class geodeticplot(object):
             c = Data[dName]['Color']
             p = self.carte.quiver(lon, lat,
                                   values[:,0], values[:,1],
-                                  width=0.005, color=c,
+                                  color=c, width=width, headwidth=headwidth, 
+                                  headlength=headlength, 
+                                  headaxislength=headaxislength, 
+                                  minshaft=minshaft, 
+                                  minlength=minlength,
                                   scale=scale, scale_units='xy',
                                   linewidths=linewidths, 
                                   zorder=zorder, alpha=alpha)
@@ -1256,9 +1269,10 @@ class geodeticplot(object):
                     self.carte.add_patch(ellipse)
 
         # Plot Legend
-        q = plt.quiverkey(p, 0.1, 0.1,
-                          legendscale, '{}'.format(legendscale),
-                          coordinates='axes', color='k', zorder=10)
+        if quiverkeypos is not None:
+            q = plt.quiverkey(p, quiverkeypos[0], quiverkeypos[1],
+                              legendscale, '{}'.format(legendscale),
+                              coordinates='axes', color='k', zorder=10)
 
         # Plot the name of the stations if asked
         if name:

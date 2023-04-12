@@ -97,17 +97,13 @@ class gps(SourceInv):
 
         # Assign input parameters to station attributes
         self.station = copy.deepcopy(sta_name)
-        self.lon = np.array([],dtype='np.float64')
-        self.lat = np.array([],dtype='np.float64')
-        self.x   = np.array([],dtype='np.float64')
-        self.y   = np.array([],dtype='np.float64')
         if loc_format=='LL':            
-            self.lon = np.append(self.lon,x)
-            self.lat = np.append(self.lat,y)
+            self.lon = copy.deepcopy(x)
+            self.lat = copy.deepcopy(y)
             self.x, self.y = self.ll2xy(self.lon,self.lat)
         else:
-            self.x = np.append(self.x,x)
-            self.y = np.append(self.y,y)
+            self.x = copy.deepcopy(x)
+            self.y = copy.deepcopy(y)
             self.lon, self.lat = self.xy2ll(self.x,self.y)            
         
         # Initialize the vel_enu array
@@ -3647,11 +3643,12 @@ class gps(SourceInv):
         return
 
     def plot(self, faults=None, figure=135, name=False, legendscale=10., scale=None, figsize=None,
-             plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True,
+             plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True, title=True,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              landcolor='lightgrey', seacolor=None, shadedtopo=None,
              Map=True, Fault=True,
              vertical=False, verticalsize=[30], box=None,
+             width=0.005, headwidth=3, headlength=5, headaxislength=4.5, minshaft=1, minlength=1,
              data=['data'], color=['k'], titleyoffset=1.1, alpha=1.):
         '''
         Plot the network
@@ -3699,11 +3696,7 @@ class gps(SourceInv):
                                      figsize=figsize, Map=Map, Fault=Fault)
 
         # Shaded topo
-        if shadedtopo is not None:
-            smooth = shadedtopo['smooth']
-            al = shadedtopo['alpha']
-            zo = shadedtopo['zorder']
-            fig.shadedTopography(smooth=smooth, alpha=al, zorder=zo)
+        if shadedtopo is not None: fig.shadedTopography(**shadedtopo)
 
         # Draw the coastlines
         if drawCoastlines:
@@ -3728,15 +3721,18 @@ class gps(SourceInv):
         # Plot GPS velocities
         fig.gps(self, data=data, name=name, error=error,
                       legendscale=legendscale, scale=scale, 
-                      color=color, alpha=alpha)
+                      color=color, alpha=alpha, 
+                      width=width, headwidth=headwidth, headlength=headlength, 
+                      headaxislength=headaxislength, minshaft=minshaft, minlength=minlength)
 
         # Set up title
-        title = '{} '.format(self.name)
-        if type(data) is list:
-            for d in data: title += '- {}'.format(d) 
-        else:
-            title += '- {}'.format(data)
-        fig.titlemap(title, y=titleyoffset)
+        if title:
+            title = '{} '.format(self.name)
+            if type(data) is list:
+                for d in data: title += '- {}'.format(d) 
+            else:
+                title += '- {}'.format(data)
+            fig.titlemap(title, y=titleyoffset)
 
         # Save fig
         self.fig = fig

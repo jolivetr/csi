@@ -161,7 +161,7 @@ class TriangularTents(TriangularPatches):
             dip.append(dp)
 
         # Compute the mean (beware of angle stuff), and we count from 0 to 2pi
-        j = np.complex(0., 1.)
+        j = complex(0., 1.)
         strike = np.angle(np.sum([np.exp(j*s) for s in strike])/len(strike))
         if strike<0.: strike += 2*np.pi
         dip = np.mean(dip)

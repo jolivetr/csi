@@ -109,15 +109,15 @@ class opticorr(SourceInv):
         # Loop over the A, there is a header line header
         for i in range(header, len(A)):
             tmp = A[i].split()
-            self.lon.append(np.float(tmp[1]))
-            self.lat.append(np.float(tmp[2]))
-            self.east.append(np.float(tmp[3]))
-            self.north.append(np.float(tmp[4]))
-            self.err_east.append(np.float(tmp[5]))
-            self.err_north.append(np.float(tmp[6]))
+            self.lon.append(float(tmp[1]))
+            self.lat.append(float(tmp[2]))
+            self.east.append(float(tmp[3]))
+            self.north.append(float(tmp[4]))
+            self.err_east.append(float(tmp[5]))
+            self.err_north.append(float(tmp[6]))
             tmp = B[i].split()
-            self.corner.append([np.float(tmp[6]), np.float(tmp[7]), 
-                                np.float(tmp[8]), np.float(tmp[9])])
+            self.corner.append([float(tmp[6]), float(tmp[7]), 
+                                float(tmp[8]), float(tmp[9])])
 
 
         # Make arrays
@@ -204,12 +204,12 @@ class opticorr(SourceInv):
         # Loop 
         for line in A:
             l = line.split()
-            self.lon.append(np.float(l[0]))
-            self.lat.append(np.float(l[1]))
-            self.east.append(np.float(l[2]))
-            self.north.append(np.float(l[3]))
-            self.err_east.append(np.float(l[4]))
-            self.err_north.append(np.float(l[5]))
+            self.lon.append(float(l[0]))
+            self.lat.append(float(l[1]))
+            self.east.append(float(l[2]))
+            self.north.append(float(l[3]))
+            self.err_east.append(float(l[4]))
+            self.err_north.append(float(l[5]))
         
         # Make arrays
         self.east = factor * (np.array(self.east) + step)
@@ -1729,7 +1729,7 @@ class opticorr(SourceInv):
         # All done
         return
 
-    def write2binary(self, prefix, dtype=np.float):
+    def write2binary(self, prefix, dtype=float):
         '''
         Writes the records in a binary file. 
         

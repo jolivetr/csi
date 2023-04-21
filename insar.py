@@ -249,11 +249,11 @@ class insar(SourceInv):
             # Get values
             line = Lines[i].split()
             # Fill in the values
-            self.lon.append(np.float(line[0]))
-            self.lat.append(np.float(line[1]))
-            self.vel.append(np.float(line[2]))
+            self.lon.append(float(line[0]))
+            self.lat.append(float(line[1]))
+            self.vel.append(float(line[2]))
             if len(line)>3:
-                self.err.append(np.float(line[3]))
+                self.err.append(float(line[3]))
             else:
                 self.err.append(0.0)
 
@@ -324,11 +324,11 @@ class insar(SourceInv):
             # Get values
             line = Lines[i].split()
             # Fill in the values
-            self.lon.append(np.float(line[0]))
-            self.lat.append(np.float(line[1]))
-            self.vel.append(np.float(line[2]))
-            self.err.append(np.float(line[3]))
-            self.los.append([np.float(line[4]), np.float(line[5]), np.float(line[6])])
+            self.lon.append(float(line[0]))
+            self.lat.append(float(line[1]))
+            self.vel.append(float(line[2]))
+            self.err.append(float(line[3]))
+            self.los.append([float(line[4]), float(line[5]), float(line[6])])
 
         # Make arrays
         self.vel = (np.array(self.vel)+step)*factor
@@ -388,13 +388,13 @@ class insar(SourceInv):
         # Loop over the A, there is a header line header
         for i in range(header, len(A)):
             tmp = A[i].split()
-            self.vel.append(np.float(tmp[5]))
-            self.lon.append(np.float(tmp[3]))
-            self.lat.append(np.float(tmp[4]))
-            self.err.append(np.float(tmp[6]))
-            self.los.append([np.float(tmp[8]), np.float(tmp[9]), np.float(tmp[10])])
+            self.vel.append(float(tmp[5]))
+            self.lon.append(float(tmp[3]))
+            self.lat.append(float(tmp[4]))
+            self.err.append(float(tmp[6]))
+            self.los.append([float(tmp[8]), float(tmp[9]), float(tmp[10])])
             tmp = B[i].split()
-            self.corner.append([np.float(tmp[6]), np.float(tmp[7]), np.float(tmp[8]), np.float(tmp[9])])
+            self.corner.append([float(tmp[6]), float(tmp[7]), float(tmp[8]), float(tmp[9])])
 
         # Make arrays
         self.vel = (np.array(self.vel)+step)*factor
@@ -531,7 +531,7 @@ class insar(SourceInv):
             if type(incidence) is np.ndarray:
                 self.inchd2los(incidence, heading, origin='binaryfloat')
                 self.los = self.los[::downsample,:]
-            elif type(incidence) in (float, np.float):
+            elif type(incidence) in (float):
                 self.inchd2los(incidence, heading, origin='float')
             elif type(incidence) is str:
                 self.inchd2los(incidence, heading, origin='binary')
@@ -541,7 +541,7 @@ class insar(SourceInv):
                 self.incaz2los(incidence, azimuth, origin='binaryfloat',
                         dtype=dtype)
                 self.los = self.los[::downsample,:]
-            elif type(incidence) in (float, np.float):
+            elif type(incidence) in (float):
                 self.incaz2los(incidence, azimuth, origin='float')
             elif type(incidence) is str:
                 self.incaz2los(incidence, azimuth, origin='binary',

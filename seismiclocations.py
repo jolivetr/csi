@@ -107,16 +107,16 @@ class seismiclocations(SourceInv):
             tmp = A[i].split()
 
             # Get the values
-            yr = np.int(tmp[0])
-            mo = np.int(tmp[1])
-            da = np.int(tmp[2])
-            hr = np.int(tmp[3])
-            mi = np.int(tmp[4])
-            sd = np.int(np.floor(np.float(tmp[5])))
-            lat = np.float(tmp[7])
-            lon = np.float(tmp[6])
-            depth = np.float(tmp[8])
-            mag = np.float(tmp[9])
+            yr = int(tmp[0])
+            mo = int(tmp[1])
+            da = int(tmp[2])
+            hr = int(tmp[3])
+            mi = int(tmp[4])
+            sd = int(np.floor(float(tmp[5])))
+            lat = float(tmp[7])
+            lon = float(tmp[6])
+            depth = float(tmp[8])
+            mag = float(tmp[9])
 
             # Create the time object
             d = dt.datetime(yr, mo, da, hr, mi, sd)
@@ -253,20 +253,20 @@ class seismiclocations(SourceInv):
             tmp = A[i].split()
 
             # Get the values
-            yr = np.int(tmp[1])
-            mo = np.int(tmp[2])
-            da = np.int(tmp[3])
-            hr = np.int(tmp[4])
-            mi = np.int(tmp[5])
-            sd = np.int(np.floor(np.float(tmp[6])))
-            lat = np.float(tmp[7][:-1]) + np.float(tmp[8])/60.
+            yr = int(tmp[1])
+            mo = int(tmp[2])
+            da = int(tmp[3])
+            hr = int(tmp[4])
+            mi = int(tmp[5])
+            sd = int(np.floor(float(tmp[6])))
+            lat = float(tmp[7][:-1]) + float(tmp[8])/60.
             if tmp[7][-1] in ('s', 'S'):
                 lat *= -1.
-            lon = np.float(tmp[9][:-1]) + np.float(tmp[10])/60.
+            lon = float(tmp[9][:-1]) + float(tmp[10])/60.
             if tmp[9][-1] in ('w', 'W'):
                 lon *= -1.
-            depth = np.float(tmp[11])
-            mag = np.float(tmp[12])
+            depth = float(tmp[11])
+            mag = float(tmp[12])
 
             # Create the time object
             d = dt.datetime(yr, mo, da, hr, mi, sd)
@@ -340,15 +340,15 @@ class seismiclocations(SourceInv):
             tmp = A[i].split()
 
             # Get the values
-            yr = np.int(tmp[0])
-            mo = np.int(tmp[1])
-            da = np.int(tmp[2])
-            hr = np.int(tmp[3])
-            mi = np.int(tmp[4])
-            lat = np.float(tmp[7])
-            lon = np.float(tmp[8])
-            depth = np.float(tmp[9])
-            mag = np.float(tmp[10])
+            yr = int(tmp[0])
+            mo = int(tmp[1])
+            da = int(tmp[2])
+            hr = int(tmp[3])
+            mi = int(tmp[4])
+            lat = float(tmp[7])
+            lon = float(tmp[8])
+            depth = float(tmp[9])
+            mag = float(tmp[10])
 
             # Create the time object
             if mi>=60:
@@ -427,11 +427,11 @@ class seismiclocations(SourceInv):
             tmp = A[i].split()
 
             # Get the values
-            yr = np.int(tmp[0])
-            mo = np.int(tmp[1])
-            da = np.int(tmp[2])
-            hr = np.int(tmp[3])
-            mi = np.int(tmp[4])
+            yr = int(tmp[0])
+            mo = int(tmp[1])
+            da = int(tmp[2])
+            hr = int(tmp[3])
+            mi = int(tmp[4])
             lat = np.float64(tmp[6])
             lon = np.float64(tmp[7])
             depth = np.float64(tmp[8])
@@ -504,10 +504,10 @@ class seismiclocations(SourceInv):
 
             # Get values
             time = dt.datetime.strptime(tmp[4], "%Y-%m-%dT%H:%M:%S.%f")
-            lon = np.float(tmp[0])
-            lat = np.float(tmp[1])
-            depth = np.float(tmp[2])
-            mag = np.float(tmp[3])
+            lon = float(tmp[0])
+            lat = float(tmp[1])
+            depth = float(tmp[2])
+            mag = float(tmp[3])
 
             # Store
             self.time.append(time)
@@ -574,10 +574,10 @@ class seismiclocations(SourceInv):
             # Get values
             time = dt.datetime.strptime(tmp[0], "%Y-%m-%dT%H:%M:%S.%fZ")
             if len(tmp)>=5:
-                lon = np.float(tmp[1])
-                lat = np.float(tmp[2])
-                depth = np.float(tmp[3])
-                mag = np.float(tmp[4])
+                lon = float(tmp[1])
+                lat = float(tmp[2])
+                depth = float(tmp[3])
+                mag = float(tmp[4])
                 self.time.append(time)
                 self.lon.append(lon)
                 self.lat.append(lat)
@@ -641,12 +641,12 @@ class seismiclocations(SourceInv):
                 if line[0][0] in ('P'):
 
                     # Time
-                    yr = np.int(line[0][4:])
-                    mo = np.int(line[1])
-                    da = np.int(line[2])
-                    hr = np.int(line[3])
-                    mn = np.int(line[4])
-                    sd = np.int(np.float(line[5]))
+                    yr = int(line[0][4:])
+                    mo = int(line[1])
+                    da = int(line[2])
+                    hr = int(line[3])
+                    mn = int(line[4])
+                    sd = int(float(line[5]))
                     time = dt.datetime(yr, mo, da, hr, mn, sd)
 
                     # cmt informations
@@ -657,7 +657,7 @@ class seismiclocations(SourceInv):
                         name = line[0]
                         value = line[1].split()[0]
                         if name not in ('event name'):
-                            value = np.float(value)
+                            value = float(value)
                         info[name] = value
                         i += 1
 
@@ -767,7 +767,7 @@ class seismiclocations(SourceInv):
             st = start
 
         if (end.__class__ is float) or (end.__class__ is int) :
-            ed = dt.datetime(np.int(end), 1, 1)
+            ed = dt.datetime(int(end), 1, 1)
         if (end.__class__ is list):
             if len(end) == 1:
                 ed = dt.datetime(end[0], 1, 1)

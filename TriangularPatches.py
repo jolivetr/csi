@@ -470,11 +470,11 @@ class TriangularPatches(Fault):
             assert A[i].split()[0]=='>', 'Not a patch, reformat your file...'
             # Get the Patch Id
             if readpatchindex:
-                self.index_parameter.append([np.int(A[i].split()[ipatch]),np.int(A[i].split()[ipatch+1]),np.int(A[i].split()[ipatch+2])])
+                self.index_parameter.append([int(A[i].split()[ipatch]),int(A[i].split()[ipatch+1]),int(A[i].split()[ipatch+2])])
             # Get the slip value
             if not donotreadslip:
                 if len(A[i].split())>7:
-                    slip = np.array([np.float(A[i].split()[ipatch+4]), np.float(A[i].split()[ipatch+5]), np.float(A[i].split()[ipatch+6])])
+                    slip = np.array([float(A[i].split()[ipatch+4]), float(A[i].split()[ipatch+5]), float(A[i].split()[ipatch+6])])
                 else:
                     slip = np.array([0.0, 0.0, 0.0])
                 Slip.append(slip)
@@ -793,9 +793,9 @@ class TriangularPatches(Fault):
             # Put the parameter number in the file as well if it exists
             parameter = ' '
             if hasattr(self,'index_parameter') and add_slip is not None:
-                i = np.int(self.index_parameter[pIndex,0])
-                j = np.int(self.index_parameter[pIndex,1])
-                k = np.int(self.index_parameter[pIndex,2])
+                i = int(self.index_parameter[pIndex,0])
+                j = int(self.index_parameter[pIndex,1])
+                k = int(self.index_parameter[pIndex,2])
                 parameter = '# {} {} {} '.format(i,j,k)
 
             # Put the slip value
@@ -1630,7 +1630,7 @@ class TriangularPatches(Fault):
 
         # Get the patch
         u = None
-        if type(patch) in (int, np.int64, np.int, np.int32):
+        if type(patch) in (int, np.int64, np.int32):
             u = patch
         else:
             if checkindex:

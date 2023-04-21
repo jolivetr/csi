@@ -188,7 +188,7 @@ class Fault(SourceInv):
                     self.computeArea()
                     values = self.area
                 elif values == 'index':
-                    values = np.array([np.float(self.getindex(p)) for p in self.patch])
+                    values = np.array([float(self.getindex(p)) for p in self.patch])
                 self.slip[:,0] = values
             # Numpy array
             if type(values) is np.ndarray:
@@ -449,8 +449,8 @@ class Fault(SourceInv):
         x = []
         y = []
         for i in range(header, len(A)):
-            x.append(np.float(A[i].split()[0]))
-            y.append(np.float(A[i].split()[1]))
+            x.append(float(A[i].split()[0]))
+            y.append(float(A[i].split()[1]))
 
         # Create the trace
         self.trace(x, y, utm)

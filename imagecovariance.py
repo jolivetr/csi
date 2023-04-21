@@ -247,7 +247,7 @@ class imagecovariance(object):
                 if Nsamp>d.shape[0]:
                     Nsamp = d.shape[0]
             else:
-                Nsamp = np.int(np.floor(frac*x.size))
+                Nsamp = int(np.floor(frac*x.size))
             if self.verbose: 
                 print('Selecting {} random samples to estimate the covariance function'.format(Nsamp))
 
@@ -359,7 +359,7 @@ class imagecovariance(object):
                 if Nsamp>d.shape[0]:
                     Nsamp = d.shape[0]
             else:
-                Nsamp = np.int(np.floor(frac*x.size))
+                Nsamp = int(np.floor(frac*x.size))
             if self.verbose: 
                 print('Selecting {} random samples to estimate the covariance function'.format(Nsamp))
 

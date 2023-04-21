@@ -823,14 +823,14 @@ class RectangularPatches(Fault):
             if not text[0]=='#':
 
                 # Get values
-                slip = np.float(text[1])
-                xtl = np.float(text[2]) + x0
-                ytl = np.float(text[3]) + y0
-                depth = np.float(text[4])
-                length = np.float(text[5])
-                width = np.float(text[6])
-                strike = np.float(text[7])*np.pi/180.
-                rake = np.float(text[9])*np.pi/180.
+                slip = float(text[1])
+                xtl = float(text[2]) + x0
+                ytl = float(text[3]) + y0
+                depth = float(text[4])
+                length = float(text[5])
+                width = float(text[6])
+                strike = float(text[7])*np.pi/180.
+                rake = float(text[9])*np.pi/180.
 
                 D.append(depth)
                 
@@ -956,11 +956,11 @@ class RectangularPatches(Fault):
             assert A[i].split()[0]=='>', 'Not a patch, reformat your file...'
             # Get the Patch Id
             if readpatchindex:
-                self.index_parameter.append([np.int(A[i].split()[3]),np.int(A[i].split()[4]),np.int(A[i].split()[5])])
+                self.index_parameter.append([int(A[i].split()[3]),int(A[i].split()[4]),int(A[i].split()[5])])
             # Get the slip value
             if not donotreadslip:
                 if len(A[i].split())>7:
-                    slip = np.array([np.float(A[i].split()[7]), np.float(A[i].split()[8]), np.float(A[i].split()[9])])
+                    slip = np.array([float(A[i].split()[7]), float(A[i].split()[8]), float(A[i].split()[9])])
                 else:
                     slip = np.array([0.0, 0.0, 0.0])
                 Slip.append(slip)
@@ -1122,9 +1122,9 @@ class RectangularPatches(Fault):
             # Put the parameter number in the file as well if it exists
             parameter = ' ' 
             if hasattr(self,'index_parameter'):
-                i = np.int(self.index_parameter[p,0])
-                j = np.int(self.index_parameter[p,1])
-                k = np.int(self.index_parameter[p,2])
+                i = int(self.index_parameter[p,0])
+                j = int(self.index_parameter[p,1])
+                k = int(self.index_parameter[p,2])
                 parameter = '# {} {} {} '.format(i,j,k)
 
             # Put the slip value
@@ -1854,7 +1854,7 @@ class RectangularPatches(Fault):
 
         # Get the patch
         u = None
-        if patch.__class__ in (int, np.int, np.int64, np.int32):
+        if patch.__class__ in (int, np.int64, np.int32):
             u = patch
         else:
             if checkindex:
@@ -3580,12 +3580,12 @@ class RectangularPatches(Fault):
             depths = [ [p[j][2] for j in range(4)] for p in self.patch]
             depthRange = np.max(depths)-np.min(depths)
             self.numz = np.rint(depthRange/width)
-            print('The guess is that there is {} patches along dip'.format(np.int(self.numz)))
+            print('The guess is that there is {} patches along dip'.format(int(self.numz)))
             print('If that is not correct, please provide self.numz')
 
         # Get number of Patches along strike
-        nstrike = np.int(npatch // self.numz)
-        self.numz = np.int(self.numz)
+        nstrike = int(npatch // self.numz)
+        self.numz = int(self.numz)
 
         # Create the matrix
         Jmat = np.zeros((npatch,npatch), dtype=int)

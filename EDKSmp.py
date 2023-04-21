@@ -187,7 +187,7 @@ class pointdropper(mp.Process):
             dip = dip.tolist()
             areas = [self.fault.patchArea(p) for p in splittedPatches]
             ids = np.ones((len(x),))*(i)
-            ids = ids.astype(np.int).tolist()
+            ids = ids.astype(int).tolist()
 
             # Save
             Ids += ids
@@ -262,7 +262,7 @@ def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
     if hasattr(fault, 'sourceNumber'):
         number = fault.sourceNumber
         fault.computeArea()
-        charArea = np.array(fault.area)/np.float(number)
+        charArea = np.array(fault.area)/float(number)
 
     # Create a queue
     output = mp.Queue()
@@ -278,8 +278,8 @@ def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
 
     # Create them
     workers = [pointdropper(fault, output, charArea, 
-                            np.int(np.floor(i*npatches/nworkers)), 
-                            np.int(np.floor((i+1)*npatches/nworkers))) for i in range(nworkers)]
+                            int(np.floor(i*npatches/nworkers)), 
+                            int(np.floor((i+1)*npatches/nworkers))) for i in range(nworkers)]
     workers[-1].iend = npatches
 
     # Start them
@@ -554,7 +554,7 @@ class interpolateEDKS(object):
         fedks = FortranFile(self.kernel, 'r')
 
         # Read
-        kernel = fedks.read_reals(np.float32).reshape((self.ndepth*self.ndista,12))
+        kernel = fedks.read_reals(float32).reshape((self.ndepth*self.ndista,12))
 
         # Save
         self.depths = kernel[:,0]
@@ -586,7 +586,7 @@ class interpolateEDKS(object):
         '''
 
         # Arrange things
-        if type(xs) in (float, np.float64, np.float32):
+        if type(xs) in (float, float64, float32):
             xs = np.array([xs])
             ys = np.array([ys])
             zs = np.array([zs])
@@ -595,7 +595,7 @@ class interpolateEDKS(object):
             rake = np.array([rake])
             slip = np.array([slip])
             area = np.array([area])
-        if type(xr) in (float, np.float64, np.float32):
+        if type(xr) in (float, float64, float32):
             xr = np.array([xr])
             yr = np.array([yr])
 
@@ -651,8 +651,8 @@ class interpolateEDKS(object):
             todo = len(distance.flatten())
             workers = [interpolator(self.interpolators, output, 
                                     depth.flatten(), distance.flatten(), 
-                                    np.int(np.floor(i*todo/nworkers)),
-                                    np.int(np.floor((i+1)*todo/nworkers))) for i in range(nworkers)]
+                                    int(np.floor(i*todo/nworkers)),
+                                    int(np.floor((i+1)*todo/nworkers))) for i in range(nworkers)]
             workers[-1].iend = todo
 
             # Start

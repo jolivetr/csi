@@ -155,8 +155,8 @@ class dippingfault(RectangularPatches):
         Lon = []
         Lat = []
         for i in range(len(A)):
-            Lon.append(np.float(A[i].split()[0]))
-            Lat.append(np.float(A[i].split()[1]))
+            Lon.append(float(A[i].split()[0]))
+            Lat.append(float(A[i].split()[1]))
             
         # Create the trace 
         self.trace(Lon, Lat)
@@ -507,14 +507,14 @@ class dippingfault(RectangularPatches):
             if not text[0]=='#':
 
                 # Get values
-                slip = np.float(text[1])
-                xtl = np.float(text[2]) + x0
-                ytl = np.float(text[3]) + y0
-                depth = np.float(text[4])
-                length = np.float(text[5])
-                width = np.float(text[6])
-                strike = np.float(text[7])*np.pi/180.
-                rake = np.float(text[9])*np.pi/180.
+                slip = float(text[1])
+                xtl = float(text[2]) + x0
+                ytl = float(text[3]) + y0
+                depth = float(text[4])
+                length = float(text[5])
+                width = float(text[6])
+                strike = float(text[7])*np.pi/180.
+                rake = float(text[9])*np.pi/180.
 
                 D.append(depth)
 
@@ -813,10 +813,10 @@ class dippingfault(RectangularPatches):
             # Assert it works
             assert A[i].split()[0]=='>', 'Not a patch, reformat your file...'
             # Get the Patch Id
-            self.index_parameter.append([np.int(A[i].split()[3]),np.int(A[i].split()[4]),np.int(A[i].split()[5])])
+            self.index_parameter.append([int(A[i].split()[3]),int(A[i].split()[4]),int(A[i].split()[5])])
             # Get the slip value
             if len(A[i].split()>7):
-                slip = np.array([np.float(A[i].split()[7]), np.float(A[i].split()[8]), np.float(A[i].split()[9])])
+                slip = np.array([float(A[i].split()[7]), float(A[i].split()[8]), float(A[i].split()[9])])
             else:
                 slip = np.array([0.0, 0.0, 0.0])
             self.slip.append(slip)
@@ -906,9 +906,9 @@ class dippingfault(RectangularPatches):
             # Put the parameter number in the file as well if it exists
             parameter = ' ' 
             if hasattr(self,'index_parameter'):
-                i = np.int(self.index_parameter[p,0])
-                j = np.int(self.index_parameter[p,1])
-                k = np.int(self.index_parameter[p,2])
+                i = int(self.index_parameter[p,0])
+                j = int(self.index_parameter[p,1])
+                k = int(self.index_parameter[p,2])
                 parameter = '# {} {} {} '.format(i,j,k)
 
             # Put the slip value
@@ -2398,7 +2398,7 @@ class dippingfault(RectangularPatches):
         # All done
         return x,y,z
 
-    def surfacesimulation(self, box=None, disk=None, err=None, npoints=None, lonlat=None):
+    def surfacesimulation(self, box=None, disk=None, err=None, ints=None, lonlat=None):
         ''' 
         Takes the slip vector and computes the surface displacement that corresponds on a regular grid.
         Args:
@@ -2597,9 +2597,9 @@ class dippingfault(RectangularPatches):
             sys.stdout.write('\r Patch {}/{}'.format(i,self.slip.shape[0]))
             sys.stdout.flush()
             # integers are needed
-            iss = np.int(istrikeslip[i])
-            ids = np.int(idipslip[i])
-            its = np.int(itensile[i])
+            iss = int(istrikeslip[i])
+            ids = int(idipslip[i])
+            its = int(itensile[i])
             # Create the file names
             pss = None
             pds = None

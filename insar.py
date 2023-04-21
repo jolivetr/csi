@@ -249,11 +249,11 @@ class insar(SourceInv):
             # Get values
             line = Lines[i].split()
             # Fill in the values
-            self.lon.append(np.float(line[0]))
-            self.lat.append(np.float(line[1]))
-            self.vel.append(np.float(line[2]))
+            self.lon.append(float(line[0]))
+            self.lat.append(float(line[1]))
+            self.vel.append(float(line[2]))
             if len(line)>3:
-                self.err.append(np.float(line[3]))
+                self.err.append(float(line[3]))
             else:
                 self.err.append(0.0)
 
@@ -324,11 +324,11 @@ class insar(SourceInv):
             # Get values
             line = Lines[i].split()
             # Fill in the values
-            self.lon.append(np.float(line[0]))
-            self.lat.append(np.float(line[1]))
-            self.vel.append(np.float(line[2]))
-            self.err.append(np.float(line[3]))
-            self.los.append([np.float(line[4]), np.float(line[5]), np.float(line[6])])
+            self.lon.append(float(line[0]))
+            self.lat.append(float(line[1]))
+            self.vel.append(float(line[2]))
+            self.err.append(float(line[3]))
+            self.los.append([float(line[4]), float(line[5]), float(line[6])])
 
         # Make arrays
         self.vel = (np.array(self.vel)+step)*factor
@@ -388,13 +388,13 @@ class insar(SourceInv):
         # Loop over the A, there is a header line header
         for i in range(header, len(A)):
             tmp = A[i].split()
-            self.vel.append(np.float(tmp[5]))
-            self.lon.append(np.float(tmp[3]))
-            self.lat.append(np.float(tmp[4]))
-            self.err.append(np.float(tmp[6]))
-            self.los.append([np.float(tmp[8]), np.float(tmp[9]), np.float(tmp[10])])
+            self.vel.append(float(tmp[5]))
+            self.lon.append(float(tmp[3]))
+            self.lat.append(float(tmp[4]))
+            self.err.append(float(tmp[6]))
+            self.los.append([float(tmp[8]), float(tmp[9]), float(tmp[10])])
             tmp = B[i].split()
-            self.corner.append([np.float(tmp[6]), np.float(tmp[7]), np.float(tmp[8]), np.float(tmp[9])])
+            self.corner.append([float(tmp[6]), float(tmp[7]), float(tmp[8]), float(tmp[9])])
 
         # Make arrays
         self.vel = (np.array(self.vel)+step)*factor
@@ -426,7 +426,7 @@ class insar(SourceInv):
         # Read the covariance
         if cov:
             nd = self.vel.size
-            self.Cd = np.fromfile(filename+'.cov', dtype=np.float32).reshape((nd, nd))*factor*factor
+            self.Cd = np.fromfile(filename+'.cov', dtype=float32).reshape((nd, nd))*factor*factor
 
         # Store the factor
         self.factor = factor
@@ -436,7 +436,7 @@ class insar(SourceInv):
 
     def read_from_binary(self, data, lon, lat, err=None, factor=1.0,
                                step=0.0, incidence=None, heading=None, azimuth=None, los=None,
-                               dtype=np.float32, remove_nan=True, downsample=1,
+                               dtype=float32, remove_nan=True, downsample=1,
                                remove_zeros=True):
         '''
         Read from binary file or from array.
@@ -454,7 +454,7 @@ class insar(SourceInv):
             * heading       : heading angle (degree)
             * azimuth       : Azimuth angle (degree)
             * los           : LOS unit vector 3 component array (3-column array)
-            * dtype         : data type (default is np.float32 if data is a file)
+            * dtype         : data type (default is float32 if data is a file)
             * remove_nan    : True/False
             * downsample    : default is 1 (take one pixel out of those)
             * remove_zeros  : True/False
@@ -531,7 +531,7 @@ class insar(SourceInv):
             if type(incidence) is np.ndarray:
                 self.inchd2los(incidence, heading, origin='binaryfloat')
                 self.los = self.los[::downsample,:]
-            elif type(incidence) in (float, np.float):
+            elif type(incidence) in (float, float):
                 self.inchd2los(incidence, heading, origin='float')
             elif type(incidence) is str:
                 self.inchd2los(incidence, heading, origin='binary')
@@ -541,7 +541,7 @@ class insar(SourceInv):
                 self.incaz2los(incidence, azimuth, origin='binaryfloat',
                         dtype=dtype)
                 self.los = self.los[::downsample,:]
-            elif type(incidence) in (float, np.float):
+            elif type(incidence) in (float, float):
                 self.incaz2los(incidence, azimuth, origin='float')
             elif type(incidence) is str:
                 self.incaz2los(incidence, azimuth, origin='binary',
@@ -633,7 +633,7 @@ class insar(SourceInv):
         # All done
         return
 
-    def incaz2los(self, incidence, azimuth, origin='onefloat', dtype=np.float32):
+    def incaz2los(self, incidence, azimuth, origin='onefloat', dtype=float32):
         '''
         From the incidence and the heading, defines the LOS vector.
 
@@ -647,7 +647,7 @@ class insar(SourceInv):
                 - grd           : grd files
                 - binary        : Binary files
                 - binaryfloat   : Arrays of float
-            * dtype     : Data type (default is np.float32)
+            * dtype     : Data type (default is float32)
 
         Returns:
             * None
@@ -739,8 +739,8 @@ class insar(SourceInv):
             heading = np.array(fheading.variables['z'][:]).flatten()
             self.origininchd = origin
         elif origin in ('binary', 'bin'):
-            incidence = np.fromfile(incidence, dtype=np.float32)
-            heading = np.fromfile(heading, dtype=np.float32)
+            incidence = np.fromfile(incidence, dtype=float32)
+            heading = np.fromfile(heading, dtype=float32)
             self.origininchd = origin
         elif origin in ('binaryfloat'):
             self.origininchd = origin

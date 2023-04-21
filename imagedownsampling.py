@@ -1385,7 +1385,7 @@ class imagedownsampling(object):
 
         # Loop
         for line in Lines[2:]:
-            ulx, uly, drx, dry = [np.float(line.split()[i]) for i in range(2,6)]
+            ulx, uly, drx, dry = [float(line.split()[i]) for i in range(2,6)]
             c1 = [ulx, uly]
             c2 = [drx, uly]
             c3 = [drx, dry]

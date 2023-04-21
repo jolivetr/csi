@@ -174,8 +174,8 @@ class srcmodsolution(SourceInv):
         Lon = []
         Lat = []
         for i in range(len(A)):
-            Lon.append(np.float(A[i].split()[0]))
-            Lat.append(np.float(A[i].split()[1]))
+            Lon.append(float(A[i].split()[0]))
+            Lat.append(float(A[i].split()[1]))
 
         # Create the trace
         self.trace(Lon, Lat)
@@ -230,42 +230,42 @@ class srcmodsolution(SourceInv):
                         self.eventtag = Lstr.pop()
                         l += 1
                     elif Lstr[1] == 'Loc':
-                        self.rupture['LAT'] = np.float(Lstr[5])
-                        self.rupture['LON'] = np.float(Lstr[8])
-                        self.rupture['DEP'] = np.float(Lstr[11])
+                        self.rupture['LAT'] = float(Lstr[5])
+                        self.rupture['LON'] = float(Lstr[8])
+                        self.rupture['DEP'] = float(Lstr[11])
                         l += 1
                     elif Lstr[1] == 'Size':
-                        self.rupture['LEN'] = np.float(Lstr[5])
-                        self.rupture['WID'] = np.float(Lstr[9])
-                        self.rupture['Mw'] = np.float(Lstr[13])
-                        self.rupture['Mo'] = np.float(Lstr[16])
+                        self.rupture['LEN'] = float(Lstr[5])
+                        self.rupture['WID'] = float(Lstr[9])
+                        self.rupture['Mw'] = float(Lstr[13])
+                        self.rupture['Mo'] = float(Lstr[16])
                         l += 1
                     elif Lstr[1] == 'Mech':
-                        self.rupture['Strike'] = np.float(Lstr[5])
-                        self.rupture['Dip'] = np.float(Lstr[8])
-                        self.rupture['Rake'] = np.float(Lstr[11])
-                        self.rupture['Htop'] = np.float(Lstr[14])
+                        self.rupture['Strike'] = float(Lstr[5])
+                        self.rupture['Dip'] = float(Lstr[8])
+                        self.rupture['Rake'] = float(Lstr[11])
+                        self.rupture['Htop'] = float(Lstr[14])
                         l += 1
                     elif Lstr[1] == 'Rupt':
-                        self.rupture['HypocenterXZ'] = (np.float(Lstr[5]), np.float(Lstr[9]))
-                        self.rupture['Average Rupture Time'] = np.float(Lstr[13])
-                        self.rupture['Average Rupture Velocity'] = np.float(Lstr[17])
+                        self.rupture['HypocenterXZ'] = (float(Lstr[5]), float(Lstr[9]))
+                        self.rupture['Average Rupture Time'] = float(Lstr[13])
+                        self.rupture['Average Rupture Velocity'] = float(Lstr[17])
                         l += 1
                     elif Lstr[1] in ('Invs'):
                         if Lstr[3] in ('inDx'):
-                            self.rupture['Patch Length'] = np.float(Lstr[5])
-                            self.rupture['Patch Width'] = np.float(Lstr[9])
-                            self.rupture['Fmin'] = np.float(Lstr[13])
-                            self.rupture['Fmax'] = np.float(Lstr[17])
+                            self.rupture['Patch Length'] = float(Lstr[5])
+                            self.rupture['Patch Width'] = float(Lstr[9])
+                            self.rupture['Fmin'] = float(Lstr[13])
+                            self.rupture['Fmax'] = float(Lstr[17])
                             l += 1
                         elif Lstr[3] in ('Nx'):
-                            self.rupture['Nx'] = np.int(Lstr[5])
-                            self.rupture['Nz'] = np.int(Lstr[8])
+                            self.rupture['Nx'] = int(Lstr[5])
+                            self.rupture['Nz'] = int(Lstr[8])
                             l += 1
                     else:
                         if (Lstr[2] in ('TOTAL')) and (Lstr[3] in ('SLIP')):
                             # There is Nx lines to read
-                            Slip = np.array([ [np.float(Text[i].split()[j]) for j in range(len(Text[i].split()))] for i in range(l+1,l+self.rupture['Nz']+1)])
+                            Slip = np.array([ [float(Text[i].split()[j]) for j in range(len(Text[i].split()))] for i in range(l+1,l+self.rupture['Nz']+1)])
                             self.rupture['Slip'] = Slip
                             # update l
                             l += self.rupture['Nz']+1
@@ -322,35 +322,35 @@ class srcmodsolution(SourceInv):
                     self.eventtag = Lstr.pop()
                     l += 1
                 elif Lstr[1] in ('Loc'):
-                    self.rupture['LAT'] = np.float(Lstr[5])
-                    self.rupture['LON'] = np.float(Lstr[8])
-                    self.rupture['DEP'] = np.float(Lstr[11])
+                    self.rupture['LAT'] = float(Lstr[5])
+                    self.rupture['LON'] = float(Lstr[8])
+                    self.rupture['DEP'] = float(Lstr[11])
                     l += 1
                 elif Lstr[1] in ('Size'):
-                    self.rupture['LEN'] = np.float(Lstr[5])
-                    self.rupture['WID'] = np.float(Lstr[9])
-                    self.rupture['Mw'] = np.float(Lstr[13])
-                    self.rupture['Mo'] = np.float(Lstr[16])
+                    self.rupture['LEN'] = float(Lstr[5])
+                    self.rupture['WID'] = float(Lstr[9])
+                    self.rupture['Mw'] = float(Lstr[13])
+                    self.rupture['Mo'] = float(Lstr[16])
                     l += 1
                 elif Lstr[1] in ('Mech'):
-                    self.rupture['Strike'] = np.float(Lstr[5])
-                    self.rupture['Dip'] = np.float(Lstr[8])
-                    self.rupture['Rake'] = np.float(Lstr[11])
-                    self.rupture['Htop'] = np.float(Lstr[14])
+                    self.rupture['Strike'] = float(Lstr[5])
+                    self.rupture['Dip'] = float(Lstr[8])
+                    self.rupture['Rake'] = float(Lstr[11])
+                    self.rupture['Htop'] = float(Lstr[14])
                     l += 1
                 elif Lstr[1] in ('Rupt'):
-                    self.rupture['HypocenterXZ'] = (np.float(Lstr[5]), np.float(Lstr[9]))
-                    self.rupture['Average Rupture Time'] = np.float(Lstr[13])
-                    self.rupture['Average Rupture Velocity'] = np.float(Lstr[17])
+                    self.rupture['HypocenterXZ'] = (float(Lstr[5]), float(Lstr[9]))
+                    self.rupture['Average Rupture Time'] = float(Lstr[13])
+                    self.rupture['Average Rupture Velocity'] = float(Lstr[17])
                     l += 1
                 elif Lstr[1] in ('Invs'):
                     if Lstr[3] == 'Dx':
-                        self.rupture['Dx'] = np.float(Lstr[5])
-                        self.rupture['Dz'] = np.float(Lstr[9])
+                        self.rupture['Dx'] = float(Lstr[5])
+                        self.rupture['Dz'] = float(Lstr[9])
                         l += 1
                     elif Lstr[3] == 'Nx':
-                        self.rupture['Nx'] = np.int(Lstr[5])
-                        self.rupture['Nz'] = np.int(Lstr[8])
+                        self.rupture['Nx'] = int(Lstr[5])
+                        self.rupture['Nz'] = int(Lstr[8])
                         l += 1
                     else:
                         # nothing to do, update l
@@ -358,9 +358,9 @@ class srcmodsolution(SourceInv):
                 elif (Lstr[1] in ('SOURCE')):
                     if (Lstr[2] in ('MODEL')):
                         # Get the number of patches
-                        self.rupture['Npatch'] = np.int(Text[l+1].split()[3])
+                        self.rupture['Npatch'] = int(Text[l+1].split()[3])
                         # Read the patches
-                        patch = np.array([ [np.float(Text[i].split()[j]) for j in range(len(Text[i].split()))]  for i in range(l+9,l+9+self.rupture['Npatch'])])
+                        patch = np.array([ [float(Text[i].split()[j]) for j in range(len(Text[i].split()))]  for i in range(l+9,l+9+self.rupture['Npatch'])])
                         self.rupture['Latitude Patches'] = patch[:,0]
                         self.rupture['Longitude Patches'] = patch[:,1]
                         self.rupture['Slip Patches'] = patch[:,5]
@@ -718,9 +718,9 @@ class srcmodsolution(SourceInv):
             # Put the parameter number in the file as well if it exists
             parameter = ' '
             if hasattr(self,'index_parameter'):
-                i = np.int(self.index_parameter[p,0])
-                j = np.int(self.index_parameter[p,1])
-                k = np.int(self.index_parameter[p,2])
+                i = int(self.index_parameter[p,0])
+                j = int(self.index_parameter[p,1])
+                k = int(self.index_parameter[p,2])
                 parameter = '# {} {} {} '.format(i,j,k)
 
             # Put the slip value
@@ -1925,7 +1925,7 @@ class srcmodsolution(SourceInv):
         # All done
         return x,y,z
 
-    def surfacesimulation(self, box=None, disk=None, err=None, npoints=None):
+    def surfacesimulation(self, box=None, disk=None, err=None, ints=None):
         '''
         Takes the slip vector and computes the surface displacement that corresponds on a regular grid.
         Args:

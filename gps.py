@@ -899,15 +899,15 @@ class gps(SourceInv):
             if 'nan' not in A:
 
                 self.station.append(A[0])
-                self.lon.append(np.float(A[1]))
-                self.lat.append(np.float(A[2]))
+                self.lon.append(float(A[1]))
+                self.lat.append(float(A[2]))
 
-                east = np.float(A[3])
-                north = np.float(A[4])
+                east = float(A[3])
+                north = float(A[4])
                 self.vel_enu.append([east, north, 0.0])
 
-                east = np.float(A[5])
-                north = np.float(A[6])
+                east = float(A[5])
+                north = float(A[6])
                 up = 0.0
                 if east == 0.:
                     east = minerr
@@ -1001,14 +1001,14 @@ class gps(SourceInv):
                 self.lat.append(lat)
 
                 # Deal with velocities
-                east = np.float(A[8])
-                north = np.float(A[9])
-                up = np.float(A[10])
+                east = float(A[8])
+                north = float(A[9])
+                up = float(A[10])
                 self.vel_enu.append([east, north, up])
 
-                east = np.float(A[11])
-                north = np.float(A[12])
-                up = np.float(A[13])
+                east = float(A[11])
+                north = float(A[12])
+                up = float(A[13])
                 if east == 0.:
                     east = minerr
                 if north == 0.:
@@ -1083,17 +1083,17 @@ class gps(SourceInv):
             if 'nan' not in A or not checkNaNs:
 
                 self.station.append(A[0])
-                self.lon.append(np.float(A[1]))
-                self.lat.append(np.float(A[2]))
+                self.lon.append(float(A[1]))
+                self.lat.append(float(A[2]))
 
-                east = np.float(A[3])
-                north = np.float(A[4])
-                up = np.float(A[5])
+                east = float(A[3])
+                north = float(A[4])
+                up = float(A[5])
                 self.vel_enu.append([east, north, up])
 
-                east = np.float(A[6])
-                north = np.float(A[7])
-                up = np.float(A[8])
+                east = float(A[6])
+                north = float(A[7])
+                up = float(A[8])
                 if east == 0.:
                     east = minerr
                 if north == 0.:
@@ -1162,7 +1162,7 @@ class gps(SourceInv):
             if 'nan' not in A:
 
                 # Get the direction array
-                direction = np.array([np.int(A[3]), np.int(A[4]), np.int(A[5])])
+                direction = np.array([int(A[3]), int(A[4]), int(A[5])])
 
                 # Which direction are we looking at?
                 d = np.flatnonzero(direction==1.)
@@ -1173,16 +1173,16 @@ class gps(SourceInv):
                     self.station.append(A[9])
 
                     # Store the lon lat
-                    self.lon.append(np.float(A[10]))
-                    self.lat.append(np.float(A[11]))
+                    self.lon.append(float(A[10]))
+                    self.lat.append(float(A[11]))
 
                     # Create a velocity array
                     vel = [0.,0.,0.]
                     err = [0.,0.,0.]
 
                     # Put velocities and errors there
-                    vel[d] = np.float(A[1])
-                    err[d] = np.float(A[2])
+                    vel[d] = float(A[1])
+                    err[d] = float(A[2])
 
                     # Append velocities and errors
                     self.vel_enu.append(vel)
@@ -1194,8 +1194,8 @@ class gps(SourceInv):
                     i = [u for u in range(len(self.station)) if self.station[u] in (A[9])][0]
 
                     # store the velocity
-                    self.vel_enu[i][d] = np.float(A[1])
-                    self.err_enu[i][d] = np.float(A[2])
+                    self.vel_enu[i][d] = float(A[1])
+                    self.err_enu[i][d] = float(A[2])
 
         # Make np array with that
         self.lon = np.array(self.lon)
@@ -1256,17 +1256,17 @@ class gps(SourceInv):
             if 'nan' not in A:
 
                 self.station.append(A[0])
-                self.lon.append(np.float(A[8]))
-                self.lat.append(np.float(A[7]))
+                self.lon.append(float(A[8]))
+                self.lat.append(float(A[7]))
 
-                east = np.float(A[20])
-                north = np.float(A[19])
-                up = np.float(A[21])
+                east = float(A[20])
+                north = float(A[19])
+                up = float(A[21])
                 self.vel_enu.append([east, north, up])
 
-                east = np.float(A[23])
-                north = np.float(A[22])
-                up = np.float(A[24])
+                east = float(A[23])
+                north = float(A[22])
+                up = float(A[24])
                 if east == 0.:
                     east = minerr
                 if north == 0.:
@@ -1348,15 +1348,15 @@ class gps(SourceInv):
 
             if len(c)>0:
                 self.station.append(Vel[i].split()[0])
-                self.lon.append(np.float(Cor[c].split()[9]))
-                self.lat.append(np.float(Cor[c].split()[8]))
-                east = np.float(Vel[i].split()[8])
-                north = np.float(Vel[i].split()[7])
-                up = np.float(Vel[i].split()[9])
+                self.lon.append(float(Cor[c].split()[9]))
+                self.lat.append(float(Cor[c].split()[8]))
+                east = float(Vel[i].split()[8])
+                north = float(Vel[i].split()[7])
+                up = float(Vel[i].split()[9])
                 self.vel_enu.append([east, north, up])
-                east = np.float(Vel[i].split()[11])
-                north = np.float(Vel[i].split()[10])
-                up = np.float(Vel[i].split()[12])
+                east = float(Vel[i].split()[11])
+                north = float(Vel[i].split()[10])
+                up = float(Vel[i].split()[12])
                 if east == 0.:
                     east = minerr
                 if north == 0.:
@@ -3578,9 +3578,9 @@ class gps(SourceInv):
                 timeseries.north.value += nts.north.value
                 timeseries.up.value += nts.up.value
             # Mean
-            timeseries.east.value /= np.float(N)
-            timeseries.north.value /= np.float(N)
-            timeseries.up.value /= np.float(N)
+            timeseries.east.value /= float(N)
+            timeseries.north.value /= float(N)
+            timeseries.up.value /= float(N)
 
             # Loop over the samples to get the std
             for n in range(N):
@@ -3593,9 +3593,9 @@ class gps(SourceInv):
                 timeseries.up.error += (nts.up.value - \
                                         timeseries.up.value)**2
             # Samples
-            timeseries.east.error /= np.float(N)
-            timeseries.north.error /= np.float(N)
-            timeseries.up.error /= np.float(N)
+            timeseries.east.error /= float(N)
+            timeseries.north.error /= float(N)
+            timeseries.up.error /= float(N)
 
             # Std
             timeseries.east.error = np.sqrt(timeseries.east.error)

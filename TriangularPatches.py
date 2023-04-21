@@ -470,11 +470,11 @@ class TriangularPatches(Fault):
             assert A[i].split()[0]=='>', 'Not a patch, reformat your file...'
             # Get the Patch Id
             if readpatchindex:
-                self.index_parameter.append([np.int(A[i].split()[ipatch]),np.int(A[i].split()[ipatch+1]),np.int(A[i].split()[ipatch+2])])
+                self.index_parameter.append([int(A[i].split()[ipatch]),int(A[i].split()[ipatch+1]),int(A[i].split()[ipatch+2])])
             # Get the slip value
             if not donotreadslip:
                 if len(A[i].split())>7:
-                    slip = np.array([np.float(A[i].split()[ipatch+4]), np.float(A[i].split()[ipatch+5]), np.float(A[i].split()[ipatch+6])])
+                    slip = np.array([float(A[i].split()[ipatch+4]), float(A[i].split()[ipatch+5]), float(A[i].split()[ipatch+6])])
                 else:
                     slip = np.array([0.0, 0.0, 0.0])
                 Slip.append(slip)
@@ -793,9 +793,9 @@ class TriangularPatches(Fault):
             # Put the parameter number in the file as well if it exists
             parameter = ' '
             if hasattr(self,'index_parameter') and add_slip is not None:
-                i = np.int(self.index_parameter[pIndex,0])
-                j = np.int(self.index_parameter[pIndex,1])
-                k = np.int(self.index_parameter[pIndex,2])
+                i = int(self.index_parameter[pIndex,0])
+                j = int(self.index_parameter[pIndex,1])
+                k = int(self.index_parameter[pIndex,2])
                 parameter = '# {} {} {} '.format(i,j,k)
 
             # Put the slip value
@@ -1630,7 +1630,7 @@ class TriangularPatches(Fault):
 
         # Get the patch
         u = None
-        if type(patch) in (int, np.int64, np.int, np.int32):
+        if type(patch) in (int, int64, int, int32):
             u = patch
         else:
             if checkindex:
@@ -1930,7 +1930,7 @@ class TriangularPatches(Fault):
             for j in range(npatch):
                 if j == i:
                     continue
-                sharedVertices = np.intersect1d(refVertInds, faces[j,:])
+                sharedVertices = intersect1d(refVertInds, faces[j,:])
                 numSharedVertices = sharedVertices.size
                 if numSharedVertices < 2:
                     continue
@@ -2090,7 +2090,7 @@ class TriangularPatches(Fault):
 
 
     # ----------------------------------------------------------------------
-    def surfacesimulation(self, box=None, disk=None, err=None, npoints=10, 
+    def surfacesimulation(self, box=None, disk=None, err=None, ints=10, 
                           lonlat=None, slipVec=None):
         '''
         Takes the slip vector and computes the surface displacement that 
@@ -2114,14 +2114,14 @@ class TriangularPatches(Fault):
         # Create a lon lat grid
         if lonlat is None:
             if (box is None) and (disk is None) :
-                lon = np.linspace(self.lon.min(), self.lon.max(), npoints)
-                lat = np.linspace(self.lat.min(), self.lat.max(), npoints)
+                lon = np.linspace(self.lon.min(), self.lon.max(), ints)
+                lat = np.linspace(self.lat.min(), self.lat.max(), ints)
                 lon, lat = np.meshgrid(lon,lat)
                 lon = lon.flatten()
                 lat = lat.flatten()
             elif (box is not None):
-                lon = np.linspace(box[0], box[1], npoints)
-                lat = np.linspace(box[2], box[3], npoints)
+                lon = np.linspace(box[0], box[1], ints)
+                lat = np.linspace(box[2], box[3], ints)
                 lon, lat = np.meshgrid(lon,lat)
                 lon = lon.flatten()
                 lat = lat.flatten()
@@ -2797,8 +2797,8 @@ class TriangularPatches(Fault):
             d2 = distance[p,1]
 
             # Get the index for the points
-            i1 = np.intersect1d(np.flatnonzero((d1>=deepdistance[:,0])), np.flatnonzero((d1<deepdistance[:,1])))[0]
-            i2 = np.intersect1d(np.flatnonzero((d2>deepdistance[:,0])), np.flatnonzero((d2<=deepdistance[:,1])))[0]
+            i1 = intersect1d(np.flatnonzero((d1>=deepdistance[:,0])), np.flatnonzero((d1<deepdistance[:,1])))[0]
+            i2 = intersect1d(np.flatnonzero((d2>deepdistance[:,0])), np.flatnonzero((d2<=deepdistance[:,1])))[0]
 
             # two cases possible:
             if i1==i2:              # The shallow patch is fully inside the deep patch

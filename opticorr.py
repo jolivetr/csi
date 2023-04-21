@@ -109,15 +109,15 @@ class opticorr(SourceInv):
         # Loop over the A, there is a header line header
         for i in range(header, len(A)):
             tmp = A[i].split()
-            self.lon.append(np.float(tmp[1]))
-            self.lat.append(np.float(tmp[2]))
-            self.east.append(np.float(tmp[3]))
-            self.north.append(np.float(tmp[4]))
-            self.err_east.append(np.float(tmp[5]))
-            self.err_north.append(np.float(tmp[6]))
+            self.lon.append(float(tmp[1]))
+            self.lat.append(float(tmp[2]))
+            self.east.append(float(tmp[3]))
+            self.north.append(float(tmp[4]))
+            self.err_east.append(float(tmp[5]))
+            self.err_north.append(float(tmp[6]))
             tmp = B[i].split()
-            self.corner.append([np.float(tmp[6]), np.float(tmp[7]), 
-                                np.float(tmp[8]), np.float(tmp[9])])
+            self.corner.append([float(tmp[6]), float(tmp[7]), 
+                                float(tmp[8]), float(tmp[9])])
 
 
         # Make arrays
@@ -151,7 +151,7 @@ class opticorr(SourceInv):
         # Read the covariance
         if cov:
             nd = self.east.size + self.north.size
-            self.Cd = np.fromfile(filename + '.cov', dtype=np.float32).reshape((nd,nd))
+            self.Cd = np.fromfile(filename + '.cov', dtype=float32).reshape((nd,nd))
             self.Cd *= factor*factor
 
         # Store the factor
@@ -204,12 +204,12 @@ class opticorr(SourceInv):
         # Loop 
         for line in A:
             l = line.split()
-            self.lon.append(np.float(l[0]))
-            self.lat.append(np.float(l[1]))
-            self.east.append(np.float(l[2]))
-            self.north.append(np.float(l[3]))
-            self.err_east.append(np.float(l[4]))
-            self.err_north.append(np.float(l[5]))
+            self.lon.append(float(l[0]))
+            self.lat.append(float(l[1]))
+            self.east.append(float(l[2]))
+            self.north.append(float(l[3]))
+            self.err_east.append(float(l[4]))
+            self.err_north.append(float(l[5]))
         
         # Make arrays
         self.east = factor * (np.array(self.east) + step)
@@ -234,7 +234,7 @@ class opticorr(SourceInv):
         # All done
         return       
 
-    def read_from_binary(self, east, north, lon, lat, err_east=None, err_north=None, factor=1.0, step=0.0, dtype=np.float32, remove_nan=True):
+    def read_from_binary(self, east, north, lon, lat, err_east=None, err_north=None, factor=1.0, step=0.0, dtype=float32, remove_nan=True):
         '''
         Read from a set of binary files or from a set of arrays.
 
@@ -597,7 +597,7 @@ class opticorr(SourceInv):
         # Read the covariance 
         if cov:
             nd = self.east.size + self.north.size
-            self.Cd = np.fromfile(filePrefix + '.cov', dtype=np.float32).reshape((nd,nd))
+            self.Cd = np.fromfile(filePrefix + '.cov', dtype=float32).reshape((nd,nd))
 
         # Store the factor
         self.factor = factor
@@ -1729,7 +1729,7 @@ class opticorr(SourceInv):
         # All done
         return
 
-    def write2binary(self, prefix, dtype=np.float):
+    def write2binary(self, prefix, dtype=float):
         '''
         Writes the records in a binary file. 
         

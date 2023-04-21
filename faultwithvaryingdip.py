@@ -80,8 +80,8 @@ class faultwithvaryingdip(RectangularPatches):
             xa = xdip[u]; ya = ydip[u]
             if u<(ydip.shape[0]-1):
                 xb = xdip[u+1]; yb = ydip[u+1]
-                a = np.float(yb-ya)/np.float(xb-xa)
-                b = ya - np.float(yb-ya)/np.float(xb-xa) * xa
+                a = float(yb-ya)/float(xb-xa)
+                b = ya - float(yb-ya)/float(xb-xa) * xa
                 d = a * dis + b
             else:
                 d = ydip[-1]

@@ -12,3 +12,4 @@ dependencies:
   - pymc3
   - numpy
   - shapely
+  - cartopy

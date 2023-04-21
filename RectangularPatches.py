@@ -1854,7 +1854,7 @@ class RectangularPatches(Fault):
 
         # Get the patch
         u = None
-        if patch.__class__ in (int, np.int64, np.int32):
+        if patch.__class__ in (int, np.int, np.int64, np.int32):
             u = patch
         else:
             if checkindex:

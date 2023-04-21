@@ -11,3 +11,4 @@ dependencies:
   - pyproj
   - pymc3
   - numpy
+  - shapely

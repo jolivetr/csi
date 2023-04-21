@@ -1586,7 +1586,7 @@ class insartimeseries(insar):
                 zmax = zlim[1]
                 uu = sar._getindexZlimProfile(pname, zmin, zmax)
             if (xlim is not None) and (zlim is not None):
-                jj = intersect1d(ii,uu).tolist()
+                jj = np.intersect1d(ii,uu).tolist()
             elif (zlim is None) and (xlim is not None):
                 jj = ii
             elif (zlim is not None) and (xlim is None):

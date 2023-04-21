@@ -1930,7 +1930,7 @@ class TriangularPatches(Fault):
             for j in range(npatch):
                 if j == i:
                     continue
-                sharedVertices = intersect1d(refVertInds, faces[j,:])
+                sharedVertices = np.intersect1d(refVertInds, faces[j,:])
                 numSharedVertices = sharedVertices.size
                 if numSharedVertices < 2:
                     continue
@@ -2090,7 +2090,7 @@ class TriangularPatches(Fault):
 
 
     # ----------------------------------------------------------------------
-    def surfacesimulation(self, box=None, disk=None, err=None, ints=10, 
+    def surfacesimulation(self, box=None, disk=None, err=None, npoints=10, 
                           lonlat=None, slipVec=None):
         '''
         Takes the slip vector and computes the surface displacement that 
@@ -2114,14 +2114,14 @@ class TriangularPatches(Fault):
         # Create a lon lat grid
         if lonlat is None:
             if (box is None) and (disk is None) :
-                lon = np.linspace(self.lon.min(), self.lon.max(), ints)
-                lat = np.linspace(self.lat.min(), self.lat.max(), ints)
+                lon = np.linspace(self.lon.min(), self.lon.max(), npoints)
+                lat = np.linspace(self.lat.min(), self.lat.max(), npoints)
                 lon, lat = np.meshgrid(lon,lat)
                 lon = lon.flatten()
                 lat = lat.flatten()
             elif (box is not None):
-                lon = np.linspace(box[0], box[1], ints)
-                lat = np.linspace(box[2], box[3], ints)
+                lon = np.linspace(box[0], box[1], npoints)
+                lat = np.linspace(box[2], box[3], npoints)
                 lon, lat = np.meshgrid(lon,lat)
                 lon = lon.flatten()
                 lat = lat.flatten()
@@ -2797,8 +2797,8 @@ class TriangularPatches(Fault):
             d2 = distance[p,1]
 
             # Get the index for the points
-            i1 = intersect1d(np.flatnonzero((d1>=deepdistance[:,0])), np.flatnonzero((d1<deepdistance[:,1])))[0]
-            i2 = intersect1d(np.flatnonzero((d2>deepdistance[:,0])), np.flatnonzero((d2<=deepdistance[:,1])))[0]
+            i1 = np.intersect1d(np.flatnonzero((d1>=deepdistance[:,0])), np.flatnonzero((d1<deepdistance[:,1])))[0]
+            i2 = np.intersect1d(np.flatnonzero((d2>deepdistance[:,0])), np.flatnonzero((d2<=deepdistance[:,1])))[0]
 
             # two cases possible:
             if i1==i2:              # The shallow patch is fully inside the deep patch

@@ -1925,7 +1925,7 @@ class srcmodsolution(SourceInv):
         # All done
         return x,y,z
 
-    def surfacesimulation(self, box=None, disk=None, err=None, ints=None):
+    def surfacesimulation(self, box=None, disk=None, err=None, npoints=None):
         '''
         Takes the slip vector and computes the surface displacement that corresponds on a regular grid.
         Args:

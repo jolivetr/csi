@@ -426,7 +426,7 @@ class insar(SourceInv):
         # Read the covariance
         if cov:
             nd = self.vel.size
-            self.Cd = np.fromfile(filename+'.cov', dtype=float32).reshape((nd, nd))*factor*factor
+            self.Cd = np.fromfile(filename+'.cov', dtype=np.float32).reshape((nd, nd))*factor*factor
 
         # Store the factor
         self.factor = factor
@@ -436,7 +436,7 @@ class insar(SourceInv):
 
     def read_from_binary(self, data, lon, lat, err=None, factor=1.0,
                                step=0.0, incidence=None, heading=None, azimuth=None, los=None,
-                               dtype=float32, remove_nan=True, downsample=1,
+                               dtype=np.float32, remove_nan=True, downsample=1,
                                remove_zeros=True):
         '''
         Read from binary file or from array.
@@ -633,7 +633,7 @@ class insar(SourceInv):
         # All done
         return
 
-    def incaz2los(self, incidence, azimuth, origin='onefloat', dtype=float32):
+    def incaz2los(self, incidence, azimuth, origin='onefloat', dtype=np.float32):
         '''
         From the incidence and the heading, defines the LOS vector.
 
@@ -739,8 +739,8 @@ class insar(SourceInv):
             heading = np.array(fheading.variables['z'][:]).flatten()
             self.origininchd = origin
         elif origin in ('binary', 'bin'):
-            incidence = np.fromfile(incidence, dtype=float32)
-            heading = np.fromfile(heading, dtype=float32)
+            incidence = np.fromfile(incidence, dtype=np.float32)
+            heading = np.fromfile(heading, dtype=np.float32)
             self.origininchd = origin
         elif origin in ('binaryfloat'):
             self.origininchd = origin

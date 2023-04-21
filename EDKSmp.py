@@ -554,7 +554,7 @@ class interpolateEDKS(object):
         fedks = FortranFile(self.kernel, 'r')
 
         # Read
-        kernel = fedks.read_reals(float32).reshape((self.ndepth*self.ndista,12))
+        kernel = fedks.read_reals(np.float32).reshape((self.ndepth*self.ndista,12))
 
         # Save
         self.depths = kernel[:,0]
@@ -586,7 +586,7 @@ class interpolateEDKS(object):
         '''
 
         # Arrange things
-        if type(xs) in (float, float64, float32):
+        if type(xs) in (float, np.float64, np.float32):
             xs = np.array([xs])
             ys = np.array([ys])
             zs = np.array([zs])
@@ -595,7 +595,7 @@ class interpolateEDKS(object):
             rake = np.array([rake])
             slip = np.array([slip])
             area = np.array([area])
-        if type(xr) in (float, float64, float32):
+        if type(xr) in (float, np.float64, np.float32):
             xr = np.array([xr])
             yr = np.array([yr])
 

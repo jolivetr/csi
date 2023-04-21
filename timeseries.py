@@ -251,7 +251,7 @@ class timeseries(SourceInv):
         # Get indexes
         u1 = np.flatnonzero(np.array(self.time)>=start)
         u2 = np.flatnonzero(np.array(self.time)<=end)
-        u = intersect1d(u1, u2)
+        u = np.intersect1d(u1, u2)
 
         # Keep'em
         self._keepDates(u)
@@ -439,7 +439,7 @@ class timeseries(SourceInv):
         # Get index
         u1 = np.flatnonzero(np.array(self.time)>=start)
         u2 = np.flatnonzero(np.array(self.time)<=end)
-        u = intersect1d(u1, u2)
+        u = np.intersect1d(u1, u2)
 
         # Get Mean
         mean = np.nanmean(self.value[u])

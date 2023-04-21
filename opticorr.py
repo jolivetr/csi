@@ -151,7 +151,7 @@ class opticorr(SourceInv):
         # Read the covariance
         if cov:
             nd = self.east.size + self.north.size
-            self.Cd = np.fromfile(filename + '.cov', dtype=float32).reshape((nd,nd))
+            self.Cd = np.fromfile(filename + '.cov', dtype=np.float32).reshape((nd,nd))
             self.Cd *= factor*factor
 
         # Store the factor
@@ -234,7 +234,7 @@ class opticorr(SourceInv):
         # All done
         return       
 
-    def read_from_binary(self, east, north, lon, lat, err_east=None, err_north=None, factor=1.0, step=0.0, dtype=float32, remove_nan=True):
+    def read_from_binary(self, east, north, lon, lat, err_east=None, err_north=None, factor=1.0, step=0.0, dtype=np.float32, remove_nan=True):
         '''
         Read from a set of binary files or from a set of arrays.
 
@@ -597,7 +597,7 @@ class opticorr(SourceInv):
         # Read the covariance 
         if cov:
             nd = self.east.size + self.north.size
-            self.Cd = np.fromfile(filePrefix + '.cov', dtype=float32).reshape((nd,nd))
+            self.Cd = np.fromfile(filePrefix + '.cov', dtype=np.float32).reshape((nd,nd))
 
         # Store the factor
         self.factor = factor

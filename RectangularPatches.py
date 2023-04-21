@@ -1854,7 +1854,7 @@ class RectangularPatches(Fault):
 
         # Get the patch
         u = None
-        if patch.__class__ in (int, int64, int32):
+        if patch.__class__ in (int, np.int64, np.int32):
             u = patch
         else:
             if checkindex:
@@ -2287,7 +2287,7 @@ class RectangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def surfacesimulation(self, box=None, disk=None, err=None, lonlat=None, ints=10,
+    def surfacesimulation(self, box=None, disk=None, err=None, lonlat=None, npoints=10,
                           slipVec=None):
         ''' 
         Takes the slip vector and computes the surface displacement that 
@@ -2309,16 +2309,16 @@ class RectangularPatches(Fault):
         # Create a lon lat grid
         if lonlat is None:
             if (box is None) and (disk is None) :
-                lon = np.linspace(self.lon.min(), self.lon.max(), ints)
-                lat = np.linspace(self.lat.min(), self.lat.max(), ints)
+                lon = np.linspace(self.lon.min(), self.lon.max(), npoints)
+                lat = np.linspace(self.lat.min(), self.lat.max(), npoints)
                 lon, lat = np.meshgrid(lon,lat)
                 lon = lon.flatten()
                 lat = lat.flatten()
             elif (box is not None):
                 if len(box)>4:
-                    ints= box[4]
-                lon = np.linspace(box[0], box[1], ints)
-                lat = np.linspace(box[2], box[3], ints)
+                    npoints= box[4]
+                lon = np.linspace(box[0], box[1], npoints)
+                lat = np.linspace(box[2], box[3], npoints)
                 lon, lat = np.meshgrid(lon,lat)
                 lon = lon.flatten()
                 lat = lat.flatten()

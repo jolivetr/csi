@@ -3437,7 +3437,7 @@ class Fault(SourceInv):
         azimuth = copy.deepcopy(azim)
 
         # Check nature of azimuth (float or array)
-        if type(azimuth) in [float,int,float64]:
+        if type(azimuth) in [float,int,np.float64]:
             azimuth = azimuth*np.ones((self.N_slip,))
 
         # Make azimuth positive

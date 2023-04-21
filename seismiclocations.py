@@ -432,10 +432,10 @@ class seismiclocations(SourceInv):
             da = int(tmp[2])
             hr = int(tmp[3])
             mi = int(tmp[4])
-            lat = float64(tmp[6])
-            lon = float64(tmp[7])
-            depth = float64(tmp[8])
-            mag = float64(tmp[imag])
+            lat = np.float64(tmp[6])
+            lon = np.float64(tmp[7])
+            depth = np.float64(tmp[8])
+            mag = np.float64(tmp[imag])
 
             # Create the time object
             d = dt.datetime(yr, mo, da, hr, mi)

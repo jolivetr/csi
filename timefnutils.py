@@ -41,7 +41,7 @@ def bspline_nu(n,tk,t):
         for q in xrange(len(tk)-2-p):
             B[q,:] = ((t-tk[q])/(tk[p+q+1]-tk[q]))*B[q,:] + ((tk[p+q+2]-t)/(tk[p+q+2]-tk[q+1]))*B[q+1,:]
 
-    ihalf = int_((n+1)/2)
+    ihalf = int((n+1)/2)
     B = B[ihalf:len(tk)-ihalf,:]
 
     return B

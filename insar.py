@@ -454,7 +454,7 @@ class insar(SourceInv):
             * heading       : heading angle (degree)
             * azimuth       : Azimuth angle (degree)
             * los           : LOS unit vector 3 component array (3-column array)
-            * dtype         : data type (default is float32 if data is a file)
+            * dtype         : data type (default is np.float32 if data is a file)
             * remove_nan    : True/False
             * downsample    : default is 1 (take one pixel out of those)
             * remove_zeros  : True/False
@@ -531,7 +531,7 @@ class insar(SourceInv):
             if type(incidence) is np.ndarray:
                 self.inchd2los(incidence, heading, origin='binaryfloat')
                 self.los = self.los[::downsample,:]
-            elif type(incidence) in (float, float):
+            elif type(incidence) in (float):
                 self.inchd2los(incidence, heading, origin='float')
             elif type(incidence) is str:
                 self.inchd2los(incidence, heading, origin='binary')
@@ -541,7 +541,7 @@ class insar(SourceInv):
                 self.incaz2los(incidence, azimuth, origin='binaryfloat',
                         dtype=dtype)
                 self.los = self.los[::downsample,:]
-            elif type(incidence) in (float, float):
+            elif type(incidence) in (float):
                 self.incaz2los(incidence, azimuth, origin='float')
             elif type(incidence) is str:
                 self.incaz2los(incidence, azimuth, origin='binary',
@@ -647,7 +647,7 @@ class insar(SourceInv):
                 - grd           : grd files
                 - binary        : Binary files
                 - binaryfloat   : Arrays of float
-            * dtype     : Data type (default is float32)
+            * dtype     : Data type (default is np.float32)
 
         Returns:
             * None

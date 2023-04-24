@@ -1592,7 +1592,7 @@ class geodeticplot(object):
         # All done
         return
 
-    def insar(self, insar, norm=None, colorbar=True, markersize=1,
+    def insar(self, insar, norm=None, colorbar=True, markersize=1, lognorm=False,
                     cbaxis=[0.2,0.2,0.1,0.01], cborientation='horizontal', cblabel='',
                     data='data', plotType='scatter', cmap='jet', los=None,
                     decim=1, zorder=3, edgewidth=1, alpha=1.):
@@ -1657,7 +1657,10 @@ class geodeticplot(object):
 
         # Prepare the colormap
         cmap = plt.get_cmap(cmap)
-        cNorm = colors.Normalize(vmin=vmin, vmax=vmax)
+        if lognorm:
+            cNorm = colors.LogNorm(vmin=vmin, vmax=vmax)
+        else:
+            cNorm = colors.Normalize(vmin=vmin, vmax=vmax)
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
 
         if plotType == 'decimate':
@@ -1693,7 +1696,7 @@ class geodeticplot(object):
             #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
             lat = insar.lat
             sc = self.carte.scatter(lon[::decim], lat[::decim], s=markersize,
-                                    c=d[::decim], cmap=cmap, vmin=vmin, vmax=vmax,
+                                    c=d[::decim], cmap=cmap, norm=cNorm, 
                                     linewidth=0.0, zorder=zorder, alpha=alpha)
 
         elif plotType == 'flat':
@@ -1718,7 +1721,8 @@ class geodeticplot(object):
                 data = sarint(xx,yy)
                 lon,lat = insar.xy2ll(xx,yy)
             # Plot
-            sc = self.carte.pcolormesh(lon, lat, data, cmap=cmap, vmin=vmin, vmax=vmax, zorder=zorder, alpha=alpha)
+            sc = self.carte.pcolormesh(lon, lat, data, cmap=cmap, norm=cNorm,
+                                       zorder=zorder, alpha=alpha)
 
         else:
             print('Unknown plot type: {}'.format(plotType))

@@ -1878,7 +1878,7 @@ class geodeticplot(object):
         # All done
         return
 
-    def slipdirection(self, fault, linewidth=1., color='k', scale=1., zorder=10, markersize=10):
+    def slipdirection(self, fault, linewidth=1., color='k', scale=1., zorder=10, markersize=10, factor=1.0):
         '''
         Plots segments representing the direction of slip along the fault.
 
@@ -1895,7 +1895,7 @@ class geodeticplot(object):
         '''
 
         # Check if it exists
-        fault.computeSlipDirection(scale=scale)
+        fault.computeSlipDirection(scale=scale, factor=factor)
 
         # Loop on the vectors
         for v in fault.slipdirection:

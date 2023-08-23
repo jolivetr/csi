@@ -554,6 +554,8 @@ class insar(SourceInv):
                 self.los = np.fromfile(los, 'f').reshape((len(vel), 3))
         else:
             self.los = None
+            self.incidence = None
+            self.heading = None
         if self.los is not None:
             self.los = self.los[iKeep,:]
 
@@ -1129,9 +1131,8 @@ class insar(SourceInv):
         vel, err, los = self.returnAverageNearPoint(lon, lat, radius)
     
         # Check
-        if np.isnan(vel): 
-            print('Referencing impossible for data {}: Only NaNs in the reference'.format(self.name))
-            return
+        assert vel is not None, 'Referencing impossible for data {}: None'.format(self.name)
+        assert not np.isnan(vel), 'Referencing impossible for data {}: NaNs'.format(self.name)
 
         # Correct
         self.vel -= vel
@@ -1139,9 +1140,7 @@ class insar(SourceInv):
         # All done
         return
 
-        
-
-    def extractAroundGPS(self, inp, distance, doprojection=True):
+    def extractAroundGPS(self, inp, distance, doprojection=True, verbose=False):
         '''
         Returns a gps object with values projected along the LOS around the
         gps stations included in gps. In addition, it projects the gps displacements
@@ -1163,7 +1162,7 @@ class insar(SourceInv):
         out = gps('{} - {}'.format(self.name, inp.name), lon0=self.lon0, 
                                                          lat0=self.lat0,
                                                          utmzone=self.utmzone,
-                                                         ellps=self.ellps)
+                                                         ellps=self.ellps, verbose=verbose)
         out.setStat(inp.station, inp.lon, inp.lat, initVel=True)
         out.vel_enu = copy.deepcopy(inp.vel_enu)
         out.err_enu = copy.deepcopy(inp.err_enu)
@@ -1237,7 +1236,8 @@ class insar(SourceInv):
         self.lat = self.lat[u]
         self.x = self.x[u]
         self.y = self.y[u]
-        self.vel = self.vel[u]
+        if self.vel is not None:
+            self.vel = self.vel[u]
         if self.err is not None:
             self.err = self.err[u]
         if self.los is not None:
@@ -1431,7 +1431,10 @@ class insar(SourceInv):
 
     def get2DstrainEst(self, computeNormFact=True):
         '''
-        Returns the matrix to estimate the 2d aerial strain tensor. When building the estimator, third column is the Epsilon_xx component, Fourth column is the Epsilon_xy component, fifth column is the Epsilon_yy component.
+        Returns the matrix to estimate the 2d aerial strain tensor. 
+        First column is the Epsilon_xx component
+        Second column is the Epsilon_xy component
+        Fourth column is the Epsilon_yy component.
 
         Kwargs:
             * computeNormFact       : Recompute the normalization factor
@@ -1550,7 +1553,10 @@ class insar(SourceInv):
             params = params[ptype]
 
         # Get the estimator
-        Horb = self.getPolyEstimator(ptype, computeNormFact=computeNormFact)
+        if type(ptype) is int:
+            Horb = self.getPolyEstimator(ptype, computeNormFact=computeNormFact)
+        elif type(ptype) is str:
+            Horb = self.get2DstrainEst(computeNormFact=computeNormFact)
 
         # Compute the polynomial
         self.orbit = np.dot(Horb, params)

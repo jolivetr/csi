@@ -714,7 +714,7 @@ class Fault(SourceInv):
         if discretized:
             x,y = self.xi,self.yi
         else:
-            x,y = self.xy,self.yf
+            x,y = self.xf,self.yf
 
         # Cumulative distance is needed
         cumdis = self.cumdistance(discretized=discretized, recompute=recompute)

@@ -1242,15 +1242,15 @@ class geodeticplot(object):
                                   linewidths=linewidths, 
                                   zorder=zorder, alpha=alpha)
 
-            if 'Error' in Data[dName]:
+            if 'Error' in Data[dName] and error:
 
-                error = Data[dName]['Error']
+                sigma = Data[dName]['Error']
 
                 if scale is None:
                     print('Cannot plot ellipses if scale is None')
                     return
 
-                for vel, err, lo, la in zip(values, error, lon, lat):
+                for vel, err, lo, la in zip(values, sigma, lon, lat):
 
                     # Found this on stackoverflow. Thanks!
                     # Basic ellipse definition
@@ -1280,9 +1280,10 @@ class geodeticplot(object):
                     'color'  : 'k',
                     'weight' : 'normal',
                     'size'   : 10}
+            lonmin, lonmax, latmin, latmax = self.carte.get_extent()
             for lo, la, sta in zip(lon.tolist(), lat.tolist(), gps.station):
                 # Do it twice, I don't know why text is screwed up...
-                self.carte.text(lo, la, sta, zorder=20, fontdict=font)
+                if lo<lonmax and lo>lonmin and la>latmin and la<latmax: self.carte.text(lo, la, sta, zorder=20, fontdict=font)
                 #self.carte.text(lo-360., la, sta, zorder=20, fontdict=font)
 
         # All done
@@ -1637,9 +1638,9 @@ class geodeticplot(object):
             assert insar.synth is not None and insar.vel is not None, \
                     'Cannot compute residuals'
             d = insar.vel - insar.synth
-        elif data == 'poly':
-            assert insar.orb is not None, 'No Orbital correction to plot'
-            d = insar.orb
+        elif data in ['trans', 'transformation']:
+            assert insar.orbit is not None, 'No Transformation available'
+            d = insar.orbit
         elif data == 'err':
             assert insar.err is not None, 'No Error to plot'
             d = insar.err

@@ -916,6 +916,12 @@ class insartimeseries(insar):
 
         # Initialize time series
         out.initializeTimeSeries(time=self.time, los=True, verbose=False)
+        if not hasattr(gps, 'time'):
+            gps.initializeTimeSeries(time=self.time, los=True, verbose=False)
+
+        # Check
+        assert gps.time==out.time, 'Time vectors are different between gps object \
+                and output object'
 
         # Line-of-sight
         los = {}

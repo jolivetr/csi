@@ -360,6 +360,42 @@ class gps(SourceInv):
         # All done
         return lon, lat, vel, err, synth, los
 
+    def setvelo(self, station, vel, data='data'):
+        '''
+        Sets the velocity enu for a station.
+
+        Args:
+            * station   : name of the station
+            * vel       : 3 comp list or np.array
+
+        Kwargs:
+            * data      : Can be 'data', 'synth' or any
+                          attribute of the size of vel_enu
+
+        Returns:
+            * None
+        '''
+
+        # Check
+        assert type(vel) in (list, np.ndarray), 'Vel argument must be list of numpy array. Currently, it is {}'.format(type(vel))
+        vel = np.array(vel).squeeze()
+        assert len(vel)==3, 'Vel must be of size 3. You provided a size {}'.format(len(vel))
+
+        # Get the station index 
+        u = np.flatnonzero(np.array(self.station) == station)
+
+        # return the values
+        if data in ('data'):
+            self.vel_enu[u,:] = vel
+        elif data in ('synth'):
+            self.synth[u,:] = vel
+        else:
+            d = getattr(self, data)
+            d[u,:] = vel
+
+        # All done
+        return
+
     def getvelo(self, station, data='data'):
         '''
         Gets the velocities enu for the station.
@@ -1994,16 +2030,7 @@ class gps(SourceInv):
                 Npo = 4                    # 2D Helmert transform is 4 parameters
         # Full Strain (Translation + Strain + Rotation)
         elif transformation == 'strain':
-            Npo = 6
-        # Strain without rotation (Translation + Strain)
-        elif transformation == 'strainnorotation':
-            Npo = 5
-        # Strain Only (Strain)
-        elif transformation == 'strainonly':
             Npo = 3
-        # Strain without translation (Strain + Rotation)
-        elif transformation == 'strainnotranslation':
-            Npo = 4
         # Translation
         elif transformation == 'translation':
             Npo = 2
@@ -2044,16 +2071,7 @@ class gps(SourceInv):
             orb = self.getHelmertMatrix(components=self.obs_per_station)
         # Strain + Rotation + Translation
         elif transformation == 'strain':
-            orb = self.get2DstrainEst(computeNormFact=computeNormFact)
-        # Strain + Translation
-        elif transformation == 'strainnorotation':
-            orb = self.get2DstrainEst(rotation=False, computeNormFact=computeNormFact)
-        # Strain
-        elif transformation == 'strainonly':
-            orb = self.get2DstrainEst(rotation=False, translation=False, computeNormFact=computeNormFact)
-        # Strain + Rotation
-        elif transformation == 'strainnotranslation':
-            orb = self.get2DstrainEst(translation=False, computeNormFact=computeNormFact)
+            orb = self.get2DstrainEst(translation=False, rotation=False, computeNormFact=computeNormFact)
         # Translation
         elif transformation == 'translation':
             orb = self.get2DstrainEst(strain=False, rotation=False, computeNormFact=computeNormFact)
@@ -2396,16 +2414,8 @@ class gps(SourceInv):
             transformation = fault.poly[self.name]
             if transformation == 'strain':
                 strain = True
-                translation = True
-                rotation = True
-            elif transformation == 'strainnorotation':
-                strain = True
-                translation = True
-                rotation = False
-            elif transformation == 'strainnotranslation':
-                strain = True
                 translation = False
-                rotation = True
+                rotation = False
             elif transformation == 'translation':
                 strain = False
                 rotation = False
@@ -2414,22 +2424,18 @@ class gps(SourceInv):
                 strain = False
                 rotation = True
                 translation = True
-            elif transformation == 'strainonly':
-                strain = True
-                rotation = False
-                translation = False
 
         # Verbose?
         if verbose:
             
             # Get things to write 
-            Svec = self.StrainTensor
+            Svec = self.StrainTensor[transformation]
             base_max = self.StrainNormalizingFactor
 
             # Print stuff
             print('--------------------------------------------------')
             print('--------------------------------------------------')
-            print('Removing the estimated Strain Tensor from the gps {}'.format(self.name)) 
+            print('Computing the estimated Strain Tensor from the gps {}'.format(self.name)) 
             print('Note: Extension is negative...')
             print('Note: ClockWise Rotation is positive...')
             print('Note: There might be a scaling factor to apply to get the things right.')
@@ -3646,7 +3652,7 @@ class gps(SourceInv):
              plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True, title=True,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              landcolor='lightgrey', seacolor=None, shadedtopo=None,
-             Map=True, Fault=True,
+             Map=True, Fault=True, zorder=None,
              vertical=False, verticalsize=[30], box=None,
              width=0.005, headwidth=3, headlength=5, headaxislength=4.5, minshaft=1, minlength=1,
              data=['data'], color=['k'], titleyoffset=1.1, alpha=1.):
@@ -3721,7 +3727,7 @@ class gps(SourceInv):
         # Plot GPS velocities
         fig.gps(self, data=data, name=name, error=error,
                       legendscale=legendscale, scale=scale, 
-                      color=color, alpha=alpha, 
+                      color=color, alpha=alpha, zorder=zorder,
                       width=width, headwidth=headwidth, headlength=headlength, 
                       headaxislength=headaxislength, minshaft=minshaft, minlength=minlength)
 

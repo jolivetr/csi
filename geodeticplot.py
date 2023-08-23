@@ -1625,8 +1625,6 @@ class geodeticplot(object):
             print('No Map figure to work on')
             return
 
-        # Assert
-        assert data in ('data', 'synth', 'res', 'poly', 'err'), 'Data type to plot unknown'
         # Choose data type
         if data == 'data':
             assert insar.vel is not None, 'No data to plot'

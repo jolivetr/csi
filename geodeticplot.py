@@ -308,6 +308,9 @@ class geodeticplot(object):
         cb = plt.colorbar(scalarMap, cax=cax, orientation=cborientation)
         cb.set_label(label=cblabel, weight='bold')
         
+        # Save this axis
+        self.cbax = cb 
+
         # All done
         return
 

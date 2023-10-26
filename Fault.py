@@ -614,7 +614,7 @@ class Fault(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def strikeOfTrace(self, discretized=True, npoints=2):
+    def strikeOfTrace(self, discretized=True, npoints=4):
         '''
         Computes the strike of the fault trace from the discretized (default) 
         fault trace.

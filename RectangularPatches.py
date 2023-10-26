@@ -243,23 +243,32 @@ class RectangularPatches(Fault):
 
     # ----------------------------------------------------------------------
     # Split patches
-    def splitPatchesHoriz(self, nPatches, equiv=False, indices=None):
+    def splitPatchesHoriz(self, nPatches, equiv=False, indices=None, keepSlip=False):
         '''
         Splits all the patches in nPatches Horizontally. Directly modifies the
-        patch attribute.
+        patch attribute. Default behavior re-intializes slip to zero. 
+        If keepSlip, then slip values are mapped directly.
 
         Args:
-            * nPatches      : Number of new patches per patch.
+            * nPatches      : Number of new patches per patch (can be a list of the size of indices or an integer).
 
         Kwargs:
             * equiv         : Do it on the equivalentPatches (default False)
             * indices       : Specify which patches to split (list of int)
+            * keepSlip      : Map current slip values to new patches
 
         '''
+
+        # Check style
+        if type(nPatches) is int:
+            nPatches = [nPatches]*len(indices)
+        if type(indices) is not list and indices is not None:
+            indices = list(indices)
 
         # Check which patches we want to split
         if indices is None:
             patches2split = self.patch
+            indices = range(len(self.patch))
         else:
             patches2split = [self.patch[i] for i in indices]
 
@@ -267,8 +276,11 @@ class RectangularPatches(Fault):
         newPatches = []
         newPatchesLL = []
 
+        # keepSlip?
+        if keepSlip: newSlip = []
+
         # Iterate over the patches
-        for patch in patches2split:
+        for ipatch,npatch,patch in zip(indices, nPatches, patches2split):
 
             # Get the 4 corners
             c1, c2, c3, c4 = patch
@@ -279,11 +291,11 @@ class RectangularPatches(Fault):
                 c4 = c4.tolist()
 
             # Compute the new lengths
-            xlength = (c2[0] - c1[0])/float(nPatches)
-            ylength = (c2[1] - c1[1])/float(nPatches)
+            xlength = (c2[0] - c1[0])/float(npatch)
+            ylength = (c2[1] - c1[1])/float(npatch)
 
             # Iterate
-            for i in range(nPatches):
+            for i in range(npatch):
 
                 # Corners
                 x1 = c1[0] + i*xlength
@@ -321,6 +333,7 @@ class RectangularPatches(Fault):
                 # Store
                 newPatches.append(patch)
                 newPatchesLL.append(patchll)
+                if keepSlip: newSlip.append(self.slip[ipatch,:])
 
         # Delete the patches we just split
         self.deletepatches(indices)
@@ -334,7 +347,10 @@ class RectangularPatches(Fault):
             self.computeEquivRectangle()
 
         # Initialize slip 
-        self.initializeslip()
+        if keepSlip:
+            self.slip = np.vstack((self.slip, newSlip))
+        else:
+            self.initializeslip()
 
         # All done
         return
@@ -387,6 +403,42 @@ class RectangularPatches(Fault):
 
         # All done
         return p1, p2, p3, p4
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    # Split all patches in 4
+    def splitPatches(self):
+        '''
+        Split all patches in 4 patches.
+
+        Returns:
+            * None
+        '''
+
+        # New slip vector
+        slip = []
+
+        # New patch list 
+        patches = []
+
+        for ipatch,patch in enumerate(self.patch):
+
+            # Split
+            for p in self.splitPatch(patch): patches.append(p)
+            
+            # Save slip
+            for p in range(4): slip.append(self.slip[ipatch,:])
+
+        # Save slip and patches
+        self.patch = patches
+        self.slip = np.array(slip)
+
+        # Clean up
+        self.patch2ll()
+        self.computeEquivRectangle()
+
+        # All done
+        return
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -2492,6 +2544,47 @@ class RectangularPatches(Fault):
         # All done
         return
     # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def vertshrink1patch(self, ipatch, finalwidth, fixedside='up'):
+        '''
+        Takes an existing patch and shrinks its size in the vertical direction.
+        This method does not account for the dip angle and just moves the row 
+        of nodes up or down.
+
+        Args:
+            * ipatch        : Index of the patch
+            * finalwidth    : Final width of the patch along depth.
+
+        Kwargs:
+            * fixedside     : Which side is fixed
+        '''
+
+        # Get the patch
+        patch = self.patch[ipatch]
+        patchll = self.patchll[ipatch]
+
+        # Take the points we need to move
+        if fixedside=='up':
+            correction = patch[2][2] - patch[0][2] - finalwidth
+            patch[2][2] -= correction
+            patch[3][2] -= correction
+            patchll[2][2] -= correction
+            patchll[3][2] -= correction
+        elif fixedside=='down':
+            correction = patch[2][2] - patch[0][2] - finalwidth
+            patch[0][2] -= correction
+            patch[1][2] -= correction
+            patchll[0][2] -= correction
+            patchll[1][2] -= correction
+
+        # Equivalent
+        self.computeEquivRectangle()
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+
 
     # ----------------------------------------------------------------------
     def horizshrink1patch(self, ipatch, fixedside='south', finallength=25.):

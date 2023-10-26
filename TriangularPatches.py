@@ -921,6 +921,8 @@ class TriangularPatches(Fault):
                 j = int(self.index_parameter[pIndex,1])
                 k = int(self.index_parameter[pIndex,2])
                 parameter = '# {} {} {} '.format(i,j,k)
+            else:
+                parameter = '# 9999 9999 9999 '
 
             # Put the slip value
             if add_slip is not None:
@@ -1867,15 +1869,38 @@ class TriangularPatches(Fault):
         if self.N_slip==None:
             self.N_slip = self.slip.shape[0]
 
-        # Loop
-        Distances = np.zeros((self.N_slip, self.N_slip))
-        for i in range(self.N_slip):
-            p1 = self.patch[i]
-            for j in range(self.N_slip):
-                if j == i:
-                    continue
-                p2 = self.patch[j]
-                Distances[i,j] = self.distancePatchToPatch(p1, p2, distance='center', lim=lim)
+        # Check
+        if distance=='center':
+            
+            # Get centers
+            centers = self.getcenters()
+
+            # x, y, z matrices
+            x = [c[0] for c in centers]
+            y = [c[1] for c in centers]
+            z = [c[2] for c in centers]
+
+            # Differences
+            x1,x2 = np.meshgrid(x,x)
+            y1,y2 = np.meshgrid(y,y)
+            z1,z2 = np.meshgrid(z,z)
+
+            # Distance
+            Distances = np.sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
+
+        else:
+            raise NotImplementedError('only distance=center is implemented')
+
+        # Old implementation
+        ## Loop
+        #Distances = np.zeros((self.N_slip, self.N_slip))
+        #for i in range(self.N_slip):
+        #    p1 = self.patch[i]
+        #    for j in range(self.N_slip):
+        #        if j == i:
+        #            continue
+        #        p2 = self.patch[j]
+        #        Distances[i,j] = self.distancePatchToPatch(p1, p2, distance='center', lim=lim)
 
         # All done
         return Distances
@@ -3009,6 +3034,49 @@ class TriangularPatches(Fault):
 
         # All done
         return fault
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    def _getSlipOnSubSources(self, Ids, X, Y, Z, slip, method='manual'):
+        '''
+        From a slip distribution over patches, interpolate onto the sources defined by Ids, X, Y and Z.
+
+        Args:
+            * Ids       : Index of the subsources
+            * X         : X position of the subsources
+            * Y         : Y position of the subsources
+            * Z         : Z position of the subsources
+            * slip      : Slip on the sources
+            * method    : 'manual' for a barycentric implementation (slow, but correct) or 'scipy' for a LinearNDInterpolator (quick, but not tested)
+        '''
+
+        # Get patch corners for interpolation
+        corners = []
+        slipCorners = []
+        for s, patch in zip(slip,self.patch):
+            center = self.getcenter(patch)
+            normal = self.getpatchgeometry(patch, retNormal=True)[-1]
+            for p in patch: 
+                # Move the corner a tiny bit toward the center
+                # This will make it look like a piecewise constant interpolation
+                corners.append(p+1e-2*(center-p))
+                slipCorners.append(s)
+                # Add the normals to make it a box
+                corners.append(p+normal)
+                slipCorners.append(s)
+                corners.append(p-normal)
+                slipCorners.append(s)
+        corners = np.array(corners)
+        slipCorners = np.array(slipCorners)
+
+        # Create an interpolator
+        slipInter = sciint.LinearNDInterpolator(corners, slipCorners)
+
+        # Interpolate
+        slip = slipInter(np.vstack((X,Y,Z)).T) 
+
+        # All Done
+        return slip
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------

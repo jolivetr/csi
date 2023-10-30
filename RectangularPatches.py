@@ -1298,7 +1298,7 @@ class RectangularPatches(Fault):
    # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def writeSlipCenter2File(self, filename, add_slip=None, scale=1.0, neg_depth=False):
+    def writeSlipCenter2File(self, filename, add_slip=None, scale=1.0, neg_depth=False, addCovar=False):
                                 
         '''
         Write a psxyz, surface or greenspline compatible file with the center 
@@ -1313,13 +1313,18 @@ class RectangularPatches(Fault):
                               Can be None, strikeslip, dipslip, total, coupling
             * scale         : Multiply the slip value by a factor.
             * neg_depth     : if True, depth is a negative nmber
- 
+            * addCovar      : add the covariance Cm values to the slip for each patch
+  
         Returns:
             * None
         '''
 
         # Write something
         print('Writing slip at patch centers to file {}'.format(filename))
+
+        if addCovar: 
+            assert((self.Cm!=None).all()), 'Provide Cm values in fault object'
+            print('adding slip covariances\n')
 
         # Open the file
         fout = open(filename, 'w')
@@ -1344,12 +1349,21 @@ class RectangularPatches(Fault):
                 elif add_slip == 'total':
                     slp = np.sqrt(self.slip[pIndex,0]**2 + self.slip[pIndex,1]**2)*scale
  
+            if addCovar: 
+                ssSD = np.sqrt(self.Cm[pIndex,0])*scale
+                dsSD = np.sqrt(self.Cm[pIndex,1])*scale
+                slipCovar = self.Cm[pIndex,2]
+
             # project center of the patch to lat-long
             lonc, latc = self.xy2ll(xc, yc)
             if neg_depth:
                 zc = -1.0*zc
                 
-            fout.write('{} {} {} {}\n'.format(lonc, latc, zc, slp))
+            if addCovar == False:  # write only slip
+                fout.write('{} {} {} {}\n'.format(lonc, latc, zc, slp))
+            else:
+                fout.write('{} {} {} {} {} {} {}\n'.format(lonc, latc, zc, slp, 
+                                ssSD, dsSD, slipCovar))
 
         # Close file
         fout.close()

@@ -6,23 +6,19 @@ Written by T. Shreve, June 2019
 
 # Import Externals stuff
 import numpy as np
-import sys
-import os
 from argparse import Namespace
 import warnings
 
 # Personals
 from . import mogifull
 from .Pressure import Pressure
-from .EDKSmp import sum_layered
-from .EDKSmp import dropSourcesInPatches as Patches2Sources
 
 #sub-class Mogi
 class Mogi(Pressure):
 
     # ----------------------------------------------------------------------
     # Initialize class
-    def __init__(self, name, x0=None, y0=None, z0=None, a=None, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
+    def __init__(self, name, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
         '''
         Sub-class implementing Mogi pressure objects.
 
@@ -39,17 +35,11 @@ class Mogi(Pressure):
         '''
 
         # Base class init
-        super(Mogi,self).__init__(name, x0=x0, y0=y0, z0=z0, ax=a, ay=a, az=a, 
-                                        dip=0, strike=0, plunge=0,
-                                        utmzone=utmzone, ellps=ellps, 
+        super(Mogi,self).__init__(name, utmzone=utmzone, ellps=ellps, 
                                         lon0=lon0, lat0=lat0, verbose=verbose)
         self.source = "Mogi"
         self.deltapressure  = None  # Dimensionless pressure
         self.deltavolume = None
-        if None not in {x0, y0, z0, a}:
-            self.createShape(x0, y0, z0, a)
-            print("Defining source parameters")
-
         return
 
 
@@ -179,14 +169,22 @@ class Mogi(Pressure):
 
     def pressure2dis(self, data, delta="pressure", volume=None):
         '''
-        Computes the surface displacement at the data location using mogi formulations. ~~~ This is where the good stuff happens ~~
+        Computes the surface displacement at the data location using Mogi formulations.
 
         Args:
-            * data          : Data object from gps or insar.
-            * delta         : Unit pressure is assumed.
+            data (Data): Data object from GPS or InSAR.
+            delta (str): Unit pressure is assumed. Default is "pressure".
+            volume (float): Volume change. If None, the volume change is calculated based on the pressure change.
 
         Returns:
-            * u             : x, y, and z displacements
+            numpy.ndarray: Array of x, y, and z displacements.
+
+        Raises:
+            Exception: If the shape of the spheroid is not defined.
+
+        Notes:
+            This method uses Mogi's equations to compute the surface displacement at the data location. 
+            The pressure change or volume change can be specified to calculate the displacement.
         '''
 
         # Set the volume change
@@ -234,7 +232,7 @@ class Mogi(Pressure):
     #
     # ----------------------------------------------------------------------
 
-    def createShape(self, x, y, z0, a,latlon=True):
+    def createShape(self, x, y, z0, a, latlon=True):
         '''
         Defines the shape of the mogi pressure source.
 

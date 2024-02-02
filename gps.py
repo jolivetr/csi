@@ -2916,13 +2916,13 @@ class gps(SourceInv):
                     synth = Gp*fault.deltaopening
                     N = 0
                     if east:
-                        self.synth[:,0] += synth[N:Nd]
+                        self.synth[:,0] += synth[N:Nd].squeeze()
                         N += Nd
                     if north:
-                        self.synth[:,1] += synth[N:N+Nd]
+                        self.synth[:,1] += synth[N:N+Nd].squeeze()
                         N += Nd
                     if vertical:
-                        self.synth[:,2] += synth[N:N+Nd]
+                        self.synth[:,2] += synth[N:N+Nd].squeeze()
 
             if custom:
                 Gc = G['custom']

@@ -146,7 +146,6 @@ class surfaceslip(SourceInv):
             vel = np.fromfile(data, dtype=dtype)[::downsample]*factor + step
         else:
             vel = data.flatten()[::downsample]*factor + step
-
         # Get the lon
         if type(lon) is str:
             lon = np.fromfile(lon, dtype=dtype)[::downsample]

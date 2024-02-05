@@ -217,7 +217,7 @@ class gps(SourceInv):
         return
                 
 
-    def combineNetworks(self, gpsdata, newNetworkName='Combined Network'):
+    def combineNetworks(self, gpsdata, newNetworkName='Combined Network', mergeType=None):
         '''
         Combine networks into a new network.
 
@@ -226,35 +226,62 @@ class gps(SourceInv):
 
         Kwargs:
             * newNetworkName    : Name of the returned network
-
+            * mergeType         : Style of merging
+                                  None: duplicates stations
+                                  sum: if two identical stations, sum the displacements
         Returns:
             * None
         '''
 
         # Create lists
-        lon = []
-        lat = []
-        name = []
-        vel = []
-        err = []
+        Lon = []
+        Lat = []
+        Name = []
+        Vel = []
+        Err = []
+
+        # Create the full list of stqtions
+        stations = []
+        for gp in gpsdata: stations += gp.station.tolist()
+        if mergeType is not None: stations = np.unique(stations).tolist()
 
         # Iterate to get name, lon, lat
-        for gp in gpsdata:
-            lon += gp.lon.tolist()
-            lat += gp.lat.tolist()
-            name += gp.station.tolist()
-            vel += gp.vel_enu.tolist()
-            err += gp.err_enu.tolist()
+        for station in stations:
+            Name.append(station)
+            # Where are the stations in the object
+            Inds = [np.flatnonzero(gp.station==station)[0] if station in gp.station else None for gp in gpsdata]
+            # Check 
+            if mergeType is not None: 
+                assert len(np.unique([gp.lon[i] for i,gp in zip(Inds,gpsdata) if i is not None]))==1, f'Error; Longitude not similar for station {station}'
+                assert len(np.unique([gp.lat[i] for i,gp in zip(Inds,gpsdata) if i is not None]))==1, f'Error; Latitude not similar for station {station}'
+                lon = [gp.lon[i] for i,gp in zip(Inds, gpsdata) if i is not None][0]
+                lat = [gp.lat[i] for i,gp in zip(Inds, gpsdata) if i is not None][0]
+                if mergeType in ('sum', 'Sum', 'SUM'):
+                    vel = np.sum([gp.vel_enu[i] for i,gp in zip(Inds,gpsdata) if i is not None], axis=0)
+                    err = np.sqrt(np.sum([gp.err_enu[i]**2 for i,gp in zip(Inds,gpsdata) if i is not None], axis=0))
+                else:
+                    raise NotImplementedError('Other merge types than sum are not implemented yet. Please do it.')
+                Lon.append(lon)
+                Lat.append(lat)
+                Vel.append(vel)
+                Err.append(err)
+            else:
+                for i,gp in zip(Inds,gpsdata):
+                    if i is not None:
+                        Lon.append(gp.lon[i])
+                        Lat.append(gp.lat[i])
+                        Vel.append(gp.vel[i])
+                        Err.append(gp.err[i])
 
         # Create a new instance
         gp = gps(newNetworkName, utmzone=self.utmzone, verbose=self.verbose, lon0=self.lon0, lat0=self.lat0)
 
         # Fill it
-        gp.setStat(np.array(name), np.array(lon), np.array(lat))
+        gp.setStat(np.array(Name), np.array(Lon), np.array(Lat))
 
         # Set displacements and errors
-        gp.vel_enu = np.array(vel)
-        gp.err_enu = np.array(err)
+        gp.vel_enu = np.array(Vel)
+        gp.err_enu = np.array(Err)
 
         # All done
         return gp

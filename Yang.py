@@ -6,52 +6,34 @@ Written by T. Shreve, June 2019
 
 # Import Externals stuff
 import numpy as np
-import sys
-import os
 from argparse import Namespace
 
 # Personals
 from . import yangfull
 from .Pressure import Pressure
-from .EDKSmp import sum_layered
-from .EDKSmp import dropSourcesInPatches as Patches2Sources
 
 #sub-class Yang
 class Yang(Pressure):
 
     # ----------------------------------------------------------------------
     # Initialize class
-    def __init__(self, name, x0=None, y0=None, z0=None, ax=None, ay=None, az=None, dip=None, strike=None, plunge=None, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
+    def __init__(self, name, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
         '''
         Sub-class implementing Yang pressure objects.
 
-        Args:
+        Kwargs:
             * name          : Name of the pressure source.
             * utmzone       : UTM zone  (optional, default=None)
             * ellps         : ellipsoid (optional, default='WGS84')
-
-        Kwargs:
-            * x0, y0       : Center of pressure source in lat/lon or utm
-            * z0           : Depth
-            * ax, ay, az   : Semi-axes of the CDM along the x, y and z axes respectively, before applying rotations. ax=ay for Yang.
-            * dip          : Clockwise around N-S (Y) axis; dip = 90 means vertically elongated source
-            * strike       : Clockwise from N; strike = 0 means source is oriented N-S
-            * plunge       : 0 for Yang
-            * ellps        : ellipsoid (optional, default='WGS84')
         '''
 
         # Base class init
-        super(Yang,self).__init__(name, x0=x0, y0=y0, z0=z0, ax=ax, ay=ay, az=az, dip=dip, strike=strike, plunge=plunge, utmzone=utmzone, ellps=ellps, lon0=lon0, lat0=lat0, verbose=True)
+        super(Yang,self).__init__(name, utmzone=utmzone, ellps=ellps, lon0=lon0, lat0=lat0, verbose=True)
         self.source = "Yang"
         self.deltapressure  = None  # Dimensionless pressure
         self.deltavolume = None
-        if None not in {x0, y0, z0, ax, ay, az, dip, strike}:
-            self.createShape(x0, y0, z0, ax, ay, az, dip, strike, latlon=True)
-            print("Defining source parameters")
-
+        self.verbose = verbose
         return
-
-
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -264,14 +246,14 @@ class Yang(Pressure):
         c, b, a = np.sort([ax,ay,az])
         A = b/a
         if A == 1:
-            print('If semi-minor and semi-major axes are equal, more efficient to use Mogi.py')
+            if self.verbose: print('If semi-minor and semi-major axes are equal, more efficient to use Mogi.py')
         ### Double check this
         if float(z0) < (float(A)*float(a))**2/float(a):
-            print('WARNING: radius of curvature has to be less than the depth, will output "null" shape')
+            if self.verbose: print('WARNING: radius of curvature has to be less than the depth, will output "null" shape')
             #... this model is still taken into account in Bayesian inverison, but should be rejected.')
             self.ellipshape = {'x0': 0.,'x0m': 0.,'y0': 0.,'y0m': 0.,'z0': 0.,'a': 0.,'A': 0.,'dip': 0.,'strike': 0.}
         else:
-            print('Using CDM conventions for rotation - dip = 90 is vertical, rotation clockwise around Y-axis (N-S). dip = 0, strike = 0 source elongated N-S')
+            if self.verbose: print('Using CDM conventions for rotation - dip = 90 is vertical, rotation clockwise around Y-axis (N-S). dip = 0, strike = 0 source elongated N-S')
             self.ellipshape = {'x0': lon1,'x0m': x1,'y0': lat1,'y0m': y1,'z0': z0,'ax': b,'ay': c,'az': a,'dip': dip,'strike': strike,'plunge': 0.0}
 
         return

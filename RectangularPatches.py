@@ -4,7 +4,7 @@ A parent class that deals with rectangular patches fault
 Started by R. Jolivet, November 2013
 
 Main contributors:
-R. Jolivet, CalTech, USA
+R. Jolivet, Ecole normale supérieure, France
 Z. Duputel, Univ. de Strasbourg, France,
 B. Riel, CalTech, USA
 F. Ortega-Culaciati, Univ. de Santiago, Chile
@@ -3189,65 +3189,72 @@ class RectangularPatches(Fault):
 
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', Fault=True, Map=True,
-             equiv=False, show=True, axesscaling=True, 
-             norm=None, linewidth=1.0, plot_on_2d=True, 
-             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
-             drawCoastlines=True, expand=0.2, figsize=(None, None)):
-        '''
-        Plot the available elements of the fault.
-        
-        Args:
-            * figure        : Number of the figure.
-            * slip          : which slip to plot
-            * equiv         : plot the equivalent patches
-            * show          : True/False
-            * axesscaling   : Perform axes scaling
-            * Norm          : Colorbar limits for slip
-            * linewidth     : width of the lines
-            * plot_on_2d    : Make a map plot of the fautl
-            * drawCoastlines: True/False
-            * expand        : How much to extend the map around the fault (degrees)
-        '''
+                 show=True, shadedtopo=False,
+                 norm=None, linewidth=1.0, plot_on_2d=True, 
+                 colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
+                 drawCoastlines=True, expand=0.2, figsize=(None, None)):
+            '''
+            Plot the available elements of the fault.
+            
+            Args:
+                * figure        : Number of the figure.
+                * slip          : which slip to plot
+                * Fault         : True to plot the fault, False otherwise
+                * Map           : True to plot the map, False otherwise
+                * equiv         : plot the equivalent patches
+                * show          : True to show the plot, False otherwise
+                * axesscaling   : True to perform axes scaling, False otherwise
+                * shadedtopo    : True to plot shaded topography, False otherwise
+                * norm          : Colorbar limits for slip
+                * linewidth     : width of the lines
+                * plot_on_2d    : True to make a map plot of the fault, False otherwise
+                * colorbar      : True to show colorbar, False otherwise
+                * cbaxis        : Colorbar axis position [left, bottom, width, height]
+                * cborientation : Colorbar orientation ('horizontal' or 'vertical')
+                * cblabel       : Colorbar label
+                * drawCoastlines: True to draw coastlines, False otherwise
+                * expand        : How much to extend the map around the fault (degrees)
+                * figsize       : Figure size (width, height)
+            '''
 
-        # Get lons lats
-        lonmin = np.min([p[:,0] for p in self.patchll])-expand
-        #if lonmin<0: 
-        #    lonmin += 360
-        lonmax = np.max([p[:,0] for p in self.patchll])+expand
-        #if lonmax<0:
-        #    lonmax+= 360
-        latmin = np.min([p[:,1] for p in self.patchll])-expand
-        latmax = np.max([p[:,1] for p in self.patchll])+expand
+            # Get lons lats
+            lonmin = np.min([p[:,0] for p in self.patchll])-expand
+            lonmax = np.max([p[:,0] for p in self.patchll])+expand
+            latmin = np.min([p[:,1] for p in self.patchll])-expand
+            latmax = np.max([p[:,1] for p in self.patchll])+expand
 
-        # Create a figure
-        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize, 
-                      Map=Map, Fault=Fault)
+            # Create a figure
+            fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize, 
+                          Map=Map, Fault=Fault)
 
-        # Draw the coastlines
-        if drawCoastlines:
-            fig.drawCoastlines(parallels=None, meridians=None, drawOnFault=True)
+            # Shaded topo
+            if shadedtopo is not None: fig.shadedTopography(**shadedtopo)
 
-        # Draw the fault
-        fig.faultpatches(self, slip=slip, norm=norm, colorbar=True, 
-                         cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
-                         plot_on_2d=plot_on_2d)
+            # Draw the coastlines
+            if drawCoastlines:
+                fig.drawCoastlines(parallels=None, meridians=None, drawOnFault=True)
 
-        # Plot the trace of there is one
-        if self.lon is not None:
-            fig.faulttrace(self)
+            # Draw the fault
+            fig.faultpatches(self, slip=slip, norm=norm, colorbar=colorbar, linewidth=linewidth,
+                             cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
+                             plot_on_2d=plot_on_2d)
 
-        # show
-        if show:
-            showFig = ['fault']
-            if plot_on_2d:
-                showFig.append('map')
-            fig.show(showFig=showFig)
+            # Plot the trace of there is one
+            if self.lon is not None:
+                fig.faulttrace(self)
 
-        # Save fig
-        self.fig = fig
+            # show
+            if show:
+                showFig = ['fault']
+                if plot_on_2d:
+                    showFig.append('map')
+                fig.show(showFig=showFig)
 
-        # All done
-        return
+            # Save fig
+            self.fig = fig
+
+            # All done
+            return
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------

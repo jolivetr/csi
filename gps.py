@@ -2943,13 +2943,13 @@ class gps(SourceInv):
                     synth = Gp*fault.deltaopening
                     N = 0
                     if east:
-                        self.synth[:,0] += synth[N:Nd]
+                        self.synth[:,0] += synth[N:Nd].squeeze()
                         N += Nd
                     if north:
-                        self.synth[:,1] += synth[N:N+Nd]
+                        self.synth[:,1] += synth[N:N+Nd].squeeze()
                         N += Nd
                     if vertical:
-                        self.synth[:,2] += synth[N:N+Nd]
+                        self.synth[:,2] += synth[N:N+Nd].squeeze()
 
             if custom:
                 Gc = G['custom']
@@ -3680,7 +3680,7 @@ class gps(SourceInv):
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              landcolor='lightgrey', seacolor=None, shadedtopo=None,
              Map=True, Fault=True, zorder=None,
-             vertical=False, verticalsize=[30], box=None,
+             vertical=False, verticalsize=[30], verticalnorm=None, box=None,
              width=0.005, headwidth=3, headlength=5, headaxislength=4.5, minshaft=1, minlength=1,
              data=['data'], color=['k'], titleyoffset=1.1, alpha=1.):
         '''
@@ -3749,7 +3749,8 @@ class gps(SourceInv):
 
         # Plot verticals?
         if vertical:
-            fig.gpsverticals(self, colorbar=True, data=data, markersize=verticalsize, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, alpha=alpha)
+            fig.gpsverticals(self, colorbar=True, data=data, norm=verticalnorm,
+                             markersize=verticalsize, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, alpha=alpha)
 
         # Plot GPS velocities
         fig.gps(self, data=data, name=name, error=error,

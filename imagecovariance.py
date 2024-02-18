@@ -659,7 +659,8 @@ class imagecovariance(object):
         # All done
         return
 
-    def plot(self, data='covariance', plotData=False, figure=1, savefig=False, show=True, savedir='./'):
+    def plot(self, data='covariance', plotData=False, figure=1, figsize=(10,5),
+             savefig=False, show=True, savedir='./'):
         '''
         Plots the covariance function.
 
@@ -695,7 +696,7 @@ class imagecovariance(object):
                 plt.savefig(figname)
 
         # Create a figure
-        fig = plt.figure(figure)
+        fig = plt.figure(figure, figsize=figsize)
         plt.clf()
 
         # How many data sets

@@ -1,8 +1,9 @@
 '''
-A class that deals with InSAR data, after decimation using VarRes.
+A class that deals with InSAR data.
 
 Written by R. Jolivet, B. Riel and Z. Duputel, April 2013.
 Edited by T. Shreve, June 2019. Edited buildsynth to include pressure sources.
+Continuous updates by R. Jolivet since 2013.
 '''
 
 # Externals
@@ -2623,7 +2624,9 @@ class insar(SourceInv):
         fout.close()
 
 
-    def plotprofile(self, name, legendscale=10., fault=None, norm=None, synth=False, alpha=.3, plotType='scatter', drawCoastlines=True):
+    def plotprofile(self, name, figsize=(10,10), fault=None, norm=None, synth=False, 
+                    cbaxis=[0.1, 0.1, 0.1, 0.01],
+                    alpha=.3, plotType='scatter', drawCoastlines=True):
         '''
         Plot profile.
 
@@ -2645,7 +2648,11 @@ class insar(SourceInv):
         assert len(x)>5, 'There is less than 5 points in your profile...'
 
         # Plot the insar
-        self.plot(faults=fault, norm=norm, show=False, alpha=alpha, plotType=plotType, expand=0., drawCoastlines=drawCoastlines, 
+        self.plot(faults=fault, norm=norm, figsize=figsize, 
+                  show=False, alpha=alpha, 
+                  plotType=plotType, expand=0., 
+                  drawCoastlines=drawCoastlines, 
+                  cbaxis=cbaxis,
                   Map=True, Fault=False)
 
         # plot the box on the map
@@ -2662,17 +2669,17 @@ class insar(SourceInv):
         self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=3, linewidth=2)
 
         # open a figure
-        fig = plt.figure()
-        prof = fig.add_subplot(111)
+        figp = plt.figure(figsize=(10,5))
+        prof = figp.add_subplot(111)
 
         # plot the profile
         x = self.profiles[name]['Distance']
         y = self.profiles[name]['LOS Velocity']
         ey = self.profiles[name]['LOS Error']
         try:
-            p = prof.errorbar(x, y, yerr=ey, label='LOS', fmt='o', alpha=alpha)
+            p = prof.errorbar(x, y, yerr=ey, label='LOS', fmt='.', alpha=alpha, color='k')
         except:
-            p = prof.plot(x, y, label='LOS', marker='.', alpha=alpha)
+            p = prof.plot(x, y, label='LOS', marker='.', color='k', alpha=alpha)
         if synth:
             sy = self.profiles[name]['LOS Synthetics']
             s = prof.plot(x, sy, '-r', label='synthetics')
@@ -2689,12 +2696,14 @@ class insar(SourceInv):
                 if d is not None:
                     ymin, ymax = prof.get_ylim()
                     prof.plot([d, d], [ymin, ymax], '--', label=f.name)
+        prof.set_xlabel('Distance along the profile')
+        prof.set_ylabel('LOS measurement')
 
         # plot the legend
         prof.legend()
 
-        # Show to screen
-        self.fig.show(showFig=['map'])
+        # Show me
+        plt.show()
 
         # All done
         return
@@ -2838,7 +2847,7 @@ class insar(SourceInv):
              Map=True, Fault=True, lognorm=False,
              drawCoastlines=True, expand=0.2, edgewidth=1, figsize=None, markersize=1.,
              plotType='scatter', cmap='jet', alpha=1., box=None, titleyoffset=1.1,
-             landcolor='lightgrey', seacolor=None, shadedtopo=None, title=True, los=None,
+             landcolor='lightgrey', seacolor=None, shadedtopo=None, title=False, los=None,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel=''):
         '''
         Plot the data set, together with a fault, if asked.
@@ -2902,7 +2911,7 @@ class insar(SourceInv):
                 fig.gps(g)
 
         # Plot the decimation process, if asked
-        fig.insar(self, norm=norm, colorbar=True, data=data, plotType=plotType, markersize=markersize,
+        fig.insar(self, norm=norm, colorbar=colorbar, data=data, plotType=plotType, markersize=markersize,
                         cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, los=los, 
                         edgewidth=edgewidth, cmap=cmap, zorder=1, alpha=alpha, lognorm=lognorm)
 
@@ -2916,7 +2925,7 @@ class insar(SourceInv):
 
         # Title
         if title:
-            title = '{} - {} '.format(self.name, data)
+            if type(title) is not str: title = '{} - {} '.format(self.name, data)
             fig.titlemap(title, y=titleyoffset)
 
         # Show

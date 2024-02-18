@@ -2354,7 +2354,7 @@ class RectangularPatches(Fault):
 
     # ----------------------------------------------------------------------
     def surfacesimulation(self, box=None, disk=None, err=None, lonlat=None, npoints=10,
-                          slipVec=None):
+                          slipVec=None, verbose=False):
         ''' 
         Takes the slip vector and computes the surface displacement that 
         corresponds on a regular grid. Returns a gps object
@@ -2370,7 +2370,7 @@ class RectangularPatches(Fault):
         '''
 
         # create a fake gps object
-        self.sim = gpsclass('simulation', utmzone=self.utmzone, lon0=self.lon0, lat0=self.lat0)
+        self.sim = gpsclass('simulation', utmzone=self.utmzone, lon0=self.lon0, lat0=self.lat0, verbose=verbose)
 
         # Create a lon lat grid
         if lonlat is None:
@@ -2448,8 +2448,9 @@ class RectangularPatches(Fault):
 
         # Loop over the patches
         for p in range(len(self.patch)):
-            sys.stdout.write('\r Patch {} / {} '.format(p+1,len(self.patch)))
-            sys.stdout.flush()
+            if verbose:
+                sys.stdout.write('\r Patch {} / {} '.format(p+1,len(self.patch)))
+                sys.stdout.flush()
             # Get the surface displacement due to the slip on this patch
             ss, ds, op = self.slip2dis(self.sim, p)
             # Sum these to get the synthetics
@@ -2457,8 +2458,9 @@ class RectangularPatches(Fault):
             self.sim.vel_enu += ds
             self.sim.vel_enu += op
 
-        sys.stdout.write('\n')
-        sys.stdout.flush()
+        if verbose:
+            sys.stdout.write('\n')
+            sys.stdout.flush()
 
         # All done
         return 

@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>opticorr class &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="seismic class" href="seismic.html" />
+    <link rel="prev" title="insar class" href="insar.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="opticorr-class">
+<h1>opticorr class<a class="headerlink" href="#opticorr-class" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="csi.opticorr">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">opticorr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr" title="Link to this definition">¶</a></dt>
+<dd><p>A class that handles optical correlation results</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : Name of the dataset.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>utmzone   : UTM zone  (optional, default=None)</p></li>
+<li><p>lon0      : Longitude of the center of the UTM zone</p></li>
+<li><p>lat0      : Latitude of the center of the UTM zone</p></li>
+<li><p>ellps     : ellipsoid (optional, default=’WGS84’)</p></li>
+<li><p>verbose   : Speak to me (default=True)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.ModelResolutionDownsampling">
+<span class="sig-name descname"><span class="pre">ModelResolutionDownsampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startingsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimumsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.ModelResolutionDownsampling" title="Link to this definition">¶</a></dt>
+<dd><p>Downsampling algorythm based on Lohman &amp; Simons, 2005, G3.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>faults          : List of faults, these need to have a buildGFs routine (ex: for RectangularPatches, it will be Okada).</p></li>
+<li><p>threshold       : Resolution threshold, if above threshold, keep dividing.</p></li>
+<li><p>damping         : Damping parameter. Damping is enforced through the addition of a identity matrix.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>startingsize    : Starting size of the downsampling boxes.</p></li>
+<li><p>minimumsize     : Minimum size for the downsampling blocks</p></li>
+<li><p>tolerance       : tolerance in the block size in km</p></li>
+<li><p>plot            : show me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.buildsynth">
+<span class="sig-name descname"><span class="pre">buildsynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.buildsynth" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the synthetic data using the faults and the associated slip distributions.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>faults        : List of faults.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>direction     : Direction of slip to use.</p></li>
+<li><p>vertical      : use verticals</p></li>
+<li><p>include_poly  : if a polynomial function has been estimated, include it.</p></li>
+<li><p>custom        : if True, uses the fault.custom and fault.G[data.name][‘custom’] to correct</p></li>
+<li><p>computeNormFact : if False, uses TransformNormalizingFactor set with self.setTransformNormalizingFactor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.computeCustom">
+<span class="sig-name descname"><span class="pre">computeCustom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.computeCustom" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the displacements associated with the custom green’s functions.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>fault : Fault object with custom green’s functions</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Stores the prediction in self.custompred</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.computePoly">
+<span class="sig-name descname"><span class="pre">computePoly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.computePoly" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the orbital bias estimated in fault</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>fault : Fault object that has a polysol structure.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>computeNormFact: if True, recompute the normalization.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.computeTransformNormalizingFactor">
+<span class="sig-name descname"><span class="pre">computeTransformNormalizingFactor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.computeTransformNormalizingFactor" title="Link to this definition">¶</a></dt>
+<dd><p>Compute orbit normalizing factors and store them in insar object.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.getMisfit">
+<span class="sig-name descname"><span class="pre">getMisfit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.getMisfit" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the Sum of the data and if synthetics are computed, the RMS of the residuals</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>2 floats</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.getPolyEstimator">
+<span class="sig-name descname"><span class="pre">getPolyEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ptype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.getPolyEstimator" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the Estimator for the polynomial form to estimate in the optical correlation data.</p>
+<dl>
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>ptype : Style of polynomial</p></li>
+</ul>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>ptype</p></th>
+<th class="head"><p>what it means</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>apply a constant offset to the data (1 parameter)</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>apply offset and linear function of x and y (3 parameters)</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>apply offset, linear function and cross term (4 parameters)</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+<p>Watch out: If vertical is True, you should only estimate polynomials for the horizontals.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>computeNormFact : bool. If False, uses parameters in self.TransformNormalizingFactor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>2d array</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.getRMS">
+<span class="sig-name descname"><span class="pre">getRMS</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.getRMS" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the RMS of the data and if synthetics are computed, the RMS of the residuals</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.getTransformEstimator">
+<span class="sig-name descname"><span class="pre">getTransformEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trans</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.getTransformEstimator" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the Estimator for the transformation to estimate in the InSAR data.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>trans<span class="classifier">Transformation type</span></dt><dd><ul>
+<li><p>1: constant offset to the data</p></li>
+<li><p>3: constant and linear function of x and y</p></li>
+<li><p>4: constant, linear term and cross term.</p></li>
+<li><p>‘strain’: estimates an aerial strain tensor</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>computeNormFact   : Recompute the normalization factor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.getVariance">
+<span class="sig-name descname"><span class="pre">getVariance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.getVariance" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the Variance of the data and if synthetics are computed, the RMS of the residuals</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>2 floats</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.getprofile">
+<span class="sig-name descname"><span class="pre">getprofile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loncenter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latcenter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.getprofile" title="Link to this definition">¶</a></dt>
+<dd><p>Project the GPS velocities onto a profile.
+Works on the lat/lon coordinates system.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name              : Name of the profile.</p></li>
+<li><p>loncenter         : Profile origin along longitude.</p></li>
+<li><p>latcenter         : Profile origin along latitude.</p></li>
+<li><p>length            : Length of profile.</p></li>
+<li><p>azimuth           : Azimuth in degrees.</p></li>
+<li><p>width             : Width of the profile.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Stores profile in self.profiles</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.intersectProfileFault">
+<span class="sig-name descname"><span class="pre">intersectProfileFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.intersectProfileFault" title="Link to this definition">¶</a></dt>
+<dd><p>Gets the distance between the fault/profile intersection and the profile center.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : name of the profile.</p></li>
+<li><p>fault     : fault object from verticalfault.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>Float</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawCoastlines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.2,</span> <span class="pre">0.1,</span> <span class="pre">0.02]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cborientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cblabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the data set, together with a fault, if asked.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>faults    : list of fault object.</p></li>
+<li><p>figure    : number of the figure.</p></li>
+<li><p>gps       : superpose a GPS dataset.</p></li>
+<li><p>decim     : plot the data following the decimation process of varres.</p></li>
+<li><p>data      : plot either ‘dataEast’, ‘dataNorth’, ‘synthNorth’, ‘synthEast’, ‘resEast’, ‘resNorth’, ‘data’, ‘synth’ or ‘res’</p></li>
+<li><p>norm      : tuple of float for the min and max of the colorbar</p></li>
+<li><p>show      : Show me</p></li>
+<li><p>drawCoastlines : True or False</p></li>
+<li><p>expand    : How to expand the map around the data in degrees.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.plotprofile">
+<span class="sig-name descname"><span class="pre">plotprofile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legendscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.plotprofile" title="Link to this definition">¶</a></dt>
+<dd><p>Plot profile.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : Name of the profile.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>legendscale: Length of the legend arrow.</p></li>
+<li><p>fault     : instance of a fault class</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.read_from_binary">
+<span class="sig-name descname"><span class="pre">read_from_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">east</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">north</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">err_east=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">err_north=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor=1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_nan=True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.read_from_binary" title="Link to this definition">¶</a></dt>
+<dd><p>Read from a set of binary files or from a set of arrays.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>east      : array or filename of the east displacement</p></li>
+<li><p>north     : array or filename of the north displacement</p></li>
+<li><p>lon       : array or filename of the longitude</p></li>
+<li><p>lat       : array or filename of the latitude</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>err_east  : uncertainties on the east displacement (file or array)</p></li>
+<li><p>err_north : uncertainties on the north displacememt (file or array)</p></li>
+<li><p>factor    : multiplication factor</p></li>
+<li><p>step      : offset</p></li>
+<li><p>dtype     : type of binary file</p></li>
+<li><p>remove_nan: Remove nans or not</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.read_from_envi">
+<span class="sig-name descname"><span class="pre">read_from_envi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EW'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.read_from_envi" title="Link to this definition">¶</a></dt>
+<dd><p>Reads displacement map from an ENVI file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename  : Name of the input file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>component : ‘EW’ or ‘NS’</p></li>
+<li><p>remove_nan: Remove Nans or not</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.read_from_grd">
+<span class="sig-name descname"><span class="pre">read_from_grd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepnans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variableName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.read_from_grd" title="Link to this definition">¶</a></dt>
+<dd><p>Reads velocity map from a grd file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename  : Name of the input file. As we are reading two files, the files are filename_east.grd and filename_north.grd</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>factor        : scale by a factor</p></li>
+<li><p>step          : add a value.</p></li>
+<li><p>flip          : Flip image upside down (some netcdf files require this)</p></li>
+<li><p>keepnans      : Keeps NaNs or not</p></li>
+<li><p>variableName  : Name of the variable in the netcdf file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.read_from_varres">
+<span class="sig-name descname"><span class="pre">read_from_varres</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.read_from_varres" title="Link to this definition">¶</a></dt>
+<dd><p>Read the Optical Corr east-north offsets from the VarRes output. This is what comes from the decimation process in imagedownsampling</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : Name of the input file. Two files are opened filename.txt and filename.rsp.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>factor        : Factor to multiply the east-north offsets.</p></li>
+<li><p>step          : Add a value to the velocity.</p></li>
+<li><p>header        : Size of the header.</p></li>
+<li><p>cov           : Read an additional covariance file (binary np.float32, Nd*Nd elements).</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.read_from_xyz">
+<span class="sig-name descname"><span class="pre">read_from_xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.read_from_xyz" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the maps from a xyz file formatted as</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>lon</p></th>
+<th class="head"><p>lat</p></th>
+<th class="head"><p>east</p></th>
+<th class="head"><p>north</p></th>
+<th class="head"><p>east_err</p></th>
+<th class="head"><p>north_err</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename  : name of the input file.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>factor    : scale by a factor.</p></li>
+<li><p>step      : add a value.</p></li>
+<li><p>header    : length of the file header</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.read_with_reader">
+<span class="sig-name descname"><span class="pre">read_with_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readerFunc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filePrefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.read_with_reader" title="Link to this definition">¶</a></dt>
+<dd><p>Read data from a .txt file using a user provided reading function. Assume the user knows what they are doing and are returning the correct values.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>readerFunc    : A method that knows how to read a file and returns lon, lat, east, north, east_err and north_err (1d arrays)</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>filePrefix    : filename before .txt</p></li>
+<li><p>factor        : scaling factor</p></li>
+<li><p>cov           : read a covariance from a binary file</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.reject_pixel">
+<span class="sig-name descname"><span class="pre">reject_pixel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.reject_pixel" title="Link to this definition">¶</a></dt>
+<dd><p>Reject pixels.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>u         : Index of the pixel to reject.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.reject_pixels_fault">
+<span class="sig-name descname"><span class="pre">reject_pixels_fault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.reject_pixels_fault" title="Link to this definition">¶</a></dt>
+<dd><p>Rejects the pixels that are dis km close to the fault.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>dis       : Threshold distance. If the distance is negative, rejects the pixels that are more than -1.0*distance away from the fault.</p></li>
+<li><p>faults    : list of fault objects.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.removePoly">
+<span class="sig-name descname"><span class="pre">removePoly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.removePoly" title="Link to this definition">¶</a></dt>
+<dd><p>Removes a polynomial from the parameters that are in a fault.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>fault     : instance of fault that has a polysol structure</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose           : Talk to me</p></li>
+<li><p>custom            : Is there custom GFs?</p></li>
+<li><p>computeNormFact   : If True, recomputes Normalization factor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Directly corrects the data</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.removeRamp">
+<span class="sig-name descname"><span class="pre">removeRamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskPoly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.removeRamp" title="Link to this definition">¶</a></dt>
+<dd><p>Note: No Idea who started implementing this, but it is clearly not finished…</p>
+<p>Pre-remove a ramp from the data that fall outside of mask. If no mask is provided,
+we use all the points to fit a mask.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>order : Polynomial order</p></li>
+<li><p>maskPoly  : path to make a mask</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.removeSynth">
+<span class="sig-name descname"><span class="pre">removeSynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.removeSynth" title="Link to this definition">¶</a></dt>
+<dd><p>Removes the synthetics using the faults and the slip distributions that are in there.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>faults        : List of faults.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>direction     : Direction of slip to use.</p></li>
+<li><p>vertical      : use verticals</p></li>
+<li><p>include_poly  : if a polynomial function has been estimated, include it.</p></li>
+<li><p>custom        : if True, uses the fault.custom and fault.G[data.name][‘custom’] to correct</p></li>
+<li><p>computeNormFact : if False, uses TransformNormalizingFactor set with self.setTransformNormalizingFactor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.removeTransformation">
+<span class="sig-name descname"><span class="pre">removeTransformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.removeTransformation" title="Link to this definition">¶</a></dt>
+<dd><p>Wrapper of removePoly to ensure consistency between data sets.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>fault     : a fault instance</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose   : talk to us</p></li>
+<li><p>custom    : Remove custom GFs</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.select_pixels">
+<span class="sig-name descname"><span class="pre">select_pixels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">minlon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxlon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minlat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxlat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.select_pixels" title="Link to this definition">¶</a></dt>
+<dd><p>Select the pixels in a box defined by min and max, lat and lon.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>minlon        : Minimum longitude.</p></li>
+<li><p>maxlon        : Maximum longitude.</p></li>
+<li><p>minlat        : Minimum latitude.</p></li>
+<li><p>maxlat        : Maximum latitude.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.setGFsInFault">
+<span class="sig-name descname"><span class="pre">setGFsInFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.setGFsInFault" title="Link to this definition">¶</a></dt>
+<dd><p>From a dictionary of Green’s functions, sets these correctly into the fault
+object fault for future computation.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>fault     : Instance of Fault</p></li>
+<li><p>G         : Dictionary with 3 entries ‘strikeslip’, ‘dipslip’ and ‘tensile’</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>vertical  : Do we use vertical predictions? Default is True</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.setTransformNormalizingFactor">
+<span class="sig-name descname"><span class="pre">setTransformNormalizingFactor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normY</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.setTransformNormalizingFactor" title="Link to this definition">¶</a></dt>
+<dd><p>Set orbit normalizing factors in insar object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>x0    : Normalization reference x-axis</p></li>
+<li><p>y0    : Normalization reference y-axis</p></li>
+<li><p>normX : Normalizing length along x-axis</p></li>
+<li><p>normY : Normalizing length along y-axis</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.splitFromShapefile">
+<span class="sig-name descname"><span class="pre">splitFromShapefile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shapefile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.splitFromShapefile" title="Link to this definition">¶</a></dt>
+<dd><p>Uses the paths defined in a Shapefile to select and return particular domains of self.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>shapefile : Input file (shapefile format).</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>remove_nan: Remove nans</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.write2binary">
+<span class="sig-name descname"><span class="pre">write2binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'float'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.write2binary" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the records in a binary file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Output filenames<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>{prefix}_north.dat    : North displacement</p></li>
+<li><p>{prefix}_east.dat     : East displacement</p></li>
+<li><p>{prefix}_lon.dat      : Longitude</p></li>
+<li><p>{prefix}_lat.dat      : Latitude</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>prefix    : prefix of the output file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>dtype     : data type in the binary file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.write2grd">
+<span class="sig-name descname"><span class="pre">write2grd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oversample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'surface'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useGMT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.write2grd" title="Link to this definition">¶</a></dt>
+<dd><p>Uses surface to write the output to a grd file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>fname     : Filename</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>oversample: Oversampling factor.</p></li>
+<li><p>data      : can be ‘data’, ‘synth’ or ‘res’.</p></li>
+<li><p>interp    : Number of points along lon and lat (can be a list).</p></li>
+<li><p>cmd       : command used for the conversion( i.e., surface or xyz2gmt)</p></li>
+<li><p>useGMT    : use GMT or scipy</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.writeDecim2file">
+<span class="sig-name descname"><span class="pre">writeDecim2file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dataNorth'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.writeDecim2file" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the decimation scheme to a file plottable by GMT psxy command.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename  : Name of the output file (ascii file)</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>data      : Add the value with a -Z option for each rectangle. Can be ‘dataNorth’, ‘dataEast’, synthNorth, synthEast, data or synth</p></li>
+<li><p>outDir    : Output directory</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.writeEDKSdata">
+<span class="sig-name descname"><span class="pre">writeEDKSdata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.writeEDKSdata" title="Link to this definition">¶</a></dt>
+<dd><p><strong>* Obsolete *</strong></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.opticorr.writeProfile2File">
+<span class="sig-name descname"><span class="pre">writeProfile2File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.opticorr.writeProfile2File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the profile named ‘name’ to the ascii file filename.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : name of the profile</p></li>
+<li><p>filename  : output file name</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>fault     : instance of a fault class</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../dataclasses.html">Classes for types of data</a><ul>
+      <li>Previous: <a href="insar.html" title="previous chapter">insar class</a></li>
+      <li>Next: <a href="seismic.html" title="next chapter">seismic class</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/classes/opticorr.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

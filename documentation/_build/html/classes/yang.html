@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Yang class &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="yang-class">
+<h1>Yang class<a class="headerlink" href="#yang-class" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="csi.Yang">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">Yang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.Yang" title="Link to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="csi.Yang.computeVolume">
+<span class="sig-name descname"><span class="pre">computeVolume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.Yang.computeVolume" title="Link to this definition">¶</a></dt>
+<dd><p>Computes volume (m3) of ellipsoidal cavity, given the semimajor axis.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>volume             : Volume of cavity</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.Yang.createShape">
+<span class="sig-name descname"><span class="pre">createShape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">az</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latlon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.Yang.createShape" title="Link to this definition">¶</a></dt>
+<dd><p>Defines the shape of the mogi pressure source.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>x, y         : Center of pressure source in lat/lon or utm</p></li>
+<li><p>z0           : Depth</p></li>
+<li><p>(ax, ay, az) : Principle semi-axes (m) before rotations applied. az will be the semi-major axis, while ax = ay.</p></li>
+<li><p>dip          : Plunge angle (dip=90 is vertical source)</p></li>
+<li><p>strike       : Azimuth (azimuth=0 is aligned North)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.Yang.pressure2dis">
+<span class="sig-name descname"><span class="pre">pressure2dis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pressure'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.Yang.pressure2dis" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the surface displacement at the data location using yang. ~~~ This is where the good stuff happens ~~</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>data          : Data object from gps or insar.</p></li>
+<li><p>delta         : Unit pressure is assumed.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>u             : x, y, and z displacements</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.Yang.pressure2volume">
+<span class="sig-name descname"><span class="pre">pressure2volume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.Yang.pressure2volume" title="Link to this definition">¶</a></dt>
+<dd><p>Converts pressure change to volume change (m3) for Yang.</p>
+<p>Uses empirical formulation from:
+Battaglia, Maurizio, Cervelli, P.F., and Murray, J.R., 2013, Modeling crustal deformation near active faults and volcanic centers</p>
+<p>Rigorous formulation:
+deltaV = ((1-2v)/(2*(1+v)))*V*(deltaP/mu)*((p^T/deltaP)-3),
+where V is the volume of the ellipsoidal cavity and p^T is the trace of the stress inside the ellipsoidal cavity.</p>
+<p>Empirical formulation:
+deltaV = V*(deltaP/mu)((A^2/3)-0.7A+1.37)</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>deltavolume             : Volume change</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.Yang.setPressure">
+<span class="sig-name descname"><span class="pre">setPressure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deltaPressure</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.Yang.setPressure" title="Link to this definition">¶</a></dt>
+<dd><p>Set deltavolume given deltapressure.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>deltapressure             : Pressure change</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.Yang.setVolume">
+<span class="sig-name descname"><span class="pre">setVolume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deltaVolume</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.Yang.setVolume" title="Link to this definition">¶</a></dt>
+<dd><p>Set deltapressure given deltavolume.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>deltavolume             : Volume change</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.Yang.volume2pressure">
+<span class="sig-name descname"><span class="pre">volume2pressure</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.Yang.volume2pressure" title="Link to this definition">¶</a></dt>
+<dd><p>Converts volume change (m3) to pressure change for Yang.</p>
+<p>Uses empirical formulation from:
+Battaglia, Maurizio, Cervelli, P.F., and Murray, J.R., 2013, Modeling crustal deformation near active faults and volcanic centers</p>
+<p>Empirical formulation:
+deltaP = (deltaV/V)*(mu/((A^2/3)-0.7A+1.37))</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>deltapressure             : Pressure change</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/classes/yang.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>dippingfault class &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="faultwithdip class" href="faultwithdip.html" />
+    <link rel="prev" title="Some Untested Classes with poor documentation" href="../oldclasses.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="dippingfault-class">
+<h1>dippingfault class<a class="headerlink" href="#dippingfault-class" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="csi.dippingfault">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">dippingfault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault" title="Link to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.BuildPatchesVarResolution">
+<span class="sig-name descname"><span class="pre">BuildPatchesVarResolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Depthpoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Resolpoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minpatchsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.BuildPatchesVarResolution" title="Link to this definition">¶</a></dt>
+<dd><p>Patchizes the fault with a variable patch size at depth.
+The variable patch size is given by the respoints table.
+Depthpoints = [depth1, depth2, depth3, …., depthN]
+Resolpoints = [Resol1, Resol2, Resol3, …., ResolN]
+The final resolution is interpolated given the ‘interpolation’ method.
+Interpolation can be ‘linear’, ‘cubic’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.ExtractAlongStrikeVariations">
+<span class="sig-name descname"><span class="pre">ExtractAlongStrikeVariations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'alongstrike.dat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.ExtractAlongStrikeVariations" title="Link to this definition">¶</a></dt>
+<dd><p>Extract the Along Strike Variations of the creep at a given depth
+Args:</p>
+<blockquote>
+<div><p>depth   : Depth at which we extract the along strike variations of slip.
+origin  : Computes a distance from origin. Give [lon, lat].
+filename: Saves to a file.
+orientation: defines the direction of positive distances.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.addfaults">
+<span class="sig-name descname"><span class="pre">addfaults</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.addfaults" title="Link to this definition">¶</a></dt>
+<dd><p>Add some other faults to plot with the modeled one.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : Name of the fault file (GMT lon lat format).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.addpatch">
+<span class="sig-name descname"><span class="pre">addpatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.addpatch" title="Link to this definition">¶</a></dt>
+<dd><p>Adds a patch to the list.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>patch     : Geometry of the patch to add</p></li>
+<li><p>slip      : List of the strike, dip and tensile slip.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.assembleCd">
+<span class="sig-name descname"><span class="pre">assembleCd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_prediction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.assembleCd" title="Link to this definition">¶</a></dt>
+<dd><p>Assembles the data covariance matrixes that have been built by each data structure.
+add_prediction: Precentage of displacement to add to the Cd diagonal to simulate a Cp (prediction error).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.assembleGFs">
+<span class="sig-name descname"><span class="pre">assembleGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slipdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.assembleGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Assemble the Green’s functions that have been built using build GFs.
+This routine spits out the General G and the corresponding data vector d.
+Args:</p>
+<blockquote>
+<div><ul>
+<li><p>datas         : data sets to use as inputs (from gps and insar).</p></li>
+<li><dl>
+<dt>polys<span class="classifier">0 -&gt; nothing additional is estimated</span></dt><dd><p>1 -&gt; estimate a constant offset
+3 -&gt; estimate z = ax + by + c
+4 -&gt; estimate z = axy + bx + cy + d
+‘full’ -&gt; Only for GPS, estimates a rotation, translation and scaling with</p>
+<blockquote>
+<div><p>respect to the center of the network (Helmert transform).</p>
+</div></blockquote>
+</dd>
+</dl>
+</li>
+<li><p>slipdir       : which directions of slip to include. can be any combination of s, d and t.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.assembled">
+<span class="sig-name descname"><span class="pre">assembled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.assembled" title="Link to this definition">¶</a></dt>
+<dd><p>Assembles the data vector corresponding to the stored green’s functions.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>datas         : list of the data object involved (from gps and insar).</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.associatePatch2PDFs">
+<span class="sig-name descname"><span class="pre">associatePatch2PDFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'step_001_param'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.associatePatch2PDFs" title="Link to this definition">¶</a></dt>
+<dd><p>Associates a patch with a pdf called directory/prefix_{#}.dat.
+import AltarExplore….</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.buildCm">
+<span class="sig-name descname"><span class="pre">buildCm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.buildCm" title="Link to this definition">¶</a></dt>
+<dd><p>Builds a model covariance matrix using the equation described in Radiguet et al 2010.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>sigma         : Amplitude of the correlation.</p></li>
+<li><p>lam           : Characteristic length scale.</p></li>
+<li><p>lam0          : Normalizing distance (if None, lam0=min(distance between patches)).</p></li>
+<li><p>extra_params  : Add some extra values on the diagonal.</p></li>
+<li><p>lim           : Limit distance parameter (see self.distancePatchToPatch)</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.buildCmGaussian">
+<span class="sig-name descname"><span class="pre">buildCmGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.buildCmGaussian" title="Link to this definition">¶</a></dt>
+<dd><p>Builds a diagonal Cm with sigma values on the diagonal.
+sigma is a list of numbers, as long as you have components of slip (1, 2 or 3).
+extra_params is a list of extra parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.buildGFs">
+<span class="sig-name descname"><span class="pre">buildGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slipdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.buildGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Builds the Green’s function matrix based on the discretized fault.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>data      : data object from gps or insar.</p></li>
+<li><p>vertical  : if True, will produce green’s functions for the vertical displacements in a gps object.</p></li>
+<li><p>slipdir   : direction of the slip along the patches. can be any combination of s (strikeslip), d (dipslip) and t (tensile).</p></li>
+</ul>
+</div></blockquote>
+<p>The Green’s function matrix is stored in a dictionary. Each entry of the dictionary is named after the corresponding dataset. Each of these entry is a dictionary that contains ‘strikeslip’, ‘dipslip’ and/or ‘tensile’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.build_patches">
+<span class="sig-name descname"><span class="pre">build_patches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.build_patches" title="Link to this definition">¶</a></dt>
+<dd><p>Builds rectangular patches from the discretized fault.
+A patch is a list of 4 corners.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.computeSlipDirection">
+<span class="sig-name descname"><span class="pre">computeSlipDirection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.computeSlipDirection" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the segment indicating the slip direction.
+scale can be a real number or a string in ‘total’, ‘strikeslip’, ‘dipslip’ or ‘tensile’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.computetotalslip">
+<span class="sig-name descname"><span class="pre">computetotalslip</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.computetotalslip" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the total slip.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.deletepatch">
+<span class="sig-name descname"><span class="pre">deletepatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.deletepatch" title="Link to this definition">¶</a></dt>
+<dd><p>Deletes a patch.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>patch     : index of the patch to remove.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.deletepatches">
+<span class="sig-name descname"><span class="pre">deletepatches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tutu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.deletepatches" title="Link to this definition">¶</a></dt>
+<dd><p>Deletes a list of patches.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.differentiateGFs">
+<span class="sig-name descname"><span class="pre">differentiateGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.differentiateGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Uses the Delaunay triangulation to prepare a differential Green’s function matrix, data vector
+and data covariance matrix.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>datas         : List of dataset concerned</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.discretize">
+<span class="sig-name descname"><span class="pre">discretize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">every</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fracstep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.discretize" title="Link to this definition">¶</a></dt>
+<dd><p>Refine the surface fault trace prior to divide it into patches.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>every         : Spacing between each point.</p></li>
+<li><p>tol           : Tolerance in the spacing.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.distancePatchToPatch">
+<span class="sig-name descname"><span class="pre">distancePatchToPatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patch1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'center'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.distancePatchToPatch" title="Link to this definition">¶</a></dt>
+<dd><p>Measures the distance between two patches.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>patch1    : geometry of the first patch.</p></li>
+<li><p>patch2    : geometry of the second patch.</p></li>
+<li><dl class="simple">
+<dt>distance<span class="classifier">distance estimation mode</span></dt><dd><p>center : distance between the centers of the patches.
+no other method is implemented for now.</p>
+</dd>
+</dl>
+</li>
+<li><p>lim       : if not None, list of two float, the first one is the distance above which d=lim[1].</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.duplicateFault">
+<span class="sig-name descname"><span class="pre">duplicateFault</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.duplicateFault" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a copy of the fault.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.extrap1d">
+<span class="sig-name descname"><span class="pre">extrap1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interpolator</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.extrap1d" title="Link to this definition">¶</a></dt>
+<dd><p>Linear extrapolation routine. Found on StackOverflow by sastanin.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.extrapolate">
+<span class="sig-name descname"><span class="pre">extrapolate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length_added</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fracstep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ud'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.extrapolate" title="Link to this definition">¶</a></dt>
+<dd><p>Extrapolates the surface trace. This is usefull when building deep patches for interseismic loading.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>length_added  : Length to add when extrapolating.</p></li>
+<li><p>tol           : Tolerance to find the good length.</p></li>
+<li><p>fracstep      : control each jump size.</p></li>
+<li><dl class="simple">
+<dt>extrap<span class="classifier">if u in extrap -&gt; extrapolates at the end</span></dt><dd><p>if d in extrap -&gt; extrapolates at the beginning
+default is ‘ud’</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.file2trace">
+<span class="sig-name descname"><span class="pre">file2trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.file2trace" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the fault trace directly from a file.
+Format is:
+Lon Lat</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : Name of the fault file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.get2DstrainEst">
+<span class="sig-name descname"><span class="pre">get2DstrainEst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.get2DstrainEst" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the matrix to estimate the full 2d strain tensor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.getHelmertMatrix">
+<span class="sig-name descname"><span class="pre">getHelmertMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.getHelmertMatrix" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a Helmert matrix for a gps data set.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.getcenter">
+<span class="sig-name descname"><span class="pre">getcenter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.getcenter" title="Link to this definition">¶</a></dt>
+<dd><p>Get the center of one patch.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>p    : Patch geometry.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.getcenters">
+<span class="sig-name descname"><span class="pre">getcenters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.getcenters" title="Link to this definition">¶</a></dt>
+<dd><p>Get the center of the patches.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.getpatchgeometry">
+<span class="sig-name descname"><span class="pre">getpatchgeometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.getpatchgeometry" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the patch geometry as needed for okada85.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>patch         : index of the wanted patch or patch;</p></li>
+<li><p>center        : if true, returns the coordinates of the center of the patch. if False, returns the UL corner.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.getslip">
+<span class="sig-name descname"><span class="pre">getslip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.getslip" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the slip vector for a patch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.importPatches">
+<span class="sig-name descname"><span class="pre">importPatches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[45.0,</span> <span class="pre">45.0]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.importPatches" title="Link to this definition">¶</a></dt>
+<dd><p>Builds a patch geometry and the corresponding files from a relax co-seismic file type.
+Args:</p>
+<blockquote>
+<div><p>filename    : Input from Relax (See Barbot and Cie on the CIG website).
+origin      : Origin of the reference frame used by relax. [lon, lat]</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.initializeslip">
+<span class="sig-name descname"><span class="pre">initializeslip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.initializeslip" title="Link to this definition">¶</a></dt>
+<dd><p>Re-initializes the fault slip array.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>n     : Number of slip values. If None, it’ll take the number of patches.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.ll2xy">
+<span class="sig-name descname"><span class="pre">ll2xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.ll2xy" title="Link to this definition">¶</a></dt>
+<dd><p>Do the lat lon 2 utm transform</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.mergePatches">
+<span class="sig-name descname"><span class="pre">mergePatches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.mergePatches" title="Link to this definition">¶</a></dt>
+<dd><p>Merges 2 patches that have common corners.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>p1    : index of the patch #1.</p></li>
+<li><p>p2    : index of the patch #2.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">134</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxdepth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'equal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_to_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the available elements of the fault.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>ref           : Referential for the plot (‘utm’ or ‘lonlat’).</p></li>
+<li><p>figure        : Number of the figure.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.readPatchesFromFile">
+<span class="sig-name descname"><span class="pre">readPatchesFromFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.readPatchesFromFile" title="Link to this definition">¶</a></dt>
+<dd><p>Read the patches from a GMT formatted file.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>filename  : Name of the file.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.rotationHoriz">
+<span class="sig-name descname"><span class="pre">rotationHoriz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.rotationHoriz" title="Link to this definition">¶</a></dt>
+<dd><p>Rotates the geometry of the fault around center, of an angle.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>center    : [lon,lat]</p></li>
+<li><p>angle     : degrees</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.saveGFs">
+<span class="sig-name descname"><span class="pre">saveGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.saveGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Saves the Green’s functions in different files
+Args:</p>
+<blockquote>
+<div><p>dtype       : Format of the binary data saved.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.setGFs">
+<span class="sig-name descname"><span class="pre">setGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strikeslip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dipslip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.setGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Stores the Green’s functions matrices into the fault structure.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>data          : Data structure from gps or insar.</p></li>
+<li><p>strikeslip    : List of matrices of the Strikeslip Green’s functions, ordered E, N, U</p></li>
+<li><p>dipslip       : List of matrices of the dipslip Green’s functions, ordered E, N, U</p></li>
+<li><p>tensile       : List of matrices of the tensile Green’s functions, ordered E, N, U</p></li>
+</ul>
+<p>If you provide InSAR GFs, these need to be projected onto the LOS direction already.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.setGFsFromFile">
+<span class="sig-name descname"><span class="pre">setGFsFromFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strikeslip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dipslip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.setGFsFromFile" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the Green’s functions from binary files. Be carefull, these have to be in the 
+good format (i.e. if it is GPS, then GF are E, then N, then U, optional, and 
+if insar, GF are projected already)
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>data          : Data structure from gps or insar.</p></li>
+<li><p>strikeslip    : File containing the Green’s functions for strikeslip displacements.</p></li>
+<li><p>dipslip       : File containing the Green’s functions for dipslip displacements.</p></li>
+<li><p>tensile       : File containing the Green’s functions for tensile displacements.</p></li>
+<li><p>vertical      : Deal with the UP component (gps: default is false, insar, it will be true anyway).</p></li>
+<li><p>dtype         : Type of binary data.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.setdepth">
+<span class="sig-name descname"><span class="pre">setdepth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.setdepth" title="Link to this definition">¶</a></dt>
+<dd><p>Set the maximum depth of the fault patches.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>depth         : Depth of the fault patches.</p></li>
+<li><p>num           : Number of fault patches at depth.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.slip2dis">
+<span class="sig-name descname"><span class="pre">slip2dis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.slip2dis" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the surface displacement at the data location using okada.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>data          : data object from gps or insar.</p></li>
+<li><p>patch         : number of the patch that slips</p></li>
+<li><dl class="simple">
+<dt>slip<span class="classifier">if a number is given, that is the amount of slip along strike</span></dt><dd><p>if three numbers are given, that is the amount of slip along strike, along dip and opening
+if None, values from slip are taken</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.surfacesimulation">
+<span class="sig-name descname"><span class="pre">surfacesimulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonlat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.surfacesimulation" title="Link to this definition">¶</a></dt>
+<dd><p>Takes the slip vector and computes the surface displacement that corresponds on a regular grid.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>box       : Can be a list of [minlon, maxlon, minlat, maxlat].</p></li>
+<li><p>disk      : list of [xcenter, ycenter, radius, n]</p></li>
+<li><p>lonlat    : Arrays of lat and lon. [lon, lat]</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.trace">
+<span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.trace" title="Link to this definition">¶</a></dt>
+<dd><p>Set the surface fault trace.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>Lon           : Array/List containing the Lon points.</p></li>
+<li><p>Lat           : Array/List containing the Lat points.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.trace2xy">
+<span class="sig-name descname"><span class="pre">trace2xy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.trace2xy" title="Link to this definition">¶</a></dt>
+<dd><p>Transpose the surface trace of the fault into the UTM reference.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.translationHoriz">
+<span class="sig-name descname"><span class="pre">translationHoriz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.translationHoriz" title="Link to this definition">¶</a></dt>
+<dd><p>Translates the patches.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>dx    : Translation along x (km)</p></li>
+<li><p>dy    : Translation along y (km)</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.utmzone">
+<span class="sig-name descname"><span class="pre">utmzone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utmzone</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.utmzone" title="Link to this definition">¶</a></dt>
+<dd><p>Set the utm zone of the fault.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>utm           : UTM zone of the fault.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.writeEDKSgeometry">
+<span class="sig-name descname"><span class="pre">writeEDKSgeometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.writeEDKSgeometry" title="Link to this definition">¶</a></dt>
+<dd><p>This routine spits out 2 files:
+filename.lonlatdepth: Lon center | Lat Center | Depth Center (km) | Strike | Dip | Length (km) | Width (km) | patch ID
+filename.END: Easting (km) | Northing (km) | Depth Center (km) | Strike | Dip | Length (km) | Width (km) | patch ID</p>
+<p>These files are to be used with /home/geomod/dev/edks/MPI_EDKS/calcGreenFunctions_EDKS_subRectangles.py</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>ref           : Lon and Lat of the reference point. If None, the patches positions is in the UTM coordinates.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.writeEDKSsubParams">
+<span class="sig-name descname"><span class="pre">writeEDKSsubParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edksfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.writeEDKSsubParams" title="Link to this definition">¶</a></dt>
+<dd><p>Write the subParam file needed for the interpolation of the green’s function in EDKS.
+Francisco’s program cuts the patches into small patches, interpolates the kernels to get the GFs at each point source, 
+then averages the GFs on the pacth. To decide the size of the minimum patch, it uses St Vernant’s principle.
+If amax is specified, the minimum size is fixed.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>data          : Data object from gps or insar.</p></li>
+<li><p>edksfilename  : Name of the file containing the kernels.</p></li>
+<li><p>amax          : Specifies the minimum size of the divided patch. If None, uses St Vernant’s principle.</p></li>
+<li><p>plot          : Activates plotting.</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>filename      : Name of the subParams file created.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.writePatches2File">
+<span class="sig-name descname"><span class="pre">writePatches2File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_slip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.writePatches2File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the patch corners in a file that can be used in psxyz.
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>filename      : Name of the file.</p></li>
+<li><p>add_slip      : Put the slip as a value for the color. Can be None, strikeslip, dipslip, total.</p></li>
+<li><p>scale         : Multiply the slip value by a factor.</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.writeSlipDirection2File">
+<span class="sig-name descname"><span class="pre">writeSlipDirection2File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neg_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.writeSlipDirection2File" title="Link to this definition">¶</a></dt>
+<dd><p>Write a psxyz compatible file to draw lines starting from the center of each patch, 
+indicating the direction of slip.
+Tensile slip is not used…
+scale can be a real number or a string in ‘total’, ‘strikeslip’, ‘dipslip’ or ‘tensile’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.dippingfault.xy2ll">
+<span class="sig-name descname"><span class="pre">xy2ll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.dippingfault.xy2ll" title="Link to this definition">¶</a></dt>
+<dd><p>Do the utm to lat lon transform</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../oldclasses.html">Some Untested Classes with poor documentation</a><ul>
+      <li>Previous: <a href="../oldclasses.html" title="previous chapter">Some Untested Classes with poor documentation</a></li>
+      <li>Next: <a href="faultwithdip.html" title="next chapter">faultwithdip class</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/classes/dippingfault.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

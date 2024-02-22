@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>transformation class &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="velocitymodel class" href="velocitymodel.html" />
+    <link rel="prev" title="tidalfit class" href="tidalfit.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="transformation-class">
+<h1>transformation class<a class="headerlink" href="#transformation-class" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="csi.transformation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">transformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation" title="Link to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.assembleCd">
+<span class="sig-name descname"><span class="pre">assembleCd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_prediction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.assembleCd" title="Link to this definition">¶</a></dt>
+<dd><p>Assembles the data covariance matrices that have been built for each 
+data structure.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>datas         : List of data instances or one data instance</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>add_prediction: Precentage of displacement to add to the Cd </dt><dd><p>diagonal to simulate a Cp (dirty version of 
+a prediction error covariance, see Duputel et
+al 2013, GJI).</p>
+</dd>
+</dl>
+</li>
+<li><p>verbose       : Talk to me (overwrites self.verbose)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.assembleGFs">
+<span class="sig-name descname"><span class="pre">assembleGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.assembleGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Assemble the Green’s functions corresponding to the data in datas.
+Assembled Greens’ functions are stored in self.Gassembled</p>
+<p>Special case: If ‘strain’ is in self.transformations, this parameter will 
+be placed as first and will be common to all data sets (i.e. there is
+only one strain tensor for a region, although there can be multiple 
+translation, rotations, etc for individual networks)</p>
+<dl class="simple">
+<dt>Args:   </dt><dd><ul class="simple">
+<li><p>datas         : list of data objects</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.assembled">
+<span class="sig-name descname"><span class="pre">assembled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.assembled" title="Link to this definition">¶</a></dt>
+<dd><p>Assembles a data vector for inversion using the list datas
+Assembled vector is stored in self.dassembled</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>datas         : list of data objects</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.buildCm">
+<span class="sig-name descname"><span class="pre">buildCm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.buildCm" title="Link to this definition">¶</a></dt>
+<dd><p>Builds a model covariance matrix from std deviation values.
+The matrix is diagonal with sigma**2 values.
+Requires an assembled Green’s function matrix.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>sigma         : float, list or array</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.buildGFs">
+<span class="sig-name descname"><span class="pre">buildGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.buildGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Builds the design matrix for the datasets given.</p>
+<p>The GFs are stored in a dictionary. 
+Each entry of the dictionary is named after the corresponding dataset. 
+Each of these entry is a dictionary that contains the different cases 
+of transformations.</p>
+<dl>
+<dt>Args:   </dt><dd><ul class="simple">
+<li><p>datas             : List of datasets (gps, insar, optical, …)</p></li>
+<li><p>transformations   : List of transformation types</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose           : Talk to me</p></li>
+<li><p>computeNormFact   : Compute the Normalization factors or not</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+<p>Transformation types can be:</p>
+<blockquote>
+<div><dl>
+<dt>For InSAR, Optical, GPS:</dt><dd><p>1 -&gt; estimate a constant offset
+3 -&gt; estimate z = ax + by + c
+4 -&gt; estimate z = axy + bx + cy + d
+‘strain’              -&gt; Estimates a strain tensor</p>
+</dd>
+<dt>For GPS only:</dt><dd><dl class="simple">
+<dt>‘full’                -&gt; Estimates a rotation, </dt><dd><p>translation and scaling
+(Helmert transform).</p>
+</dd>
+</dl>
+<p>‘translation’         -&gt; Estimates a translation
+‘rotation’            -&gt; Estimates a rotation</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.computeNormFactors">
+<span class="sig-name descname"><span class="pre">computeNormFactors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.computeNormFactors" title="Link to this definition">¶</a></dt>
+<dd><p>Sets a common reference for the computation of the transformations</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>datas         : list of data</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.computeTransformNormFactor">
+<span class="sig-name descname"><span class="pre">computeTransformNormFactor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.computeTransformNormFactor" title="Link to this definition">¶</a></dt>
+<dd><p>Computes quantities needed to build the transformation object for 
+a dataset</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>data          : instance of a data class</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.distributem">
+<span class="sig-name descname"><span class="pre">distributem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.distributem" title="Link to this definition">¶</a></dt>
+<dd><p>Uses self.mpost to distribute the values to self.m following the 
+organization of self.Gassembled.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.removePredictions">
+<span class="sig-name descname"><span class="pre">removePredictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.removePredictions" title="Link to this definition">¶</a></dt>
+<dd><p>Given a list of data, predicts the surface displacements from what
+is stored in the self.m dictionary and corrects the data</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>datas         : list of data instances</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose       : Talk to me</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../miscclasses.html">Misc. Classes</a><ul>
+  <li><a href="misc.html">Misc. classes</a><ul>
+      <li>Previous: <a href="tidalfit.html" title="previous chapter">tidalfit class</a></li>
+      <li>Next: <a href="velocitymodel.html" title="next chapter">velocitymodel class</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/classes/transformation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

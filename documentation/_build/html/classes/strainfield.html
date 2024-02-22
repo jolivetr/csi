@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>strainfield class &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="stressfield class" href="stressfield.html" />
+    <link rel="prev" title="faultpostproctents class" href="faultpostproctents.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="strainfield-class">
+<h1>strainfield class<a class="headerlink" href="#strainfield-class" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="csi.strainfield">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">strainfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield" title="Link to this definition">¶</a></dt>
+<dd><p>Class that handles a strain field. Has not been used in a long time… Might be incorrect and untested.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name          : Name of the StrainField dataset.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>utmzone       : UTM zone. Default is 10 (Western US).</p></li>
+<li><p>lon0          : Longitude of the custom utmzone</p></li>
+<li><p>lat0          : Latitude of the custom utmzone</p></li>
+<li><p>ellps         : Ellipsoid</p></li>
+<li><p>verbose       : Talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.closeHDF5">
+<span class="sig-name descname"><span class="pre">closeHDF5</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.closeHDF5" title="Link to this definition">¶</a></dt>
+<dd><p>Closes the input hdf5 file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.computeDilatationRate">
+<span class="sig-name descname"><span class="pre">computeDilatationRate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.computeDilatationRate" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the dilatation rate from the strain rate tensor.
+This is defined as the trace of the strain rate tensor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.computeRotationRateTensor">
+<span class="sig-name descname"><span class="pre">computeRotationRateTensor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.computeRotationRateTensor" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the rotation rate tensor on each point of the grid and stores that in
+self.W. The rotation rate tensor is the anti-symmetric part of the velocity 
+gradient. It writes self.W = 1/2 (L - L’).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.computeStrainRateTensor">
+<span class="sig-name descname"><span class="pre">computeStrainRateTensor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.computeStrainRateTensor" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the strain rate tensor on each point of the grid and stores that in
+self.D. The strain rate tensor is the symmetric part of the velocity gradient. It writes self.D = 1/2 (L + L’).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.getprofile">
+<span class="sig-name descname"><span class="pre">getprofile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loncenter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latcenter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dilatation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.getprofile" title="Link to this definition">¶</a></dt>
+<dd><p>Project the wanted quantity onto a profile. Works on the lat/lon coordinates system.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name              : Name of the profile.</p></li>
+<li><p>loncenter         : Profile origin along longitude.</p></li>
+<li><p>latcenter         : Profile origin along latitude.</p></li>
+<li><p>length            : Length of profile.</p></li>
+<li><p>azimuth           : Azimuth in degrees.</p></li>
+<li><p>width             : Width of the profile</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>data              : name of the data to use (‘dilatation’, ‘veast’, ‘vnorth’, ‘projection’)</p></li>
+<li><p>comp              : if data is ‘projection’, comp is the name of the desired projection.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.intersectProfileFault">
+<span class="sig-name descname"><span class="pre">intersectProfileFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.intersectProfileFault" title="Link to this definition">¶</a></dt>
+<dd><p>Gets the distance between the fault/profile intersection and the profile center.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : name of the profile.</p></li>
+<li><p>fault     : fault instance</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.output2GRD">
+<span class="sig-name descname"><span class="pre">output2GRD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dilatation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.output2GRD" title="Link to this definition">¶</a></dt>
+<dd><p>Output the desired field to a grd file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>outfile       : Name of the outputgrd file.</p></li>
+<li><p>data          : Type of data to output. Can be ‘veast’, ‘vnorth’, ‘dilatation’, ‘projection’, ‘strainrateprojection’</p></li>
+<li><p>comp          : if data is projection or ‘strainrateprojection’, give the name of the projection you want.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'veast'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">123</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Plot one component of the strain field.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>data      : Type of data to plot. Can be ‘dilatation’, ‘veast’, ‘vnorth’</p></li>
+<li><p>faults    : list of faults to plot.</p></li>
+<li><p>gps       : list of gps networks to plot.</p></li>
+<li><p>figure    : figure number</p></li>
+<li><p>ref       : utm or lonlat</p></li>
+<li><p>legend    : add a legend</p></li>
+<li><p>comp      : ??</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.plotprofile">
+<span class="sig-name descname"><span class="pre">plotprofile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'veast'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.plotprofile" title="Link to this definition">¶</a></dt>
+<dd><p>Plot profile.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : Name of the profile.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>data      : Which data to se</p></li>
+<li><p>fault     : add a fault instance</p></li>
+<li><p>comp      : ??</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.projectStrainRateTensor">
+<span class="sig-name descname"><span class="pre">projectStrainRateTensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.projectStrainRateTensor" title="Link to this definition">¶</a></dt>
+<dd><p>Projects the strain rate tensor onto a vector that has an angle ‘angle’
+with the north. The unit vector is :</p>
+<blockquote>
+<div><dl class="simple">
+<dt>V = [      0      ]</dt><dd><p>[ -cos(angle) ]
+[  sin(angle) ]</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>The projection is obtained by doing D.V on each grid point. We then get
+the scalar product of the projection with V.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.projectVelocities">
+<span class="sig-name descname"><span class="pre">projectVelocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.projectVelocities" title="Link to this definition">¶</a></dt>
+<dd><p>Projects the velocity field along a certain angle.
+The output is stored in the self.velproj dictionary and has a name</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : Name of the projected velocity field</p></li>
+<li><p>angle     : azimuth of the projection</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.read_from_h5">
+<span class="sig-name descname"><span class="pre">read_from_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.read_from_h5" title="Link to this definition">¶</a></dt>
+<dd><p>Read the Continuous strain field from a hdf5 file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : Name of the input file.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.strainfield.writeProfile2File">
+<span class="sig-name descname"><span class="pre">writeProfile2File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.strainfield.writeProfile2File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the profile named ‘name’ to the ascii file filename.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : name of the profile to use</p></li>
+<li><p>filename  : output file name</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>fault     : add a fault</p></li>
+</ul>
+</dd>
+<dt>Returns:    </dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../miscclasses.html">Misc. Classes</a><ul>
+  <li><a href="postproc.html">Post Processing and Plotting classes</a><ul>
+      <li>Previous: <a href="faultpostproctents.html" title="previous chapter">faultpostproctents class</a></li>
+      <li>Next: <a href="stressfield.html" title="next chapter">stressfield class</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/classes/strainfield.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

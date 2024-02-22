@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>planarfaultkinematic class &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="verticalfault class" href="verticalfault.html" />
+    <link rel="prev" title="planarfault class" href="planarfault.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="planarfaultkinematic-class">
+<h1>planarfaultkinematic class<a class="headerlink" href="#planarfaultkinematic-class" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">planarfaultkinematic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic" title="Link to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.buildFault">
+<span class="sig-name descname"><span class="pre">buildFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_strike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_dip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_nstrike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_ndip</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.buildFault" title="Link to this definition">¶</a></dt>
+<dd><p>Build fault patches/grid
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>lat,lon,dep:  coordinates at the center of the top edge of the fault (in degrees)</p></li>
+<li><p>strike:       strike angle in degrees (from North)</p></li>
+<li><p>dip:          dip angle in degrees (from horizontal)</p></li>
+<li><p>f_length: Fault length, km</p></li>
+<li><p>f_width:  Fault width, km</p></li>
+<li><p>grid_size:    Spacing between point sources within each patch</p></li>
+<li><p>p_nstrike:   Number of subgrid points per patch along strike (multiple pts src per patch)</p></li>
+<li><p>p_ndip:      Number of subgrid points per patch along dip    (multiple pts src per patch)</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.buildKinDataTriangleMRF">
+<span class="sig-name descname"><span class="pre">buildKinDataTriangleMRF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eik_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rake_para=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_type='D'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofd=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stdout&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efd=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.buildKinDataTriangleMRF" title="Link to this definition">¶</a></dt>
+<dd><p>Build Kinematic Green’s functions based on the discretized fault. Green’s functions will be calculated 
+for a given shear modulus and a given slip (cf., slip) along a given rake angle (cf., rake)
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>data: Seismic data object</p></li>
+<li><p>eik_solver: eikonal solver</p></li>
+<li><p>Mu:   Shear modulus</p></li>
+<li><p>rake_para: Rake of the slip parallel component in deg (default=0. deg)</p></li>
+<li><p>out_type:   ‘D’ for displacement, ‘V’ for velocity, ‘A’ for acceleration (default=’D’)</p></li>
+<li><p>verbose:    True or False (default=True)</p></li>
+</ul>
+</div></blockquote>
+<p>WARNING: ONLY VALID FOR HOMOGENEOUS RUPTURE VELOCITY</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.buildKinGFs">
+<span class="sig-name descname"><span class="pre">buildKinGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rake</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slip=1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rise_time=2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stf_type='triangle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rfile_name=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_type='D'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofd=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stdout&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efd=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.buildKinGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Build Kinematic Green’s functions based on the discretized fault. Green’s functions will be calculated 
+for a given shear modulus and a given slip (cf., slip) along a given rake angle (cf., rake)
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>data: Seismic data object</p></li>
+<li><p>Mu:   Shear modulus</p></li>
+<li><p>rake: Rake used to compute Green’s functions</p></li>
+<li><p>slip: Slip amplitude used to compute Green’s functions (in m)</p></li>
+<li><p>rise_time:  Duration of the STF in each patch</p></li>
+<li><p>stf_type:   Type of STF pulse</p></li>
+<li><p>rfile_name: User specified stf file name if stf_type=’rfile’</p></li>
+<li><p>out_type:   ‘D’ for displacement, ‘V’ for velocity, ‘A’ for acceleration</p></li>
+<li><p>verbose:    True or False</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.buildSubGrid">
+<span class="sig-name descname"><span class="pre">buildSubGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbp_strike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbp_dip</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.buildSubGrid" title="Link to this definition">¶</a></dt>
+<dd><p>Define a subgrid of point sources on the fault (multiple point src per patches)
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>grid_size:    Spacing between point sources within each patch</p></li>
+<li><p>p_nstrike:   Number of subgrid points per patch along strike</p></li>
+<li><p>p_ndip:      Number of subgrid points per patch along dip</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.creaWav">
+<span class="sig-name descname"><span class="pre">creaWav</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_G</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.creaWav" title="Link to this definition">¶</a></dt>
+<dd><p>Create a list of Waveform dictionaries
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>data: Data object</p></li>
+<li><p>include_G: if True, include G (default=True)</p></li>
+<li><p>include_d: if True, include d (default=True)</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filtFunc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_npts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_G</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.filter" title="Link to this definition">¶</a></dt>
+<dd><p>Waveform filtering
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>data: Data object</p></li>
+<li><p>a: numerator polynomial of the IIR filter</p></li>
+<li><p>b: denominator polynomial of the IIR filter</p></li>
+<li><p>filtFunc: filter function</p></li>
+<li><p>mean_npts: remove mean over the leading mean_npts points (default=None)</p></li>
+<li><p>filter_G: if True, filter G (default=True)</p></li>
+<li><p>filter_d: if True, filter d (default=True)</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.getHypoToCenter">
+<span class="sig-name descname"><span class="pre">getHypoToCenter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sd_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.getHypoToCenter" title="Link to this definition">¶</a></dt>
+<dd><p>Get patch center coordinates from hypocenter
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>p      : Patch number.</p></li>
+<li><p>sd_dist: If true, will return along dip and along strike distances</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.loadKinData">
+<span class="sig-name descname"><span class="pre">loadKinData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data_kin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.loadKinData" title="Link to this definition">¶</a></dt>
+<dd><p>Read Data (1 sac file per channel)
+Args:</p>
+<blockquote>
+<div><p>data  : Data object corresponding to the Green’s function to be loaded
+i_dir : Input directory
+station_file: read station list from ‘station_file’</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.loadKinGFs">
+<span class="sig-name descname"><span class="pre">loadKinGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rake</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">90]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gf_kin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.loadKinGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Reading Green’s functions (1 sac file per channel per patch for each rake)
+Args:</p>
+<blockquote>
+<div><p>data       : Data object corresponding to the Green’s function to be loaded
+rake       : List of rake values (default=0 and 90 deg)
+i_dir      : Output directory name (default=’gf_kin’)
+station_file: read station list from ‘station_file’</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.saveKinData">
+<span class="sig-name descname"><span class="pre">saveKinData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data_kin'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.saveKinData" title="Link to this definition">¶</a></dt>
+<dd><p>Write Data (1 sac file per channel)
+Args:</p>
+<blockquote>
+<div><p>data  : Data object corresponding to the Green’s function to be saved
+o_dir : Output file name</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.saveKinGFs">
+<span class="sig-name descname"><span class="pre">saveKinGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gf_kin'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.saveKinGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Writing Green’s functions (1 sac file per channel per patch for each rake)
+Args:</p>
+<blockquote>
+<div><p>data  : Data object corresponding to the Green’s function to be saved
+o_dir : Output directory name</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.setHypoXY">
+<span class="sig-name descname"><span class="pre">setHypoXY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UTM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.setHypoXY" title="Link to this definition">¶</a></dt>
+<dd><p>Set hypocenter attributes from x,y
+Outputs: East/West UTM/Lon coordinates, depth attributes
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>x:   east  coordinates</p></li>
+<li><p>y:   north coordinates</p></li>
+<li><dl class="simple">
+<dt>UTM: default=True, x and y is in UTM coordinates (in km)</dt><dd><p>if    ==False x=lon and y=lat (in deg)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.planarfaultkinematic.trim">
+<span class="sig-name descname"><span class="pre">trim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_G</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.planarfaultkinematic.trim" title="Link to this definition">¶</a></dt>
+<dd><p>Waveform windowing
+Args:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>data: Data object</p></li>
+<li><p>mint: Minimum time</p></li>
+<li><p>maxt: Maximum time</p></li>
+<li><p>trim_G: if True, trim G (default=True)</p></li>
+<li><p>trim_d: if True, trim d (default=True)</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../oldclasses.html">Some Untested Classes with poor documentation</a><ul>
+      <li>Previous: <a href="planarfault.html" title="previous chapter">planarfault class</a></li>
+      <li>Next: <a href="verticalfault.html" title="next chapter">verticalfault class</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/classes/planarfaultkinematic.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

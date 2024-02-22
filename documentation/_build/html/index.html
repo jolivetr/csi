@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>CSI user manual &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=f78ba3b0" />
+    <script src="_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=e637711f"></script>
+    <script src="_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="csi-user-manual">
+<h1>CSI user manual<a class="headerlink" href="#csi-user-manual" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
+</ul>
+</div>
+<p>CSI stands for Classic Slip Inversion. In brief, it allows to quickly build scripts that will allow to obtain the slip distribution along a fault for an earthquake given some geodetic and seismological data. Here is an example of what kind of model you can get. This is a simplified version of the slip distribution and coupling map we have built for the Nepal earthquake in 2015. This figure has been made with <a href="https://github.com/GenericMappingTools/gmt" target="_blank">GMT</a> from the output of CSI.</p>
+<a class="reference internal image-reference" href="_images/simplenepal.png"><img alt="_images/simplenepal.png" class="align-center" src="_images/simplenepal.png" style="width: 696.5px; height: 439.0px;" /></a>
+</section>
+<section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h1>
+<p>This library has been designed to handle what is simple in fault slip inversions and especially what should not be re-written everytime a new students comes to work. No one should have to decide how to implement a fault or insar data in python before trying to run an inverse problem because it is not interesting (the inverse problem is interesting and should be dealt with great care). Therefore, we have put together this set of python classes that can interact together and allow anyone to set up his own problem.</p>
+<p>Because we do not aim at solving everyone’s problems, this code is open and can be augmented if you feel like it. Do not hesitate to contact us and share potentially new capabilities.</p>
+<p>This manual is minimal… We are aware of it… But until someone manages to lock the authors for enough time in a room with a computer and enough food, there will not be a better one. Luckily, we answer emails and if we are interested in the project, we can help.</p>
+<p>Here is a non-exhaustive list of basic capabilities:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Simplifies construction of multi-patch faults with rectangular, triangular and node based parameterization</p></li>
+<li><p>For each of the fault parameterizations, allows construction of GFs (homogeneous or stratified elastic structure)</p></li>
+<li><p>Handles various geodetic data types
+- SAR (offsets or interferometry)
+- GPS (hence tide gauges which is a vertical GPS, as everyone knows)
+- Optical cross-correlation measurements</p></li>
+<li><p>Allows to manipulate the data
+- Read, plot, make profiles of InSAR time series (no time-dependent modeling yet).
+- Extracts empirical covariance functions from satellite imagery data
+- Downsample satellite imagery data: gradient based (Jonson et al 2002), curvature based (Simons et al 2002) or model based (Lohman et al 2005)</p></li>
+<li><p>Makes profiles across displacements fields (any kind), plot faults in 2-3D, plot displacement maps and vectors, coastlines, political boundaries, etc</p></li>
+<li><p>Tools for fault slip inversions:
+- Solves for slip distribution using constrained LSQ or classic MCMC (less than ~40 parameters).
+- Can provide the input files for AlTar (Bayesian solver of M. Simons’ group &#64;CalTech, available <a class="reference external" href="https://github.com/AlTarFramework/altar">here</a>)
+- Some tools to handle kinematic slip inversions.</p></li>
+</ul>
+</div></blockquote>
+<p>To cite CSI, please use the doi of the code provided by Github or see the citation page.</p>
+</section>
+<section id="contacts">
+<h1>Contacts<a class="headerlink" href="#contacts" title="Link to this heading">¶</a></h1>
+<p>To contact us, please visit our websites:</p>
+<ul class="simple">
+<li><p>Romain Jolivet &#64;Ecole Normale Superieure: <a class="reference external" href="http://www.geologie.ens.fr/~jolivet">http://www.geologie.ens.fr/~jolivet</a></p></li>
+<li><p>Zacharie Duputel &#64;IPGP: <a class="reference external" href="https://zduputel.github.io">https://zduputel.github.io</a></p></li>
+<li><p>Mark Simons &#64;CalTech: <a class="reference external" href="http://www.gps.caltech.edu/~simons">http://www.gps.caltech.edu/~simons</a></p></li>
+</ul>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="installation.html" title="next chapter">Installation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

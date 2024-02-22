@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>eulerPoleUtils tools &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="EDKSmp Tools" href="EDKSmp.html" />
+    <link rel="prev" title="csiutils tools" href="csiutils.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-csi.eulerPoleUtils">
+<span id="eulerpoleutils-tools"></span><h1>eulerPoleUtils tools<a class="headerlink" href="#module-csi.eulerPoleUtils" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.euler2gps">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">euler2gps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pxyz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.euler2gps" title="Link to this definition">¶</a></dt>
+<dd><p>Compute linear velocity due to angular rotation about an Euler pole.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.geo2topo">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">geo2topo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.geo2topo" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Transforms an ECEF relative position vector ‘dR’ to a topocentric vector ENU ‘rt’</dt><dd><ul class="simple">
+<li><p>dR.shape MUST be (3,N) for matvecseq to work</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.gps2euler">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">gps2euler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">se</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.gps2euler" title="Link to this definition">¶</a></dt>
+<dd><p>Solve for the Euler pole given station positions and velocitites.</p>
+<p>Arguments:
+lat                     array of station latitudes (radians)
+lon                     array of station longitudes (radians)
+elev                    array of station elevations
+ve                      array of station east velocities/displacements (meters)
+vn                      array of station north velocities/displacements (meters)
+se                      east velocitiy uncertainties (meters)
+sn                      north velocity uncertainties (meters)</p>
+<p>Output:
+elat                    latitude of euler pole
+elon                    longitude of euler pole
+omega                   pole rotation angle</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.llh2xyz">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">llh2xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.llh2xyz" title="Link to this definition">¶</a></dt>
+<dd><p>Convert lat-lon-h to XYZ assuming a spherical Earth with radius equal to
+the local ellipsoid radius.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.matmatseq">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">matmatseq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.matmatseq" title="Link to this definition">¶</a></dt>
+<dd><p>Multiplies matrix stacked along the depth dimension by another matrix stacked
+along the depth dimension</p>
+<p>mat1.shape must be (3,3,N)
+mat2.shape must be (3,3,N)
+out.shape will be (3,3,N)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.matvecseq">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">matvecseq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.matvecseq" title="Link to this definition">¶</a></dt>
+<dd><p>Multiplies matrix stacked along the depth dimension by a row vector stacked along the
+vertical dimension</p>
+<p>mat.shape must be (3,3,N)
+vec.shape must be (N,3)
+out.shape will be (N,3)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.rotmat2euler">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">rotmat2euler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.rotmat2euler" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the Euler pole vector from a rotation matrix R.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.topo2geo">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">topo2geo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.topo2geo" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Transforms a topocentric ENU vector ‘rt’ to ECEF coordinate vector ‘dR’</dt><dd><ul class="simple">
+<li><p>rt.shape MUST be (3,N) for matvecseq to work</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.unit">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Reads in an input Nx3 matrix of XYZ points and outputs the unit vectors and norms.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.eulerPoleUtils.xyz2llh">
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">xyz2llh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.xyz2llh" title="Link to this definition">¶</a></dt>
+<dd><p>Convert XYZ coordinates to latitude, longitude, height, assuming a spherical Earth.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../tools.html">Useful Tools</a><ul>
+      <li>Previous: <a href="csiutils.html" title="previous chapter">csiutils tools</a></li>
+      <li>Next: <a href="EDKSmp.html" title="next chapter">EDKSmp Tools</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/tools/eulerPoleUtils.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

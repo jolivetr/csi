@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>insartimeseries class &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gpstimeseries class" href="gpstimeseries.html" />
+    <link rel="prev" title="seismiclocations class" href="seismiclocations.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="insartimeseries-class">
+<h1>insartimeseries class<a class="headerlink" href="#insartimeseries-class" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="csi.insartimeseries">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">insartimeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries" title="Link to this definition">¶</a></dt>
+<dd><p>A class that handles a time series of insar data</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : Name of the dataset.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>utmzone   : UTM zone  (optional, default=None)</p></li>
+<li><p>lon0      : Longitude of the center of the UTM zone</p></li>
+<li><p>lat0      : Latitude of the center of the UTM zone</p></li>
+<li><p>ellps     : ellipsoid (optional, default=’WGS84’)</p></li>
+<li><p>verbose   : Speak to me (default=True)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.buildCd">
+<span class="sig-name descname"><span class="pre">buildCd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diagonalVar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalizebystd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.buildCd" title="Link to this definition">¶</a></dt>
+<dd><p>Builds the full Covariance matrix from values of sigma and lambda.</p>
+<dl class="field-list simple">
+<dt class="field-odd">If function=’exp’<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<div class="math notranslate nohighlight">
+\[C_d(i,j) = \sigma^2 e^{-\frac{||i,j||_2}{\lambda}}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Elif function=’gauss’<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<div class="math notranslate nohighlight">
+\[C_d(i,j) = \sigma^2 e^{-\frac{||i,j||_2^2}{2\lambda}}\]</div>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>sigma             : Sigma term of the covariance</p></li>
+<li><p>lam               : Caracteristic length of the covariance</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>function          : Can be ‘gauss’ or ‘exp’</p></li>
+<li><p>diagonalVar       : Substitute the diagonal by the standard deviation of the measurement squared</p></li>
+<li><p>normalizebystd    : Normalize Cd by the stddeviation (weird idea… why would you do that?)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.cleanProfiles">
+<span class="sig-name descname"><span class="pre">cleanProfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.cleanProfiles" title="Link to this definition">¶</a></dt>
+<dd><p>Wrapper around cleanProfile of insar.
+see cleanProfile method of insar class</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.dates2time">
+<span class="sig-name descname"><span class="pre">dates2time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.dates2time" title="Link to this definition">¶</a></dt>
+<dd><p>Computes a time vector in years, starting from the date #start.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>start     : Index of the starting date.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>time, an array of floats</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.extractAroundGPS">
+<span class="sig-name descname"><span class="pre">extractAroundGPS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doprojection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.extractAroundGPS" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a gps object with values projected along the LOS around the 
+gps stations included in gps. In addition, it projects the gps displacements 
+along the LOS</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>gps           : gps object</p></li>
+<li><p>distance      : distance to consider around the stations</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>doprojection  : Projects the gps enu disp into the los as well</p></li>
+<li><p>reference     : if True, removes to the InSAR the average gps displacemnt in the LOS for the points overlapping in time.</p></li>
+<li><p>verbose       : Talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.getInsarAtDate">
+<span class="sig-name descname"><span class="pre">getInsarAtDate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.getInsarAtDate" title="Link to this definition">¶</a></dt>
+<dd><p>Given a datetime instance, returns the corresponding insar instance.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>date          : datetime instance.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose       : talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>insar : instance of insar class</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.getProfiles">
+<span class="sig-name descname"><span class="pre">getProfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loncenter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latcenter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.getProfiles" title="Link to this definition">¶</a></dt>
+<dd><p>Get a profile for each time step for Arguments, check in insar getprofile</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>prefix    : Prefix to build the name of the profiles (each profile will be named ‘prefix date’)</p></li>
+<li><p>loncenter : Longitude of the center of the profile</p></li>
+<li><p>latcenter : Latitude of the center of the profile</p></li>
+<li><p>length    : length of the profile</p></li>
+<li><p>azimuth   : Azimuth of the profile</p></li>
+<li><p>width     : Width of the profile</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose   : talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Profiles are stored in the attribute {profiles}</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.initializeTimeSeries">
+<span class="sig-name descname"><span class="pre">initializeTimeSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.initializeTimeSeries" title="Link to this definition">¶</a></dt>
+<dd><p>Initializes the time series object using a series of dates. Two modes of input are possible</p>
+<dl class="field-list simple">
+<dt class="field-odd">Mode 1<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>time          : List of dates (datetime object)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Mode 2<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p>start         : Starting date (datetime object)</p></li>
+<li><p>end           : Ending date</p></li>
+<li><p>increment     : Increment of time in days</p></li>
+<li><p>steps         : How many steps</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.plotProfiles">
+<span class="sig-name descname"><span class="pre">plotProfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">124</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">markersize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspectRatio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.plotProfiles" title="Link to this definition">¶</a></dt>
+<dd><p>Plots the profiles in 3D plot.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>prefix        : prefix of the profile to plot</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>figure        : figure number</p></li>
+<li><p>show          : True/False</p></li>
+<li><p>norm          : tuple of upper and lower limit along the z-axis</p></li>
+<li><p>xlim          : tuple of upper and lower limit along the x-axis (removes the points before plotting)</p></li>
+<li><p>zlim          : tuple of upper and lower limit along the z-axis (removes the points before plotting)</p></li>
+<li><p>marker        : matplotlib marker style</p></li>
+<li><p>color         : matplotlib color style</p></li>
+<li><p>line          : If True, plots a line (default is False)</p></li>
+<li><p>linewidth     : controls the width of the line</p></li>
+<li><p>view          : list of elevation angle and azimuth (default is None)</p></li>
+<li><p>aspectRatio   : aspect of the z-axis with respect to other axis</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.readFromGIAnT">
+<span class="sig-name descname"><span class="pre">readFromGIAnT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setmaster2zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inctype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'onefloat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'recons'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepnan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">readModel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.readFromGIAnT" title="Link to this definition">¶</a></dt>
+<dd><p>Read the output from a typical GIAnT h5 output file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>h5file        : Input h5file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>setmaster2zero: If index is provided, master will be replaced by zeros (no substraction)</p></li>
+<li><p>zfile         : File with elevation</p></li>
+<li><p>lonfile       : File with longitudes</p></li>
+<li><p>latfile       : File with latitudes</p></li>
+<li><p>filetype      : type of data in lon, lat and elevation file (default: ‘f’)</p></li>
+<li><p>incidence     : Incidence angle (degree)</p></li>
+<li><p>heading       : Heading angle (degree)</p></li>
+<li><p>inctype       : Type of the incidence and heading values (see insar.py for details). Can be ‘onefloat’, ‘grd’, ‘binary’, ‘binaryfloat’</p></li>
+<li><p>field         : Name of the field in the h5 file.</p></li>
+<li><p>mask          : Adds a common mask to the data. mask is an array the same size as the data with nans and 1. It can also be a tuple with a key word in the h5file, a value and ‘above’ or ‘under’</p></li>
+<li><p>readModel     : Reads the model parameters</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.readFromKFts">
+<span class="sig-name descname"><span class="pre">readFromKFts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setmaster2zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inctype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'onefloat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closeh5</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rawts'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rawts_std'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepnan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">readModel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.readFromKFts" title="Link to this definition">¶</a></dt>
+<dd><p>Read the output from a typical GIAnT h5 output file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>h5file        : Input h5file (phase file)</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>setmaster2zero: If index is provided, master will be replaced by zeros (no substraction)</p></li>
+<li><p>zfile         : File with elevation</p></li>
+<li><p>lonfile       : File with longitudes</p></li>
+<li><p>latfile       : File with latitudes</p></li>
+<li><p>filetype      : type of data in lon, lat and elevation file (default: ‘f’)</p></li>
+<li><p>incidence     : Incidence angle (degree)</p></li>
+<li><p>box           : Crop data (default None), ex: [y0:y1,x0:x1]</p></li>
+<li><p>heading       : Heading angle (degree)</p></li>
+<li><p>inctype       : Type of the incidence and heading values (see insar.py for details). Can be ‘onefloat’, ‘grd’, ‘binary’, ‘binaryfloat’</p></li>
+<li><p>field         : Name of the field in the h5 file.</p></li>
+<li><p>error         : Name of the phase std deviation field.</p></li>
+<li><p>mask          : Adds a common mask to the data. mask is an array the same size as the data with nans and 1. It can also be a tuple with a key word in the h5file, a value and ‘above’ or ‘under’</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.readFromStamps">
+<span class="sig-name descname"><span class="pre">readFromStamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tsfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonlatfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datefile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setmaster2zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inctype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'onefloat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepnan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.readFromStamps" title="Link to this definition">¶</a></dt>
+<dd><p>Read the output from a typical Stamps mat file</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.readModelFromGIAnT">
+<span class="sig-name descname"><span class="pre">readModelFromGIAnT</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.readModelFromGIAnT" title="Link to this definition">¶</a></dt>
+<dd><p>Read the model parameters from GIAnT after one has read the time series</p>
+<dl class="field-list simple">
+<dt class="field-odd">Note<span class="colon">:</span></dt>
+<dd class="field-odd"><p>One needs to run the readFromGIAnT method.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.reference2area">
+<span class="sig-name descname"><span class="pre">reference2area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.reference2area" title="Link to this definition">¶</a></dt>
+<dd><p>References the time series to an area. Selects the area and sets all dates to zero at this area.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>lon       : longitude of the center of the area</p></li>
+<li><p>lat       : latitude of the center of the area</p></li>
+<li><p>radius    : Radius of the area</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.reference2timeseries">
+<span class="sig-name descname"><span class="pre">reference2timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpstimeseries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daysaround</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propagate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.reference2timeseries" title="Link to this definition">¶</a></dt>
+<dd><p>References the InSAR time series to the GPS time series.
+We estimate a linear function of range and azimuth on the difference 
+between InSAR and GPS at each insar epoch.</p>
+<p>We solve for the a, b, c terms in the equation:</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>gpstimeseries     : A gpstimeseries instance.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>daysaround        : How many days around the date do we consider</p></li>
+<li><p>distance          : Diameter of the circle surrounding a gps station to gather InSAR points</p></li>
+<li><p>verbose           : Talk to me</p></li>
+<li><p>parameters        : 1, 3 or 4</p></li>
+<li><p>propagate         : ‘mean’ if no gps data available</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>sargps            : a gpstimeseries instance with the InSAR values around the GPS stations</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.referenceProfiles">
+<span class="sig-name descname"><span class="pre">referenceProfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.referenceProfiles" title="Link to this definition">¶</a></dt>
+<dd><p>Removes the mean value of points between xmin and xmax for all the profiles.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>prefix    : Prefix of the profiles</p></li>
+<li><p>xmin      : Minimum x-value</p></li>
+<li><p>xmax      : Maximum x-value</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose   : talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Directly modifies the profiles in attribute {profiles}</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.referenceProfiles2Date">
+<span class="sig-name descname"><span class="pre">referenceProfiles2Date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.referenceProfiles2Date" title="Link to this definition">¶</a></dt>
+<dd><p>Removes the profile at date ‘date’ to all the profiles in the time series.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>prefix        : Name of the profiles</p></li>
+<li><p>date          : Tuple of 3, (year(int), month(int), day(int)), or 6, (year(int), month(int), day(int), hour(int), min(int), s(float)), numbers for the date</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Creates a new set of profiles with names starting by “Referenced”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.referenceTimeSeries2Date">
+<span class="sig-name descname"><span class="pre">referenceTimeSeries2Date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.referenceTimeSeries2Date" title="Link to this definition">¶</a></dt>
+<dd><p>References the time series to the date given as argument.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>date              : Can a be tuple/list of 3 integers (year, month, day) or a tuple/list of 6 integers (year, month, day, hour, min, sec) or a datetime object.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Directly modifies time series</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.removeDate">
+<span class="sig-name descname"><span class="pre">removeDate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.removeDate" title="Link to this definition">¶</a></dt>
+<dd><p>Remove one date from the time series.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>date      : tuple of (year, month, day) or (year, month, day ,hour, min,s)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.removeDates">
+<span class="sig-name descname"><span class="pre">removeDates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.removeDates" title="Link to this definition">¶</a></dt>
+<dd><p>Remove a list of dates from the time series.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>dates     : List of dates to be removed. Each date can be a tuple (year, month, day) or (year, month, day, hour, min, sd).</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.select_pixels">
+<span class="sig-name descname"><span class="pre">select_pixels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">minlon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxlon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minlat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxlat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.select_pixels" title="Link to this definition">¶</a></dt>
+<dd><p>Select the pixels in a box defined by min and max, lat and lon.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>minlon        : Minimum longitude.</p></li>
+<li><p>maxlon        : Maximum longitude.</p></li>
+<li><p>minlat        : Minimum latitude.</p></li>
+<li><p>maxlat        : Maximum latitude.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Directly kicks out pixels that are outside the box</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.setLonLat">
+<span class="sig-name descname"><span class="pre">setLonLat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elevation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.setLonLat" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the lon and lat array and initialize things.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>lon           : Can be an array or a string.</p></li>
+<li><p>lat           : Can be an array or a string.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>incidence     : Can be an array or a string.</p></li>
+<li><p>heading       : Can be an array or a string.</p></li>
+<li><p>elevation     : Can be an array or a string.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.setTimeSeries">
+<span class="sig-name descname"><span class="pre">setTimeSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeseries</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.setTimeSeries" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the values in the time series.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>timeseries    : List of arrays of the right size.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.smoothProfiles">
+<span class="sig-name descname"><span class="pre">smoothProfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.smoothProfiles" title="Link to this definition">¶</a></dt>
+<dd><p>Runs an simple mean or median filter on all profiles</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>prefix    : prefix of the profiles</p></li>
+<li><p>window    : width of the window (km)</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>method    : ‘mean’ or ‘median’</p></li>
+<li><p>verbose   : talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Creates new profiles in the attribute {profiles} with names starting by “Smoothed”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.write2GRDs">
+<span class="sig-name descname"><span class="pre">write2GRDs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'surface'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oversample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useGMT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.write2GRDs" title="Link to this definition">¶</a></dt>
+<dd><p>Write all the dates to GRD files.
+For arg description, see insar.write2grd</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.write2h5file">
+<span class="sig-name descname"><span class="pre">write2h5file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'recons'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.write2h5file" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the time series in a h5file</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>h5file        : Output h5file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>field         : name of the field in the h5 file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.write2lonlath5">
+<span class="sig-name descname"><span class="pre">write2lonlath5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nSamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.write2lonlath5" title="Link to this definition">¶</a></dt>
+<dd><p>Maps the data onto a geocoded h5file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : Output file name</p></li>
+<li><p>nSamples      : number of points along lon and lat (int or tuple of ints)</p></li>
+<li><p>increments    : longitude and latitude increments (float or tuple of floats)</p></li>
+<li><p>verbose       : True/False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.writeProfiles2Files">
+<span class="sig-name descname"><span class="pre">writeProfiles2Files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profileprefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outprefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.writeProfiles2Files" title="Link to this definition">¶</a></dt>
+<dd><p>Write all the profiles to a file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>profileprefix : prefix of the profiles to write</p></li>
+<li><p>outprefix     : prefix of the output files</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>fault         : add intersection with a fault</p></li>
+<li><p>verbose       : talk to me</p></li>
+<li><p>smoothed      : Do we write the smoothed profiles?</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insartimeseries.writeProfiles2OneFile">
+<span class="sig-name descname"><span class="pre">writeProfiles2OneFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profileprefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insartimeseries.writeProfiles2OneFile" title="Link to this definition">¶</a></dt>
+<dd><p>Write the profiles to one file</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>profileprefix     : prefix of the profiles to write</p></li>
+<li><p>filename          : output filename</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose           : talk to me</p></li>
+<li><p>smoothed          : do we write the smoothed profiles?</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../dataclasses.html">Classes for types of data</a><ul>
+      <li>Previous: <a href="seismiclocations.html" title="previous chapter">seismiclocations class</a></li>
+      <li>Next: <a href="gpstimeseries.html" title="next chapter">gpstimeseries class</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/classes/insartimeseries.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

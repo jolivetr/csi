@@ -161,7 +161,7 @@ class TriangularTents(TriangularPatches):
             dip.append(dp)
 
         # Compute the mean (beware of angle stuff), and we count from 0 to 2pi
-        j = np.complex(0., 1.)
+        j = complex(0., 1.)
         strike = np.angle(np.sum([np.exp(j*s) for s in strike])/len(strike))
         if strike<0.: strike += 2*np.pi
         dip = np.mean(dip)
@@ -601,7 +601,7 @@ class TriangularTents(TriangularPatches):
                 elif values=='dip':
                     values = np.array([self.getTentInfo(t)[4] for t in self.tent])
                 elif values=='index':
-                    values = np.array([np.float(self.getTentindex(t)) for t in self.tent])
+                    values = np.array([float(self.getTentindex(t)) for t in self.tent])
                 self.slip[:,0] = values
             # Numpy array 
             if type(values) is np.ndarray:
@@ -1361,9 +1361,9 @@ class TriangularTents(TriangularPatches):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def plot(self, figure=134, slip='total', equiv=False, figsize=(None, None),
+    def plot(self, figure=134, slip='total', equiv=False, figsize=(None, None), Map=True, Fault=True,
              show=True, axesscaling=True, norm=None, linewidth=1.0, plot_on_2d=True, 
-             method='scatter', npoints=10, cmap='jet',
+             method='scatter', npoints=10, cmap='jet', shadedtopo=False,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              drawCoastlines=False, expand=0.2, vertIndex=False, savefig=False):
         '''
@@ -1388,28 +1388,50 @@ class TriangularTents(TriangularPatches):
         '''
 
         # Get lons lats
-        lonmin = np.min([p[:,0] for p in self.patchll])-expand
-	
-        if lonmin<0: 
-            lonmin += 360
-        lonmax = np.max([p[:,0] for p in self.patchll])+expand
-        if lonmax<0:
-            lonmax+= 360
-        latmin = np.min([p[:,1] for p in self.patchll])-expand
-        latmax = np.max([p[:,1] for p in self.patchll])+expand
+        if hasattr(self, 'patchll'):
+            lonmin = np.min([p[:,0] for p in self.patchll])-expand
+            if lonmin<0: lonmin += 360
+            lonmax = np.max([p[:,0] for p in self.patchll])+expand
+            if lonmax<0: lonmax+= 360
+            latmin = np.min([p[:,1] for p in self.patchll])-expand
+            latmax = np.max([p[:,1] for p in self.patchll])+expand
+        else:
+            lonmin = np.min(self.lon)-expand
+            if lonmin<0: lonmin += 360
+            lonmax = np.max(self.lon)+expand
+            if lonmax<0: lonmax+= 360
+            latmin = np.min(self.lat)-expand
+            latmax = np.max(self.lat)+expand
 
         # Create a figure
-        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize)
+        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize, 
+                      Map=Map, Fault=Fault)
+
+        # Shaded topo
+        if shadedtopo is not None: fig.shadedTopography(**shadedtopo)
 
         # Draw the coastlines
         if drawCoastlines:
             fig.drawCoastlines(parallels=None, meridians=None, drawOnFault=True)
 
+        # Fault trace
+        if Map:
+            if hasattr(self, 'color'): 
+                color=self.color
+            else:
+                color='k'
+            if hasattr(self, 'linewidth'): 
+                linewidth=self.linewidth
+            else:
+                linewidth=1
+            fig.faulttrace(self, color=color, linewidth=linewidth)
+
         # Draw the fault
-        x, y, z, slipval = fig.faultTents(self, slip=slip, norm=norm, colorbar=colorbar, 
-                cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
-                plot_on_2d=plot_on_2d, npoints=npoints, cmap=cmap,
-                method=method, vertIndex=vertIndex)
+        if Fault:
+            x, y, z, slipval = fig.faultTents(self, slip=slip, norm=norm, colorbar=colorbar, 
+                                              cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
+                                              plot_on_2d=plot_on_2d, npoints=npoints, cmap=cmap,
+                                              method=method, vertIndex=vertIndex)
 
         # Savefigs?
         if savefig:

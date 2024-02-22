@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>multifaultsolve class &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Misc. classes" href="misc.html" />
+    <link rel="prev" title="functionfit class" href="functionfit.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="multifaultsolve-class">
+<h1>multifaultsolve class<a class="headerlink" href="#multifaultsolve-class" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="csi.multifaultsolve">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">multifaultsolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve" title="Link to this definition">¶</a></dt>
+<dd><p>A class that assembles the linear inverse problem for multiple faults and multiple datasets. This class can also solve the problem using simple linear least squares (bounded or unbounded).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name          : Name of the project.</p></li>
+<li><p>faults        : List of faults from verticalfault or pressure .</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.ConstrainedLeastSquareSoln">
+<span class="sig-name descname"><span class="pre">ConstrainedLeastSquareSoln</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mprior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mw_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SLSQP'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcond</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxfun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkIter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkNorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.ConstrainedLeastSquareSoln" title="Link to this definition">¶</a></dt>
+<dd><p>Solves the least squares problem:</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(\text{min} [ (\textbf{d} - \textbf{Gm})^t \textbf{C}_d^{-1} (\textbf{d} - \textbf{Gm}) + \textbf{m}^t \textbf{C}_m^{-1} \textbf{m}]\)</span></p>
+</div></blockquote>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>mprior          : a priori model; if None, mprior = np.zeros((Nm,))</p></li>
+<li><p>Mw_thresh       : upper bound on moment magnitude</p></li>
+<li><p>bounds          : list of tuple bounds for every parameter</p></li>
+<li><p>method          : solver for constrained minimization: SLSQP, COBYLA, or nnls</p></li>
+<li><p>rcond           : Add some conditionning for all inverse matrix to compute</p></li>
+<li><p>iterations      : Modifies the maximum number of iterations for the solver (default=100).</p></li>
+<li><p>tolerance       : Solver’s tolerance</p></li>
+<li><p>maxfun          : maximum number of funcrtion evaluation</p></li>
+<li><p>checkIter       : Show Stuff</p></li>
+<li><p>checkNorm       : prints the norm</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.GeneralizedLeastSquareSoln">
+<span class="sig-name descname"><span class="pre">GeneralizedLeastSquareSoln</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mprior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcond</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useCm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.GeneralizedLeastSquareSoln" title="Link to this definition">¶</a></dt>
+<dd><p>Solves the generalized least-square problem using the following formula (Tarantolla, 2005,         Inverse Problem Theory, SIAM):</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(\textbf{m}_{post} = \textbf{m}_{prior} + (\textbf{G}^t \textbf{C}_d^{-1} \textbf{G} + \textbf{C}_m^{-1})^{-1} \textbf{G}^t \textbf{C}_d^{-1} (\textbf{d} - \textbf{Gm}_{prior})\)</span></p>
+</div></blockquote>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>mprior        : A Priori model. If None, then mprior = np.zeros((Nm,)).</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.NonNegativeBruteSoln">
+<span class="sig-name descname"><span class="pre">NonNegativeBruteSoln</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.NonNegativeBruteSoln" title="Link to this definition">¶</a></dt>
+<dd><p>Solves the least square problem argmin_x || Ax - b ||_2 for x&gt;=0.
+No Covariance can be used here, maybe in the future.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.OrganizeGBySlipmode">
+<span class="sig-name descname"><span class="pre">OrganizeGBySlipmode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.OrganizeGBySlipmode" title="Link to this definition">¶</a></dt>
+<dd><p>Organize G by slip mode instead of fault segment Return the new G matrix.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>array</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.RunAltar">
+<span class="sig-name descname"><span class="pre">RunAltar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">support</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.RunAltar" title="Link to this definition">¶</a></dt>
+<dd><p>Runs Altar on the d = Gm problem with a Cd covariance matrix.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>tasks         : Number of mpi tasks.</p></li>
+<li><p>chains        : Number of chains.</p></li>
+<li><p>steps         : Number of metropolis steps.</p></li>
+<li><p>support       : Upper and Lower bounds of the parameter exploration.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.SetSolutionFromExternal">
+<span class="sig-name descname"><span class="pre">SetSolutionFromExternal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soln</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.SetSolutionFromExternal" title="Link to this definition">¶</a></dt>
+<dd><p>Takes a vector where the solution of the problem is and affects it to mpost.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>soln      : array</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.SimpleLeastSquareSoln">
+<span class="sig-name descname"><span class="pre">SimpleLeastSquareSoln</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.SimpleLeastSquareSoln" title="Link to this definition">¶</a></dt>
+<dd><p>Solves the simple least square problem.</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(\textbf{m}_{post} = (\textbf{G}^t \textbf{G})^{-1} \textbf{G}^t \textbf{d}\)</span></p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.UnregularizedLeastSquareSoln">
+<span class="sig-name descname"><span class="pre">UnregularizedLeastSquareSoln</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mprior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.UnregularizedLeastSquareSoln" title="Link to this definition">¶</a></dt>
+<dd><p>Solves the unregularized generalized least-square problem using the following formula (Tarantolla, 2005, “Inverse Problem Theory”, SIAM):</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(\textbf{m}_{post} = \textbf{m}_{prior} + (\textbf{G}^t \textbf{C}_d^{-1} \textbf{G})^{-1} \textbf{G}^t \textbf{C}_d^{-1} (\textbf{d} - \textbf{Gm}_{prior})\)</span></p>
+</div></blockquote>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>mprior        : A Priori model. If None, then mprior = np.zeros((Nm,)).</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.affectIndexParameters">
+<span class="sig-name descname"><span class="pre">affectIndexParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.affectIndexParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Build the index parameter for a fault.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>fault : instance of a fault</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.assembleCm">
+<span class="sig-name descname"><span class="pre">assembleCm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.assembleCm" title="Link to this definition">¶</a></dt>
+<dd><p>Assembles the Model Covariance Matrix for the concerned faults.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.assembleGFs">
+<span class="sig-name descname"><span class="pre">assembleGFs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.assembleGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Assembles the Green’s functions matrix G for the concerned faults or pressure sources.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.computeCmPostGeneral">
+<span class="sig-name descname"><span class="pre">computeCmPostGeneral</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.computeCmPostGeneral" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the general posterior covariance matrix. See Tarantola 2005.
+Result is stored in self.Cmpost</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.conditionCd">
+<span class="sig-name descname"><span class="pre">conditionCd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">singularValue</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.conditionCd" title="Link to this definition">¶</a></dt>
+<dd><p>Simple Conditioning of Cd.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>singularValue     : minimum of the kept singular Values</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.describeParams">
+<span class="sig-name descname"><span class="pre">describeParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">redo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.describeParams" title="Link to this definition">¶</a></dt>
+<dd><p>Print the parameter description.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.distributem">
+<span class="sig-name descname"><span class="pre">distributem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.distributem" title="Link to this definition">¶</a></dt>
+<dd><p>After computing the m_post model, this routine distributes the m parameters to the faults.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose   : talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.equalizeParams">
+<span class="sig-name descname"><span class="pre">equalizeParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iparams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Cm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.equalizeParams" title="Link to this definition">¶</a></dt>
+<dd><p>This is a step to force parameters to be equal. Effectively, since the 
+problem is linear, we sum columns of G to have a single parameter. The 
+parameter in question is set at the end of G. 
+Cm is modified so that it has 1 on the idagonal or what is provided in Cm</p>
+<p>The original G is saved as Goriginal. The original Cm is in Cmoriginal.
+The method distributem accounts for such modification by restoring G and Cm
+and the mpost vector according to the original problem.</p>
+<dl class="simple">
+<dt>iparams is a list of list of groups of parameters:</dt><dd><p>iparams = [ [1,2,3,19,39], [23, 24]]</p>
+</dd>
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>iparams: List of lists</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>Cm     : List of covariances</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.makeParamDescription">
+<span class="sig-name descname"><span class="pre">makeParamDescription</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.makeParamDescription" title="Link to this definition">¶</a></dt>
+<dd><p>Store what parameters mean</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.sensitivity">
+<span class="sig-name descname"><span class="pre">sensitivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.sensitivity" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the sensitivity matrix of the problem, <span class="math notranslate nohighlight">\(S = \text{diag}( G^t C_d^{-1} G )\)</span></p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>array</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.simpleSampler">
+<span class="sig-name descname"><span class="pre">simpleSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">priors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialSample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nSample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nBurn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotSampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writeSamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dryRun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptiveDelay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.simpleSampler" title="Link to this definition">¶</a></dt>
+<dd><p>Uses a Metropolis algorithme to sample the posterior distribution of the model
+following Bayes’s rule. This is exactly what is done in AlTar, but using an
+open-source library called pymc. This routine is made for simple problems with
+few parameters (i.e. More than 30 params needs a very fast computer).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>priors<span class="classifier">List of priors. Each prior is specified by a list.</span></dt><dd><ul>
+<li><p>Example: priors = [ [‘Name of parameter’, ‘Uniform’, min, max], [‘Name of parameter’, ‘Gaussian’, center, sigma] ]</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>initialSample : List of initialSample.</p></li>
+<li><p>nSample       : Length of the Metropolis chain.</p></li>
+<li><p>nBurn         : Number of samples burned.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>plotSampler   : Plot some usefull stuffs from the sampler (default: False).</p></li>
+<li><p>writeSamples  : Write the samples to a binary file.</p></li>
+<li><p>dryRun        : If True, builds the sampler, saves it, but does not run. This can be used for debugging.</p></li>
+<li><p>adaptiveDelay : Recompute the covariance of the proposal every adaptiveDelay steps</p></li>
+</ul>
+</dd>
+</dl>
+<p>The result is stored in self.samples. The variable mpost is the mean of the final sample set.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.strongConstraint">
+<span class="sig-name descname"><span class="pre">strongConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iparams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.strongConstraint" title="Link to this definition">¶</a></dt>
+<dd><p>Adds a bunch of lines to force the parameters {iparams} to
+be equal, within {cov}. Effectively, it adds a line of +1 and -1
+to the parameters so that all {iparams} are equal to the first one.
+The equality will fall within {cov} as this number is set as the diagonal
+term of the data covariance for the corresponding lines.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>iparams       : List of parameters</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>cov           : Covariance</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.unequalizeParams">
+<span class="sig-name descname"><span class="pre">unequalizeParams</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.unequalizeParams" title="Link to this definition">¶</a></dt>
+<dd><p>Restores the shape of G and Cm and organizes mpost accordingly whem the 
+problem has been altered by equalizedParams.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeAltarCfgFile">
+<span class="sig-name descname"><span class="pre">writeAltarCfgFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linearfullcov'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">support</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimumratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeAltarCfgFile" title="Link to this definition">¶</a></dt>
+<dd><p>Writes a cfg and a py file to be used by altar.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>outfile       : Prefix of problem</p></li>
+<li><p>tasks         : Number of mpi tasks.</p></li>
+<li><p>chains        : Number of chains.</p></li>
+<li><p>steps         : Number of metropolis steps.</p></li>
+<li><p>support       : Upper and Lower bounds of the parameter exploration.</p></li>
+<li><p>minimumratio  : Minimum Eignevalue to cut in the metropolis covariance matrix.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeAltarPriors">
+<span class="sig-name descname"><span class="pre">writeAltarPriors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">priors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modelName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['static.data.txt',</span> <span class="pre">'static.Cd.txt',</span> <span class="pre">'static.gf.txt']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'model'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeAltarPriors" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the cfg file containing the priors to be used by altar.
+ONLY works with gaussian and uniform prior. And as if it was not bad enough, initial and run priors are the same.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>priors        : type of prior and corresponding parameters for each slip mode. ex: prior[‘Strike Slip’]=’gaussian’ &amp; prior[‘Dip Slip’]=’uniform’</p></li>
+<li><dl class="simple">
+<dt>params<span class="classifier">Parameters associated with each type of prior</span></dt><dd><ul>
+<li><p>params[‘gaussian’]=[[center,sigma]]</p></li>
+<li><p>params[‘uniform’]=[[low,high]]</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>modelName     : Name of the model</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>files         : Names of problem files</p></li>
+<li><p>prefix        : Prefix of problem</p></li>
+<li><p>chains        : Number of chains.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeCd2BinaryFile">
+<span class="sig-name descname"><span class="pre">writeCd2BinaryFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Cd.dat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeCd2BinaryFile" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the assembled Data Covariance matrix to a binary file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>outfile       : Name of the output file.</p></li>
+<li><p>scale         : Multiply the data covariance.</p></li>
+<li><p>dtype         : Type of data to write. Can be ‘f’, ‘float’, ‘d’ or ‘double’.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeCd2H5File">
+<span class="sig-name descname"><span class="pre">writeCd2H5File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'static.Cd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeCd2H5File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the assembled Data Covariance matrix to a hdf5 file</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>outfile       : Name of the output file.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>scale         : Multiply the data covariance.</p></li>
+<li><p>name          : name of the dataset in the file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeData2BinaryFile">
+<span class="sig-name descname"><span class="pre">writeData2BinaryFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d.dat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeData2BinaryFile" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the assembled data vector to an output file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>outfile       : Name of the output file.</p></li>
+<li><p>dtype         : Type of data to write. Can be ‘f’, ‘float’, ‘d’ or ‘double’.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeData2H5File">
+<span class="sig-name descname"><span class="pre">writeData2H5File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'static.data'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeData2H5File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the assembled data vector to an output file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>outfile       : Name of the output file.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>name          : name of the dataset in the file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeGFs2BinaryFile">
+<span class="sig-name descname"><span class="pre">writeGFs2BinaryFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GF.dat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeGFs2BinaryFile" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the assembled GFs to the file outfile.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>outfile       : Name of the output file.</p></li>
+<li><p>dtype         : Type of data to write. Can be ‘f’, ‘float’, ‘d’ or ‘double’.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeGFs2H5File">
+<span class="sig-name descname"><span class="pre">writeGFs2H5File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'static.gf'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeGFs2H5File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the assembled GFs to the file outfile.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>outfile       : Name of the output file.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>name          : Name of the dataset in the file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeMpost2BinaryFile">
+<span class="sig-name descname"><span class="pre">writeMpost2BinaryFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeMpost2BinaryFile" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the solution to a binary file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>outfile       : Output file name</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>dtype         : ‘d’ for double and ‘f’ for single</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeMpost2File">
+<span class="sig-name descname"><span class="pre">writeMpost2File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeMpost2File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the solution to a file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>outfile   : Output file name</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeMpost2H5File">
+<span class="sig-name descname"><span class="pre">writeMpost2H5File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'static.initialModel'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeMpost2H5File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the solution to a binary file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>outfile       : Output file name</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><p><a href="#id1"><span class="problematic" id="id2">*</span></a>name           : Name of the dataset</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writePatchAreasFile">
+<span class="sig-name descname"><span class="pre">writePatchAreasFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PatchAreas.dat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npadStart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npadEnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writePatchAreasFile" title="Link to this definition">¶</a></dt>
+<dd><p>Write a binary file for the patch areas to be read into altar.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>outfile               : output file name</p></li>
+<li><p>dtype                 : output data type</p></li>
+<li><p>npadStart             : number of starting zeros to pad output</p></li>
+<li><p>npadEnd               : number of ending zeros to pad output</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.multifaultsolve.writeSamples2hdf5">
+<span class="sig-name descname"><span class="pre">writeSamples2hdf5</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.multifaultsolve.writeSamples2hdf5" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the result of sampling to and HDF5 file.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../miscclasses.html">Misc. Classes</a><ul>
+  <li><a href="invproblem.html">Inverse Problem class</a><ul>
+      <li>Previous: <a href="functionfit.html" title="previous chapter">functionfit class</a></li>
+      <li>Next: <a href="misc.html" title="next chapter">Misc. classes</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/classes/multifaultsolve.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

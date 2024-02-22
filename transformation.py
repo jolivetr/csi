@@ -132,10 +132,7 @@ class transformation(SourceInv):
                 transformation = [transformation]
 
             for trans in transformation:
-                if data.dtype in ('gps','multigps') and trans=='strain':
-                    T = data.getTransformEstimator('strainonly', computeNormFact=False)
-                else:
-                    T = data.getTransformEstimator(trans, computeNormFact=False)
+                T = data.getTransformEstimator(trans, computeNormFact=False)
                 # One case is tricky so we build strings
                 if type(trans) is list:
                     trans = ''.join(itertools.chain.from_iterable(trans))

@@ -50,10 +50,10 @@ class seismic(SourceInv):
 
         # Initialize some things
         self.sta_name = []
-        self.lat  = np.array([],dtype='float64')
-        self.lon  = np.array([],dtype='float64')
-        self.x    = np.array([],dtype='float64')
-        self.y    = np.array([],dtype='float64')
+        self.lat  = np.array([],dtype=np.float64)
+        self.lon  = np.array([],dtype=np.float64)
+        self.x    = np.array([],dtype=np.float64)
+        self.y    = np.array([],dtype=np.float64)
     
         # Data
         self.d = {}
@@ -235,7 +235,7 @@ class seismic(SourceInv):
             cor = signal.correlate(R,R)
             cor /= cor.max()
         if exp_cor:
-            tcor = (np.arange(2*len(R)-1)-len(R)+1).astype('float64') 
+            tcor = (np.arange(2*len(R)-1)-len(R)+1).astype('np.float64') 
             plt.plot(tcor,cor)
             #cor = np.exp(-(tcor*tcor)/(gauss_cor_std*gauss_cor_std))
             cor = np.exp(-np.abs(tcor)/(exp_cor_len))
@@ -278,7 +278,7 @@ class seismic(SourceInv):
         # All done return
         return
 
-    def readCdFromBinaryFile(self,infile='kinematicG.Cd',dtype='float64'):
+    def readCdFromBinaryFile(self,infile='kinematicG.Cd',dtype='np.float64'):
         '''
         Read kinematic Cd from a input file
 
@@ -297,7 +297,7 @@ class seismic(SourceInv):
         # All done
         return
     
-    def writeCd2BinaryFile(self,outfile='kinematicG.Cd',dtype='float64'):
+    def writeCd2BinaryFile(self,outfile='kinematicG.Cd',dtype='np.float64'):
         '''
         Write Kinematic Cd to an output file
 

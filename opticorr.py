@@ -41,9 +41,9 @@ class opticorr(SourceInv):
                                       utmzone=utmzone,
                                       lon0=lon0,
                                       lat0=lat0,
-                                      ellps=ellps) 
+                                      ellps=ellps)
 
-        # Initialize the data set 
+        # Initialize the data set
         self.dtype = 'opticorr'
 
         self.verbose = verbose
@@ -80,7 +80,7 @@ class opticorr(SourceInv):
             * factor        : Factor to multiply the east-north offsets.
             * step          : Add a value to the velocity.
             * header        : Size of the header.
-            * cov           : Read an additional covariance file (binary float32, Nd*Nd elements).
+            * cov           : Read an additional covariance file (binary np.float32, Nd*Nd elements).
 
         Returns:
             * None
@@ -109,15 +109,15 @@ class opticorr(SourceInv):
         # Loop over the A, there is a header line header
         for i in range(header, len(A)):
             tmp = A[i].split()
-            self.lon.append(np.float(tmp[1]))
-            self.lat.append(np.float(tmp[2]))
-            self.east.append(np.float(tmp[3]))
-            self.north.append(np.float(tmp[4]))
-            self.err_east.append(np.float(tmp[5]))
-            self.err_north.append(np.float(tmp[6]))
+            self.lon.append(float(tmp[1]))
+            self.lat.append(float(tmp[2]))
+            self.east.append(float(tmp[3]))
+            self.north.append(float(tmp[4]))
+            self.err_east.append(float(tmp[5]))
+            self.err_north.append(float(tmp[6]))
             tmp = B[i].split()
-            self.corner.append([np.float(tmp[6]), np.float(tmp[7]), 
-                                np.float(tmp[8]), np.float(tmp[9])])
+            self.corner.append([float(tmp[6]), float(tmp[7]),
+                                float(tmp[8]), float(tmp[9])])
 
 
         # Make arrays
@@ -156,7 +156,7 @@ class opticorr(SourceInv):
 
         # Store the factor
         self.factor = factor
-    
+
         # Save number of observations per station
         self.obs_per_station = 2
 
@@ -201,16 +201,16 @@ class opticorr(SourceInv):
         # remove the header lines
         A = A[header:]
 
-        # Loop 
+        # Loop
         for line in A:
             l = line.split()
-            self.lon.append(np.float(l[0]))
-            self.lat.append(np.float(l[1]))
-            self.east.append(np.float(l[2]))
-            self.north.append(np.float(l[3]))
-            self.err_east.append(np.float(l[4]))
-            self.err_north.append(np.float(l[5]))
-        
+            self.lon.append(float(l[0]))
+            self.lat.append(float(l[1]))
+            self.east.append(float(l[2]))
+            self.north.append(float(l[3]))
+            self.err_east.append(float(l[4]))
+            self.err_north.append(float(l[5]))
+
         # Make arrays
         self.east = factor * (np.array(self.east) + step)
         self.north = factor * (np.array(self.north) + step)
@@ -227,19 +227,19 @@ class opticorr(SourceInv):
 
         # Store the factor
         self.factor = factor
-   
+
         # Save number of observations per station
         self.obs_per_station = 2
 
         # All done
-        return       
+        return
 
     def read_from_binary(self, east, north, lon, lat, err_east=None, err_north=None, factor=1.0, step=0.0, dtype=np.float32, remove_nan=True):
         '''
         Read from a set of binary files or from a set of arrays.
 
         Args:
-            * east      : array or filename of the east displacement 
+            * east      : array or filename of the east displacement
             * north     : array or filename of the north displacement
             * lon       : array or filename of the longitude
             * lat       : array or filename of the latitude
@@ -271,7 +271,7 @@ class opticorr(SourceInv):
             lon = np.fromfile(lon, dtype=dtype)
         lon = np.array(lon).flatten()
 
-        # Get Lat 
+        # Get Lat
         if type(lat) is str:
             lat = np.fromfile(lat, dtype=dtype)
         lat = np.array(lat).flatten()
@@ -314,7 +314,7 @@ class opticorr(SourceInv):
 
         # Store the factor
         self.factor = factor
-   
+
         # Save number of observations per station
         self.obs_per_station = 2
 
@@ -335,7 +335,7 @@ class opticorr(SourceInv):
         Returns:
             * None
         '''
-        
+
         assert component=='EW' or component=='NS', 'component must be EW or NS'
 
         # Read header
@@ -343,7 +343,7 @@ class opticorr(SourceInv):
         for l in hdr:
             items = l.strip().split('=')
             if items[0].strip()=='data type':
-                assert float(items[1])==4,'data type is not float32'
+                assert float(items[1])==4,'data type is not np.float32'
             if items[0].strip()=='samples':
                 self.samples = int(items[1])
             if items[0].strip()=='lines':
@@ -357,7 +357,7 @@ class opticorr(SourceInv):
                 dy = float(map_items[6])
                 assert int(map_items[7])==self.utmzone, 'UTM   zone does not match'
                 assert map_items[9].strip().replace('-','')==self.ellps, 'ellps zone does not match'
-        
+
         # Coordinates
         x = x0 + np.arange(self.samples) * dx
         y = y0 - np.arange(self.lines)   * dy
@@ -365,10 +365,10 @@ class opticorr(SourceInv):
         self.x = xg.flatten()/1000.
         self.y = yg.flatten()/1000.
         self.lon, self.lat = self.xy2ll(self.x,self.y)
-        
-        # Data        
+
+        # Data
         if component=='EW':
-            self.east = np.fromfile(filename,dtype='float32')
+            self.east = np.fromfile(filename,dtype='np.float32')
             print('read length',len(self.east))
             if remove_nan:
                 u = np.flatnonzero(np.isfinite(self.east))
@@ -376,7 +376,7 @@ class opticorr(SourceInv):
             self.err_east=np.zeros(self.east.shape)  # set to zero error for now
             print('after mask',len(self.east))
         elif component=='NS':
-            self.north = np.fromfile(filename,dtype='float32')
+            self.north = np.fromfile(filename,dtype='np.float32')
             if remove_nan:
                 u = np.flatnonzero(np.isfinite(self.north))
                 self.north = self.north[u]
@@ -392,8 +392,8 @@ class opticorr(SourceInv):
         if self.north!=None and self.east!=None:
             assert len(self.north) == len(self.east), 'inconsistent data size'
             assert len(self.lon)==len(self.lat),   'inconsistent lat/lon size'
-            assert len(self.lon)==len(self.north), 'inconsistent lon/data size'            
-        
+            assert len(self.lon)==len(self.north), 'inconsistent lon/data size'
+
         self.factor = 1.0
         self.obs_per_station = 2
 
@@ -404,7 +404,7 @@ class opticorr(SourceInv):
         '''
         Uses the paths defined in a Shapefile to select and return particular domains of self.
 
-        Args:   
+        Args:
             * shapefile : Input file (shapefile format).
 
         Kwargs:
@@ -429,7 +429,7 @@ class opticorr(SourceInv):
 
         # Iterate over the shape records
         for record, iR in zip(shape.shapeRecords(), range(len(shape.shapeRecords()))):
-            
+
             # Get x, y
             x = np.array([record.shape.points[i][0] for i in range(len(record.shape.points))])/1000.
             y = np.array([record.shape.points[i][1] for i in range(len(record.shape.points))])/1000.
@@ -466,7 +466,7 @@ class opticorr(SourceInv):
 
         # All done
         return OutOpti
-        
+
     def read_from_grd(self, filename, factor=1.0, step=0.0, flip=False, keepnans=False, variableName='z'):
         '''
         Reads velocity map from a grd file.
@@ -505,7 +505,7 @@ class opticorr(SourceInv):
             from netCDF4 import Dataset as netcdf
             feast = netcdf(filename+'_east.grd', format='NETCDF4')
             fnorth = netcdf(filename+'_north.grd', format='NETCDF4')
-        
+
         # Shape
         self.grd_shape = feast.variables[variableName][:].shape
 
@@ -555,18 +555,18 @@ class opticorr(SourceInv):
         self._checkLongitude()
 
         # Convert to utm
-        self.x, self.y = self.ll2xy(self.lon, self.lat) 
+        self.x, self.y = self.ll2xy(self.lon, self.lat)
 
         # Store the factor and step
         self.factor = factor
         self.step = step
-    
+
         # Save number of observations per station
         self.obs_per_station = 2
 
         # All done
         return
-    
+
     def read_with_reader(self, readerFunc, filePrefix, factor=1.0, cov=False):
         '''
         Read data from a .txt file using a user provided reading function. Assume the user knows what they are doing and are returning the correct values.
@@ -592,9 +592,9 @@ class opticorr(SourceInv):
         self._checkLongitude()
 
         # Convert to utm
-        self.x, self.y = self.ll2xy(self.lon, self.lat) 
+        self.x, self.y = self.ll2xy(self.lon, self.lat)
 
-        # Read the covariance 
+        # Read the covariance
         if cov:
             nd = self.east.size + self.north.size
             self.Cd = np.fromfile(filePrefix + '.cov', dtype=np.float32).reshape((nd,nd))
@@ -609,9 +609,9 @@ class opticorr(SourceInv):
         return
 
     def select_pixels(self, minlon, maxlon, minlat, maxlat):
-        ''' 
+        '''
         Select the pixels in a box defined by min and max, lat and lon.
-        
+
         Args:
             * minlon        : Minimum longitude.
             * maxlon        : Maximum longitude.
@@ -653,13 +653,13 @@ class opticorr(SourceInv):
             indCd = np.hstack((u, u+npts))
             Cdt = self.Cd[indCd,:]
             self.Cd = Cdt[:,indCd]
-        
+
         # All done
         return
 
     def setGFsInFault(self, fault, G, vertical=True):
         '''
-        From a dictionary of Green's functions, sets these correctly into the fault 
+        From a dictionary of Green's functions, sets these correctly into the fault
         object fault for future computation.
 
         Args:
@@ -672,7 +672,7 @@ class opticorr(SourceInv):
         Returns:
             * None
         '''
-        
+
         # Get values
         try:
             Gss = G['strikeslip']
@@ -686,7 +686,7 @@ class opticorr(SourceInv):
             Gts = G['tensile']
         except:
             Gts = None
-        try: 
+        try:
             Gcp = G['coupling']
         except:
             Gcp = None
@@ -699,7 +699,7 @@ class opticorr(SourceInv):
 
     def setTransformNormalizingFactor(self, x0, y0, normX, normY):
         '''
-        Set orbit normalizing factors in insar object. 
+        Set orbit normalizing factors in insar object.
 
         Args:
             * x0    : Normalization reference x-axis
@@ -722,9 +722,9 @@ class opticorr(SourceInv):
 
     def computeTransformNormalizingFactor(self):
         '''
-        Compute orbit normalizing factors and store them in insar object. 
+        Compute orbit normalizing factors and store them in insar object.
 
-        Returns:   
+        Returns:
             * None
         '''
 
@@ -762,7 +762,7 @@ class opticorr(SourceInv):
         # Several cases
         if type(trans) is int:
             T = self.getPolyEstimator(trans, computeNormFact=computeNormFact)
-        else: 
+        else:
             assert False, 'No {} transformation available'.format(trans)
 
         # All done
@@ -778,7 +778,7 @@ class opticorr(SourceInv):
             +-------+------------------------------------------------------------+
             | ptype | what it means                                              |
             +=======+============================================================+
-            |   1   | apply a constant offset to the data (1 parameter)          |    
+            |   1   | apply a constant offset to the data (1 parameter)          |
             +-------+------------------------------------------------------------+
             |   3   | apply offset and linear function of x and y (3 parameters) |
             +-------+------------------------------------------------------------+
@@ -788,7 +788,7 @@ class opticorr(SourceInv):
         Watch out: If vertical is True, you should only estimate polynomials for the horizontals.
 
         Kwargs:
-            * computeNormFact : bool. If False, uses parameters in self.TransformNormalizingFactor 
+            * computeNormFact : bool. If False, uses parameters in self.TransformNormalizingFactor
 
         Returns:
             * 2d array
@@ -809,7 +809,7 @@ class opticorr(SourceInv):
             self.computeTransformNormalizingFactor()
         else:
             assert hasattr(self, 'TransformNormalizingFactor'), 'You must set TransformNormalizingFactor first'
-            
+
         normX = self.TransformNormalizingFactor['x']
         normY = self.TransformNormalizingFactor['y']
         x0, y0 = self.TransformNormalizingFactor['ref']
@@ -976,14 +976,14 @@ class opticorr(SourceInv):
         raise NotImplementedError('This method is not fully implemented')
 
         assert order == 1 or order == 3, 'unsupported order for ramp removal'
-        
+
         # Define normalized coordinates
         x0, y0 = self.x[0], self.y[0]
         xd = self.x - x0
         yd = self.y - y0
         normX = np.abs(xd).max()
         normY = np.abs(yd).max()
-        
+
         # Find points that fall outside of mask
         east = self.east.copy()
         north = self.north.copy()
@@ -995,7 +995,7 @@ class opticorr(SourceInv):
             yd = yd[~badIndices]
             east = east[~badIndices]
             north = north[~badIndices]
-            
+
         # Construct ramp design matrix
         nPoints = east.shape[0]
         nDat = 2 * nPoints
@@ -1015,7 +1015,7 @@ class opticorr(SourceInv):
         # Estimate ramp parameters
         d = np.hstack((east,north))
         m_ramp = np.linalg.lstsq(Gramp, d)[0]
-        
+
         # Not Finished
         return
 
@@ -1236,7 +1236,7 @@ class opticorr(SourceInv):
             Cd1 = np.delete(Cd1, u, axis=1)
             Cd2 = np.delete(self.Cd[nd:,nd:], u, axis=0)
             Cd2 = np.delete(Cd2, u, axis=1)
-            Cd = np.vstack( (np.hstack((Cd1, np.zeros((nd,nd)))), 
+            Cd = np.vstack( (np.hstack((Cd1, np.zeros((nd,nd)))),
                 np.hstack((np.zeros((nd,nd)),Cd2))) )
             self.Cd = Cd
 
@@ -1254,7 +1254,7 @@ class opticorr(SourceInv):
         return
 
     def reject_pixels_fault(self, dis, faults):
-        ''' 
+        '''
         Rejects the pixels that are dis km close to the fault.
 
         Args:
@@ -1268,7 +1268,7 @@ class opticorr(SourceInv):
         # Variables to trim are  self.corner,
         # self.xycorner, self.Cd, (self.synth)
 
-        # Check something 
+        # Check something
         if faults.__class__ is not list:
             faults = [faults]
 
@@ -1293,8 +1293,8 @@ class opticorr(SourceInv):
             u = np.where(d<=dis)[0]
         else:
             u = np.where(d>=(-1.0*dis))[0]
-            
-        # Delete 
+
+        # Delete
         self.reject_pixel(u)
 
         # All done
@@ -1302,7 +1302,7 @@ class opticorr(SourceInv):
 
     def getprofile(self, name, loncenter, latcenter, length, azimuth, width):
         '''
-        Project the GPS velocities onto a profile. 
+        Project the GPS velocities onto a profile.
         Works on the lat/lon coordinates system.
 
         Args:
@@ -1338,7 +1338,7 @@ class opticorr(SourceInv):
             esynth = None
             nsynth = None
 
- 
+
         # Get some numbers
         x1, y1 = box[0]
         x2, y2 = box[1]
@@ -1383,7 +1383,7 @@ class opticorr(SourceInv):
         dic['EndPoints'] = [[xe1, ye1], [xe2, ye2]]
         lone1, late1 = self.xy2ll(xe1, ye1)
         lone2, late2 = self.xy2ll(xe2, ye2)
-        dic['EndPointsLL'] = [[lone1, late1], 
+        dic['EndPointsLL'] = [[lone1, late1],
                             [lone2, late2]]
 
         # All done
@@ -1461,8 +1461,8 @@ class opticorr(SourceInv):
         Kwargs:
             * legendscale: Length of the legend arrow.
             * fault     : instance of a fault class
-        
-        Returns:   
+
+        Returns:
             * None
         '''
 
@@ -1499,9 +1499,9 @@ class opticorr(SourceInv):
         prof = fig.add_subplot(111)
 
         # Plot profiles
-        pe = prof.plot(xd, yn, label='Fault Normal displacement', 
+        pe = prof.plot(xd, yn, label='Fault Normal displacement',
                 marker='.', color='r', linestyle='')
-        pn = prof.plot(xd, yp, label='Fault Par. displacement', 
+        pn = prof.plot(xd, yp, label='Fault Par. displacement',
                 marker='.', color='b', linestyle='')
 
         # If a fault is here, plot it
@@ -1567,7 +1567,7 @@ class opticorr(SourceInv):
         lonc, latc = prof['Center']
         xc, yc = self.ll2xy(lonc, latc)
 
-        # Get the sign 
+        # Get the sign
         xa,ya = prof['EndPoints'][0]
         vec1 = [xa-xc, ya-yc]
         vec2 = [p[0]-xc, p[1]-yc]
@@ -1580,41 +1580,41 @@ class opticorr(SourceInv):
         return d
 
     def getRMS(self):
-        '''                                                                                                      
-        Computes the RMS of the data and if synthetics are computed, the RMS of the residuals                    
+        '''
+        Computes the RMS of the data and if synthetics are computed, the RMS of the residuals
         '''
 
         raise NotImplementedError('do it later')
-        return        
+        return
 
-#        # Get the number of points      
-#        N = self.vel.shape[0]           
-#        
-#        # RMS of the data               
-#        dataRMS = np.sqrt( 1./N * sum(self.vel**2) )                                               
-#        
-#        # Synthetics
-#        if self.synth is not None:                      
-#            synthRMS = np.sqrt( 1./N *sum( (self.vel - self.synth)**2 ) )                
-#            return dataRMS, synthRMS                                                    
-#        else:
-#            return dataRMS, 0.                          
+#        # Get the number of points
+#        N = self.vel.shape[0]
 #
-#        # All done  
+#        # RMS of the data
+#        dataRMS = np.sqrt( 1./N * sum(self.vel**2) )
+#
+#        # Synthetics
+#        if self.synth is not None:
+#            synthRMS = np.sqrt( 1./N *sum( (self.vel - self.synth)**2 ) )
+#            return dataRMS, synthRMS
+#        else:
+#            return dataRMS, 0.
+#
+#        # All done
 #        return
 
     def getVariance(self):
-        '''                                                                                                      
-        Computes the Variance of the data and if synthetics are computed, the RMS of the residuals                    
+        '''
+        Computes the Variance of the data and if synthetics are computed, the RMS of the residuals
 
         Returns:
             * 2 floats
         '''
 
-        # Get the number of points  
+        # Get the number of points
         N = self.east.shape[0]
-        
-        # Varianceof the data 
+
+        # Varianceof the data
         emean = self.east.mean()
         nmean = self.north.mean()
         eVariance = ( 1./N * sum((self.east-emean)**2) )
@@ -1631,11 +1631,11 @@ class opticorr(SourceInv):
         else:
             return dataVariance, 0.
 
-        # All done  
+        # All done
 
     def getMisfit(self):
-        '''                                                                                                      
-        Computes the Sum of the data and if synthetics are computed, the RMS of the residuals                    
+        '''
+        Computes the Sum of the data and if synthetics are computed, the RMS of the residuals
 
         Returns:
             * 2 floats
@@ -1643,8 +1643,8 @@ class opticorr(SourceInv):
 
         raise NotImplementedError('do it later')
         return
-    
-#        # Misfit of the data            
+
+#        # Misfit of the data
 #        dataMisfit = sum((self.vel))
 #
 #        # Synthetics
@@ -1654,11 +1654,12 @@ class opticorr(SourceInv):
 #        else:
 #            return dataMisfit, 0.
 #
-#        # All done  
+#        # All done
 #        return
 
-    def plot(self, faults=None, figure=None, gps=None, decim=False, norm=None, 
-             data='data', show=True, drawCoastlines=True, expand=0.2, 
+    def plot(self, faults=None, figure=None, gps=None, decim=False, norm=None,
+             Map=True, Fault=True,
+             data='data', show=True, drawCoastlines=True, expand=0.2,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel=''):
         '''
         Plot the data set, together with a fault, if asked.
@@ -1689,7 +1690,7 @@ class opticorr(SourceInv):
         latmax = self.lat.max()+expand
 
         # Create a figure
-        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax)
+        fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, Fault=Fault, Map=Map)
 
         # Draw the coastlines
         if drawCoastlines:
@@ -1720,7 +1721,7 @@ class opticorr(SourceInv):
         # Show
         if show:
             fig.show(showFig=['map'])
-    
+
         # Keep Figure
         if not hasattr(self, 'fig'):
             self.fig = []
@@ -1729,11 +1730,11 @@ class opticorr(SourceInv):
         # All done
         return
 
-    def write2binary(self, prefix, dtype=np.float):
+    def write2binary(self, prefix, dtype=float):
         '''
-        Writes the records in a binary file. 
-        
-        :Output filenames: 
+        Writes the records in a binary file.
+
+        :Output filenames:
             * {prefix}_north.dat    : North displacement
             * {prefix}_east.dat     : East displacement
             * {prefix}_lon.dat      : Longitude
@@ -1741,25 +1742,25 @@ class opticorr(SourceInv):
 
         Args:
             * prefix    : prefix of the output file
-            
+
         Kwargs:
             * dtype     : data type in the binary file
 
         Returns:
             * None
         '''
-        
+
         if self.verbose:
             print('---------------------------------')
             print('---------------------------------')
             print('Write in binary format to files {}_east.dat and {}_north.dat'.format(prefix, prefix))
 
-        # North 
+        # North
         fname = '{}_north.dat'.format(prefix)
         data = self.north.astype(dtype)
         data.tofile(fname)
 
-        # East 
+        # East
         fname = '{}_east.dat'.format(prefix)
         data = self.east.astype(dtype)
         data.tofile(fname)
@@ -1774,7 +1775,7 @@ class opticorr(SourceInv):
         data = self.lat.astype(dtype)
         data.tofile(fname)
 
-        # All done 
+        # All done
         return
 
     def write2grd(self, fname, oversample=1, data='data', interp=100, cmd='surface', useGMT=False):
@@ -1848,7 +1849,7 @@ class opticorr(SourceInv):
             else:
                 Nlon = int(interp[0])*int(oversample)
                 Nlat = int(interp[1])*int(oversample)
-            I = '-I{}+/{}+'.format(Nlon,Nlat)        
+            I = '-I{}+/{}+'.format(Nlon,Nlat)
 
             # Create the G string
             Ge = '-G'+fname+'_east.grd'
@@ -1875,7 +1876,7 @@ class opticorr(SourceInv):
 
     def ModelResolutionDownsampling(self, faults, threshold, damping, startingsize=10., minimumsize=0.5, tolerance=0.1, plot=False):
         '''
-        Downsampling algorythm based on Lohman & Simons, 2005, G3. 
+        Downsampling algorythm based on Lohman & Simons, 2005, G3.
 
         Args:
             * faults          : List of faults, these need to have a buildGFs routine (ex: for RectangularPatches, it will be Okada).
@@ -1891,10 +1892,10 @@ class opticorr(SourceInv):
         Returns:
             * None
         '''
-        
+
         # If needed
         from .imagedownsampling import imagedownsampling
-        
+
         # Check if faults have patches and builGFs routine
         for fault in faults:
             assert (hasattr(fault, 'builGFs')), 'Fault object {} does not have a buildGFs attribute...'.format(fault.name)

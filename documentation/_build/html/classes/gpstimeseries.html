@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>gpstimeseries class &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="multigps class" href="multigps.html" />
+    <link rel="prev" title="insartimeseries class" href="insartimeseries.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="gpstimeseries-class">
+<h1>gpstimeseries class<a class="headerlink" href="#gpstimeseries-class" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="csi.gpstimeseries">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">gpstimeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries" title="Link to this definition">¶</a></dt>
+<dd><p>A class that handles a time series of gps data</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>name      : Name of the dataset.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>utmzone   : UTM zone  (optional, default=None)</p></li>
+<li><p>lon0      : Longitude of the center of the UTM zone</p></li>
+<li><p>lat0      : Latitude of the center of the UTM zone</p></li>
+<li><p>ellps     : ellipsoid (optional, default=’WGS84’)</p></li>
+<li><p>verbose   : Speak to me (default=True)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.addPointInTime">
+<span class="sig-name descname"><span class="pre">addPointInTime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">east</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">north</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_east</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_north</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.addPointInTime" title="Link to this definition">¶</a></dt>
+<dd><p>Augments the time series by one point.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>time: datetime object.a</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>east, north, up   : Time series values. Default is 0</p></li>
+<li><p>std_east, std_north, std_up: Uncertainty values. Default is 0</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.fitFunction">
+<span class="sig-name descname"><span class="pre">fitFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L-BFGS-B'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iteration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.fitFunction" title="Link to this definition">¶</a></dt>
+<dd><p>Fits a function to the timeseries</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>function  : Prediction function,</p></li>
+<li><p>m0        : Initial model</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>solver    : Solver type (see list of solver in scipy.optimize.minimize)</p></li>
+<li><p>iteration : Number of iteration for the solver</p></li>
+<li><p>tol       : Tolerance</p></li>
+</ul>
+</dd>
+<dt>Returns:   </dt><dd><ul class="simple">
+<li><p>None. Parameters are stored in attribute {m} of each time series object</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.fitTidalConstituents">
+<span class="sig-name descname"><span class="pre">fitTidalConstituents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tZero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2000,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cossin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constituents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.fitTidalConstituents" title="Link to this definition">¶</a></dt>
+<dd><p>Fits tidal constituents on the time series.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>steps     : list of datetime instances to add step functions in the estimation process.</p></li>
+<li><p>linear    : estimate a linear trend.</p></li>
+<li><p>tZero     : origin time (datetime instance).</p></li>
+<li><p>chunks    : List [ [start1, end1], [start2, end2]] where the fit is performed.</p></li>
+<li><p>cossin    : Add an  extra cosine+sine term (weird…)</p></li>
+<li><p>constituents: list of constituents to fit (default is ‘all’)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.getOffset">
+<span class="sig-name descname"><span class="pre">getOffset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">nan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.getOffset" title="Link to this definition">¶</a></dt>
+<dd><p>Get the offset between date1 and date2.
+If the 2 dates are not available, returns NaN.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>date1       : datetime object</p></li>
+<li><p>date2       : datetime object</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>data        : can be ‘data’ or ‘std’</p></li>
+<li><p>nodate      : If there is no date, return this value</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>tuple of floats</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.initializeTimeSeries">
+<span class="sig-name descname"><span class="pre">initializeTimeSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">los</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.initializeTimeSeries" title="Link to this definition">¶</a></dt>
+<dd><p>Initializes the time series by creating whatever is necessary.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>time              Time vector</p></li>
+<li><p>starttime:        Begining of the time series.</p></li>
+<li><p>endtime:          End of the time series.</p></li>
+<li><p>interval:         In days.</p></li>
+<li><p>los:              True/False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">styles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['.r']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Plots the time series.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>figure  :   Figure id number (default=1)</p></li>
+<li><p>styles  :   List of styles (default=[‘.r’])</p></li>
+<li><p>show    :   Show to me (default=True)</p></li>
+<li><p>data    :   What do you show (data, synth)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.project2InSAR">
+<span class="sig-name descname"><span class="pre">project2InSAR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.project2InSAR" title="Link to this definition">¶</a></dt>
+<dd><p>Projects the time series of east, north and up displacements into the 
+line-of-sight given as argument</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>los       : list of three component. L2-norm of los must be equal to 1</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None. Results are stored in attribute {losvector}</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.read_from_JPL">
+<span class="sig-name descname"><span class="pre">read_from_JPL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.read_from_JPL" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the time series from a file which has been sent from JPL.
+Format is a bit awkward and you should not see that a lot.
+Look inside the code to find out…</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.read_from_caltech">
+<span class="sig-name descname"><span class="pre">read_from_caltech</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.read_from_caltech" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the data from a time series file from CalTech (Avouac’s group).
+Time is in decimal year…</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : Input file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.read_from_file">
+<span class="sig-name descname"><span class="pre">read_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.read_from_file" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the time series from a file which has been written by write2file</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : name of the file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose       : talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.read_from_renoxyz">
+<span class="sig-name descname"><span class="pre">read_from_renoxyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.read_from_renoxyz" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the time series from a file which has been downloaded on
+<a class="reference external" href="http://geodesy.unr.edu/NGLStationPages/gpsnetmap/GPSNetMap.html">http://geodesy.unr.edu/NGLStationPages/gpsnetmap/GPSNetMap.html</a></p>
+<p>This was true on 2015.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : name of file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose       : talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.read_from_sql">
+<span class="sig-name descname"><span class="pre">read_from_sql</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'e':</span> <span class="pre">'east',</span> <span class="pre">'n':</span> <span class="pre">'north',</span> <span class="pre">'u':</span> <span class="pre">'up'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'e':</span> <span class="pre">'sigma_east',</span> <span class="pre">'n':</span> <span class="pre">'sigma_north',</span> <span class="pre">'u':</span> <span class="pre">'sigma_up'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.read_from_sql" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the East, North and Up components of the station in a sql file.
+This follows the organization of M. Simons’ group at Caltech. The sql file 
+has tables called as indicated in the dictionary tables and sigma.</p>
+<p>This method requires pandas and sqlalchemy</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename  : Name of the sql file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>tables    : Dictionary of the names of the table for the east, north and up displacement time series</p></li>
+<li><p>sigma     : Dictionary of the names of the tables for the east, north and up uncertainties time series</p></li>
+<li><p>factor    : scaling factor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.reference2timeseries">
+<span class="sig-name descname"><span class="pre">reference2timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeseries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.reference2timeseries" title="Link to this definition">¶</a></dt>
+<dd><p>Removes to another gps timeseries the difference between self and timeseries</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>timeseries        : Another gpstimeseries</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose           : Talk to me</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.removeNaNs">
+<span class="sig-name descname"><span class="pre">removeNaNs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.removeNaNs" title="Link to this definition">¶</a></dt>
+<dd><p>Remove NaNs in the time series</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.removePointsInTime">
+<span class="sig-name descname"><span class="pre">removePointsInTime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.removePointsInTime" title="Link to this definition">¶</a></dt>
+<dd><p>Remove points from the time series.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>u         : List or array of indexes to remove</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.trimTime">
+<span class="sig-name descname"><span class="pre">trimTime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2100,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.trimTime" title="Link to this definition">¶</a></dt>
+<dd><p>Keeps the epochs between start and end</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>start: starting date (datetime instance)</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>end: ending date (datetime instance)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gpstimeseries.write2file">
+<span class="sig-name descname"><span class="pre">write2file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steplike</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gpstimeseries.write2file" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the time series to a file.</p>
+<dl class="simple">
+<dt>Args:   </dt><dd><ul class="simple">
+<li><p>outfile   : output file.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>steplike  : doubles the output each time so that the plot looks like steps.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../dataclasses.html">Classes for types of data</a><ul>
+      <li>Previous: <a href="insartimeseries.html" title="previous chapter">insartimeseries class</a></li>
+      <li>Next: <a href="multigps.html" title="next chapter">multigps class</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/classes/gpstimeseries.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

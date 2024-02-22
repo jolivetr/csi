@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>triangularDisp tools &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=f78ba3b0" />
+    <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=e637711f"></script>
+    <script src="../_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="okadafull tools" href="okadafull.html" />
+    <link rel="prev" title="EDKSmp Tools" href="EDKSmp.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-csi.triangularDisp">
+<span id="triangulardisp-tools"></span><h1>triangularDisp tools<a class="headerlink" href="#module-csi.triangularDisp" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.triangularDisp.LinePlaneIntersect">
+<span class="sig-prename descclassname"><span class="pre">csi.triangularDisp.</span></span><span class="sig-name descname"><span class="pre">LinePlaneIntersect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.triangularDisp.LinePlaneIntersect" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the intersection of a line and a plane using a parametric
+representation of the plane.  This is hardcoded for a vertical line.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>sx        : x coordinates of ground points</p></li>
+<li><p>sy        : y coordinates of ground points</p></li>
+<li><p>sz        : z coordinates of ground points</p></li>
+<li><p>p1        : xyz tuple or list of first triangle vertex</p></li>
+<li><p>p2        : xyz tuple or list of second triangle vertex</p></li>
+<li><p>p3        : xyz tuple or list of third triangle vertex</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.triangularDisp.RotateXyVec">
+<span class="sig-prename descclassname"><span class="pre">csi.triangularDisp.</span></span><span class="sig-name descname"><span class="pre">RotateXyVec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.triangularDisp.RotateXyVec" title="Link to this definition">¶</a></dt>
+<dd><p>Rotate components by an angle alpha.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.triangularDisp.adv">
+<span class="sig-prename descclassname"><span class="pre">csi.triangularDisp.</span></span><span class="sig-name descname"><span class="pre">adv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.triangularDisp.adv" title="Link to this definition">¶</a></dt>
+<dd><p>These are the displacements in a uniform elastic half space due to slip
+on an angular dislocation (Comninou and Dunders, 1975).  Some of the
+equations for the B2 and B3 cases have been corrected following Thomas
+1993.  The equations are coded in way such that they roughly correspond
+to each line in original text.  Exceptions have been made where it made 
+more sense because of grouping symbols.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="csi.triangularDisp.displacement">
+<span class="sig-prename descclassname"><span class="pre">csi.triangularDisp.</span></span><span class="sig-name descname"><span class="pre">displacement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.triangularDisp.displacement" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the displacement vector at an observation point due to slip on one
+triangular patch at depth.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>sx        : x coordinates of ground points</p></li>
+<li><p>sy        : y coordinates of ground points</p></li>
+<li><p>sz        : z coordinates of ground points</p></li>
+<li><p>vertices  : list of 3-component vertices of the triangle</p></li>
+<li><p>ss        : amount of strike-slip</p></li>
+<li><p>ds        : amount of dip-slip</p></li>
+<li><p>ts        : amount of tensile/opening-slip</p></li>
+<li><p>nu        : Poisson’s ratio</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ux        : x component of displacement</p></li>
+<li><p>uy        : y component of displacement</p></li>
+<li><p>uz        : z component of displacement</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../classes.html">Classes</a><ul>
+  <li><a href="../tools.html">Useful Tools</a><ul>
+      <li>Previous: <a href="EDKSmp.html" title="previous chapter">EDKSmp Tools</a></li>
+      <li>Next: <a href="okadafull.html" title="next chapter">okadafull tools</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/tools/triangularDisp.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

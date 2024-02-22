@@ -6,15 +6,11 @@ Written by T. Shreve, June 2019
 
 # Import Externals stuff
 import numpy as np
-import sys
-import os
 from argparse import Namespace
 
 # Personals
 from . import pCDMfull
 from .Pressure import Pressure
-from .EDKSmp import sum_layered
-from .EDKSmp import dropSourcesInPatches as Patches2Sources
 
 #sub-class pCDM
 class pCDM(Pressure):

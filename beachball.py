@@ -6,8 +6,9 @@
 #    Email: barsch@egu.eu
 #
 # Copyright (C) 2008-2012 Robert Barsch
-# Romain Jolivet: This is a copy of the beachball.py file from ObsPy as I don't need to import obspy 
-# which conflicts with proj versions as I am writing these lines
+# Romain Jolivet: This is a copy of the beachball.py file from ObsPy as I don't want to import obspy 
+# which conflicts with proj versions as I am writing these lines. 
+# Update on Feb 2024: I don't see any reason for importing obspy still, so I will keep this file here.
 # ---------------------------------------------------------------------
 
 """

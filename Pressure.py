@@ -14,8 +14,6 @@ from argparse import Namespace
 
 # Personals
 from .SourceInv import SourceInv
-from .EDKSmp import sum_layered
-from .EDKSmp import dropSourcesInPatches as Patches2Sources
 from .gps import gps as gpsclass
 
 # class Pressure
@@ -44,27 +42,27 @@ class Pressure(SourceInv):
             if b == c:
                 if a == b == c:
                     from .Mogi import Mogi
-                    print('All axes are equal, using Mogi.py')
-                    return Mogi(name, x0, y0, z0, ax, ay, az, dip, strike, plunge, utmzone=utmzone, ellps='WGS84', lon0=lon0, lat0=lon0, verbose=True)
+                    if verbose: print('All axes are equal, using Mogi.py')
+                    return Mogi(name, x0, y0, z0, ax, ay, az, dip, strike, plunge, utmzone=utmzone, ellps=ellps, lon0=lon0, lat0=lat0, verbose=verbose)
                 else:
                     from .Yang import Yang
-                    print('semi-minor axes are equal, using Yang.py')
-                    return Yang(name, x0, y0, z0, ax, ay, az, dip, strike, plunge, utmzone=utmzone, ellps='WGS84', lon0=lon0, lat0=lon0, verbose=True)
+                    if verbose: print('semi-minor axes are equal, using Yang.py')
+                    return Yang(name, x0, y0, z0, ax, ay, az, dip, strike, plunge, utmzone=utmzone, ellps=ellps, lon0=lon0, lat0=lat0, verbose=verbose)
             else:
                 from .CDM import CDM
-                print('No analytical simplifications possible, using finite CDM.py!')
-                return CDM(name, x0, y0, z0, ax, ay, az, dip, strike, plunge, utmzone=utmzone, ellps='WGS84', lon0=lon0, lat0=lon0, verbose=True)
+                if verbose: print('No analytical simplifications possible, using finite CDM.py!')
+                return CDM(name, x0, y0, z0, ax, ay, az, dip, strike, plunge, utmzone=utmzone, ellps=ellps, lon0=lon0, lat0=lat0, verbose=verbose)
 
         elif None in {ax, ay, az}:
             ### p. 884 of Nikkhoo, et al 2016. states that near field of pCDM and CDM are equivalent only for prolate ellipsoid, but how is "prolate ellipsoid" defined? (when two shortest axes are ~approximately~ the same size?)
             from .pCDM import pCDM
-            print('Using pCDM.py.')
-            return pCDM(name, x0, y0, z0, ax, ay, az, dip, strike, plunge, utmzone=utmzone, ellps='WGS84', lon0=lon0, lat0=lon0, verbose=True)
+            if verbose: print('Using pCDM.py.')
+            return pCDM(name, x0, y0, z0, ax, ay, az, dip, strike, plunge, utmzone=utmzone, ellps=ellps, lon0=lon0, lat0=lat0, verbose=verbose)
 
 
     # ----------------------------------------------------------------------
     # Initialize class
-    def __init__(self, name, x0, y0, z0, ax, ay, az, dip, strike, plunge, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
+    def __init__(self, name, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
         '''
         Parent class implementing what is common in all pressure objects.
 
@@ -156,7 +154,7 @@ class Pressure(SourceInv):
 
     # ----------------------------------------------------------------------
     # Initialize the pressure
-    def initializepressure(self, delta="volume", values=None):
+    def initializepressure(self, values=None):
         '''
         Re-initializes the volume/pressure change.
 
@@ -319,9 +317,9 @@ class Pressure(SourceInv):
                 # Put the parameter number in the file as well if it exists --what is this???
             parameter = ' '
             if hasattr(self,'index_parameter'):
-                i = np.int(self.index_parameter[0])
-                j = np.int(self.index_parameter[1])
-                k = np.int(self.index_parameter[2])
+                i = int(self.index_parameter[0])
+                j = int(self.index_parameter[1])
+                k = int(self.index_parameter[2])
                 parameter = '# {} {} {}'.format(i,j,k)
 
             # Put the slip value
@@ -381,7 +379,7 @@ class Pressure(SourceInv):
         # Get the slip value
         if not donotreadvolume:
             if len(A[0].split())>3:
-                deltaVlm = np.array([np.float(A[0].split()[3])])
+                deltaVlm = np.array([float(A[0].split()[3])])
                 print("read from file, volume change is ", deltaVlm)
             else:
                 deltaVlm = 0.0
@@ -445,7 +443,7 @@ class Pressure(SourceInv):
         Kwargs:
             * dtype       : Format of the binary data saved
                                 'd' for double
-                                'f' for float32
+                                'f' for np.float32
             * outputDir   : Directory to save binary data.
             * suffix      : suffix for GFs name (dictionary)
 
@@ -497,7 +495,7 @@ class Pressure(SourceInv):
                               insar: it will be true anyway).
             * dtype         : Type of binary data.
                                     'd' for double/float64
-                                    'f' for float32
+                                    'f' for np.float32
 
         Returns:
             * None
@@ -554,7 +552,7 @@ class Pressure(SourceInv):
         Kwargs:
             * dtype       : Format of the binary data saved
                                 'd' for double
-                                'f' for float32
+                                'f' for np.float32
             * outputDir   : Directory to save binary data
 
         Returns:
@@ -691,7 +689,7 @@ class Pressure(SourceInv):
 
             Gdp = [Gdvx, Gdvy, Gdvz]
 
-            print("Using pCDM")
+            if verbose: print("Using pCDM")
         else:
             G = {'pressure':[]}
 
@@ -1398,25 +1396,24 @@ class Pressure(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-
-
-    def surfacesimulation(self, box=None, disk=None, err=None, lonlat=None,
-                          volume=None):
+    def surfacesimulation(self, volume, box=None, disk=None, err=None, lonlat=None, name='simulation', verbose=True):
         '''
-        Takes the slip vector and computes the surface displacement that corresponds on a regular grid.
+        Takes the source caracteristics and computes the surface displacement that corresponds on a regular grid 
+        for a given volume change.
 
         Args:
-            * box       : Can be a list of [minlon, maxlon, minlat, maxlat, n].
+            * volume    : Volume change 
 
         Kwargs:
+            * box       : Can be a list of [minlon, maxlon, minlat, maxlat, n].
             * disk      : list of [xcenter, ycenter, radius, n]
             * err       :
             * lonlat    : Arrays of lat and lon. [lon, lat]
-            * volume   : Provide values of volume from which to calculate displacement
+            * verbose   : Default is True
         '''
 
         # create a fake gps object
-        self.sim = gpsclass('simulation', utmzone=self.utmzone, lon0=self.lon0, lat0=self.lat0)
+        self.sim = gpsclass(name, utmzone=self.utmzone, lon0=self.lon0, lat0=self.lat0 , ellps=self.ellps, verbose=verbose)
 
         # Create a lon lat grid
         if lonlat is None:
@@ -1486,15 +1483,13 @@ class Pressure(SourceInv):
                 self.sim.err_enu.append([x,y,z])
             self.sim.err_enu = np.array(self.sim.err_enu)
 
-        # import stuff
-        import sys
-
         # Load the pressure values is provided
         if volume is not None:
             self.deltavolume = volume
 
-        sys.stdout.write('\r Calculating Greens functions for source of type {}'.format(self.source))
-        sys.stdout.flush()
+        if verbose:
+            sys.stdout.write('\r Calculating Greens functions for source of type {}'.format(self.source))
+            sys.stdout.flush()
         # Get the surface displacement due to the slip on this patch
         if self.source == "pCDM":
             u1,u2,u3 = self.pressure2dis(self.sim)
@@ -1506,8 +1501,10 @@ class Pressure(SourceInv):
             # Sum these to get the synthetics
             self.sim.vel_enu += u
 
-        sys.stdout.write('\n')
-        sys.stdout.flush()
+        if verbose:
+            sys.stdout.write('\n')
+            sys.stdout.flush()
 
         # All done
         return
+#EOF

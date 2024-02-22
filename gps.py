@@ -97,17 +97,13 @@ class gps(SourceInv):
 
         # Assign input parameters to station attributes
         self.station = copy.deepcopy(sta_name)
-        self.lon = np.array([],dtype='float64')
-        self.lat = np.array([],dtype='float64')
-        self.x   = np.array([],dtype='float64')
-        self.y   = np.array([],dtype='float64')
         if loc_format=='LL':            
-            self.lon = np.append(self.lon,x)
-            self.lat = np.append(self.lat,y)
+            self.lon = copy.deepcopy(x)
+            self.lat = copy.deepcopy(y)
             self.x, self.y = self.ll2xy(self.lon,self.lat)
         else:
-            self.x = np.append(self.x,x)
-            self.y = np.append(self.y,y)
+            self.x = copy.deepcopy(x)
+            self.y = copy.deepcopy(y)
             self.lon, self.lat = self.xy2ll(self.x,self.y)            
         
         # Initialize the vel_enu array
@@ -221,7 +217,7 @@ class gps(SourceInv):
         return
                 
 
-    def combineNetworks(self, gpsdata, newNetworkName='Combined Network'):
+    def combineNetworks(self, gpsdata, newNetworkName='Combined Network', mergeType=None):
         '''
         Combine networks into a new network.
 
@@ -230,35 +226,62 @@ class gps(SourceInv):
 
         Kwargs:
             * newNetworkName    : Name of the returned network
-
+            * mergeType         : Style of merging
+                                  None: duplicates stations
+                                  sum: if two identical stations, sum the displacements
         Returns:
             * None
         '''
 
         # Create lists
-        lon = []
-        lat = []
-        name = []
-        vel = []
-        err = []
+        Lon = []
+        Lat = []
+        Name = []
+        Vel = []
+        Err = []
+
+        # Create the full list of stqtions
+        stations = []
+        for gp in gpsdata: stations += gp.station.tolist()
+        if mergeType is not None: stations = np.unique(stations).tolist()
 
         # Iterate to get name, lon, lat
-        for gp in gpsdata:
-            lon += gp.lon.tolist()
-            lat += gp.lat.tolist()
-            name += gp.station.tolist()
-            vel += gp.vel_enu.tolist()
-            err += gp.err_enu.tolist()
+        for station in stations:
+            Name.append(station)
+            # Where are the stations in the object
+            Inds = [np.flatnonzero(gp.station==station)[0] if station in gp.station else None for gp in gpsdata]
+            # Check 
+            if mergeType is not None: 
+                assert len(np.unique([gp.lon[i] for i,gp in zip(Inds,gpsdata) if i is not None]))==1, f'Error; Longitude not similar for station {station}'
+                assert len(np.unique([gp.lat[i] for i,gp in zip(Inds,gpsdata) if i is not None]))==1, f'Error; Latitude not similar for station {station}'
+                lon = [gp.lon[i] for i,gp in zip(Inds, gpsdata) if i is not None][0]
+                lat = [gp.lat[i] for i,gp in zip(Inds, gpsdata) if i is not None][0]
+                if mergeType in ('sum', 'Sum', 'SUM'):
+                    vel = np.sum([gp.vel_enu[i] for i,gp in zip(Inds,gpsdata) if i is not None], axis=0)
+                    err = np.sqrt(np.sum([gp.err_enu[i]**2 for i,gp in zip(Inds,gpsdata) if i is not None], axis=0))
+                else:
+                    raise NotImplementedError('Other merge types than sum are not implemented yet. Please do it.')
+                Lon.append(lon)
+                Lat.append(lat)
+                Vel.append(vel)
+                Err.append(err)
+            else:
+                for i,gp in zip(Inds,gpsdata):
+                    if i is not None:
+                        Lon.append(gp.lon[i])
+                        Lat.append(gp.lat[i])
+                        Vel.append(gp.vel[i])
+                        Err.append(gp.err[i])
 
         # Create a new instance
         gp = gps(newNetworkName, utmzone=self.utmzone, verbose=self.verbose, lon0=self.lon0, lat0=self.lat0)
 
         # Fill it
-        gp.setStat(np.array(name), np.array(lon), np.array(lat))
+        gp.setStat(np.array(Name), np.array(Lon), np.array(Lat))
 
         # Set displacements and errors
-        gp.vel_enu = np.array(vel)
-        gp.err_enu = np.array(err)
+        gp.vel_enu = np.array(Vel)
+        gp.err_enu = np.array(Err)
 
         # All done
         return gp
@@ -363,6 +386,42 @@ class gps(SourceInv):
 
         # All done
         return lon, lat, vel, err, synth, los
+
+    def setvelo(self, station, vel, data='data'):
+        '''
+        Sets the velocity enu for a station.
+
+        Args:
+            * station   : name of the station
+            * vel       : 3 comp list or np.array
+
+        Kwargs:
+            * data      : Can be 'data', 'synth' or any
+                          attribute of the size of vel_enu
+
+        Returns:
+            * None
+        '''
+
+        # Check
+        assert type(vel) in (list, np.ndarray), 'Vel argument must be list of numpy array. Currently, it is {}'.format(type(vel))
+        vel = np.array(vel).squeeze()
+        assert len(vel)==3, 'Vel must be of size 3. You provided a size {}'.format(len(vel))
+
+        # Get the station index 
+        u = np.flatnonzero(np.array(self.station) == station)
+
+        # return the values
+        if data in ('data'):
+            self.vel_enu[u,:] = vel
+        elif data in ('synth'):
+            self.synth[u,:] = vel
+        else:
+            d = getattr(self, data)
+            d[u,:] = vel
+
+        # All done
+        return
 
     def getvelo(self, station, data='data'):
         '''
@@ -899,15 +958,15 @@ class gps(SourceInv):
             if 'nan' not in A:
 
                 self.station.append(A[0])
-                self.lon.append(np.float(A[1]))
-                self.lat.append(np.float(A[2]))
+                self.lon.append(float(A[1]))
+                self.lat.append(float(A[2]))
 
-                east = np.float(A[3])
-                north = np.float(A[4])
+                east = float(A[3])
+                north = float(A[4])
                 self.vel_enu.append([east, north, 0.0])
 
-                east = np.float(A[5])
-                north = np.float(A[6])
+                east = float(A[5])
+                north = float(A[6])
                 up = 0.0
                 if east == 0.:
                     east = minerr
@@ -1001,14 +1060,14 @@ class gps(SourceInv):
                 self.lat.append(lat)
 
                 # Deal with velocities
-                east = np.float(A[8])
-                north = np.float(A[9])
-                up = np.float(A[10])
+                east = float(A[8])
+                north = float(A[9])
+                up = float(A[10])
                 self.vel_enu.append([east, north, up])
 
-                east = np.float(A[11])
-                north = np.float(A[12])
-                up = np.float(A[13])
+                east = float(A[11])
+                north = float(A[12])
+                up = float(A[13])
                 if east == 0.:
                     east = minerr
                 if north == 0.:
@@ -1083,17 +1142,17 @@ class gps(SourceInv):
             if 'nan' not in A or not checkNaNs:
 
                 self.station.append(A[0])
-                self.lon.append(np.float(A[1]))
-                self.lat.append(np.float(A[2]))
+                self.lon.append(float(A[1]))
+                self.lat.append(float(A[2]))
 
-                east = np.float(A[3])
-                north = np.float(A[4])
-                up = np.float(A[5])
+                east = float(A[3])
+                north = float(A[4])
+                up = float(A[5])
                 self.vel_enu.append([east, north, up])
 
-                east = np.float(A[6])
-                north = np.float(A[7])
-                up = np.float(A[8])
+                east = float(A[6])
+                north = float(A[7])
+                up = float(A[8])
                 if east == 0.:
                     east = minerr
                 if north == 0.:
@@ -1162,7 +1221,7 @@ class gps(SourceInv):
             if 'nan' not in A:
 
                 # Get the direction array
-                direction = np.array([np.int(A[3]), np.int(A[4]), np.int(A[5])])
+                direction = np.array([int(A[3]), int(A[4]), int(A[5])])
 
                 # Which direction are we looking at?
                 d = np.flatnonzero(direction==1.)
@@ -1173,16 +1232,16 @@ class gps(SourceInv):
                     self.station.append(A[9])
 
                     # Store the lon lat
-                    self.lon.append(np.float(A[10]))
-                    self.lat.append(np.float(A[11]))
+                    self.lon.append(float(A[10]))
+                    self.lat.append(float(A[11]))
 
                     # Create a velocity array
                     vel = [0.,0.,0.]
                     err = [0.,0.,0.]
 
                     # Put velocities and errors there
-                    vel[d] = np.float(A[1])
-                    err[d] = np.float(A[2])
+                    vel[d] = float(A[1])
+                    err[d] = float(A[2])
 
                     # Append velocities and errors
                     self.vel_enu.append(vel)
@@ -1194,8 +1253,8 @@ class gps(SourceInv):
                     i = [u for u in range(len(self.station)) if self.station[u] in (A[9])][0]
 
                     # store the velocity
-                    self.vel_enu[i][d] = np.float(A[1])
-                    self.err_enu[i][d] = np.float(A[2])
+                    self.vel_enu[i][d] = float(A[1])
+                    self.err_enu[i][d] = float(A[2])
 
         # Make np array with that
         self.lon = np.array(self.lon)
@@ -1256,17 +1315,17 @@ class gps(SourceInv):
             if 'nan' not in A:
 
                 self.station.append(A[0])
-                self.lon.append(np.float(A[8]))
-                self.lat.append(np.float(A[7]))
+                self.lon.append(float(A[8]))
+                self.lat.append(float(A[7]))
 
-                east = np.float(A[20])
-                north = np.float(A[19])
-                up = np.float(A[21])
+                east = float(A[20])
+                north = float(A[19])
+                up = float(A[21])
                 self.vel_enu.append([east, north, up])
 
-                east = np.float(A[23])
-                north = np.float(A[22])
-                up = np.float(A[24])
+                east = float(A[23])
+                north = float(A[22])
+                up = float(A[24])
                 if east == 0.:
                     east = minerr
                 if north == 0.:
@@ -1348,15 +1407,15 @@ class gps(SourceInv):
 
             if len(c)>0:
                 self.station.append(Vel[i].split()[0])
-                self.lon.append(np.float(Cor[c].split()[9]))
-                self.lat.append(np.float(Cor[c].split()[8]))
-                east = np.float(Vel[i].split()[8])
-                north = np.float(Vel[i].split()[7])
-                up = np.float(Vel[i].split()[9])
+                self.lon.append(float(Cor[c].split()[9]))
+                self.lat.append(float(Cor[c].split()[8]))
+                east = float(Vel[i].split()[8])
+                north = float(Vel[i].split()[7])
+                up = float(Vel[i].split()[9])
                 self.vel_enu.append([east, north, up])
-                east = np.float(Vel[i].split()[11])
-                north = np.float(Vel[i].split()[10])
-                up = np.float(Vel[i].split()[12])
+                east = float(Vel[i].split()[11])
+                north = float(Vel[i].split()[10])
+                up = float(Vel[i].split()[12])
                 if east == 0.:
                     east = minerr
                 if north == 0.:
@@ -1998,16 +2057,7 @@ class gps(SourceInv):
                 Npo = 4                    # 2D Helmert transform is 4 parameters
         # Full Strain (Translation + Strain + Rotation)
         elif transformation == 'strain':
-            Npo = 6
-        # Strain without rotation (Translation + Strain)
-        elif transformation == 'strainnorotation':
-            Npo = 5
-        # Strain Only (Strain)
-        elif transformation == 'strainonly':
             Npo = 3
-        # Strain without translation (Strain + Rotation)
-        elif transformation == 'strainnotranslation':
-            Npo = 4
         # Translation
         elif transformation == 'translation':
             Npo = 2
@@ -2048,16 +2098,7 @@ class gps(SourceInv):
             orb = self.getHelmertMatrix(components=self.obs_per_station)
         # Strain + Rotation + Translation
         elif transformation == 'strain':
-            orb = self.get2DstrainEst(computeNormFact=computeNormFact)
-        # Strain + Translation
-        elif transformation == 'strainnorotation':
-            orb = self.get2DstrainEst(rotation=False, computeNormFact=computeNormFact)
-        # Strain
-        elif transformation == 'strainonly':
-            orb = self.get2DstrainEst(rotation=False, translation=False, computeNormFact=computeNormFact)
-        # Strain + Rotation
-        elif transformation == 'strainnotranslation':
-            orb = self.get2DstrainEst(translation=False, computeNormFact=computeNormFact)
+            orb = self.get2DstrainEst(translation=False, rotation=False, computeNormFact=computeNormFact)
         # Translation
         elif transformation == 'translation':
             orb = self.get2DstrainEst(strain=False, rotation=False, computeNormFact=computeNormFact)
@@ -2400,16 +2441,8 @@ class gps(SourceInv):
             transformation = fault.poly[self.name]
             if transformation == 'strain':
                 strain = True
-                translation = True
-                rotation = True
-            elif transformation == 'strainnorotation':
-                strain = True
-                translation = True
-                rotation = False
-            elif transformation == 'strainnotranslation':
-                strain = True
                 translation = False
-                rotation = True
+                rotation = False
             elif transformation == 'translation':
                 strain = False
                 rotation = False
@@ -2418,22 +2451,18 @@ class gps(SourceInv):
                 strain = False
                 rotation = True
                 translation = True
-            elif transformation == 'strainonly':
-                strain = True
-                rotation = False
-                translation = False
 
         # Verbose?
         if verbose:
             
             # Get things to write 
-            Svec = self.StrainTensor
+            Svec = self.StrainTensor[transformation]
             base_max = self.StrainNormalizingFactor
 
             # Print stuff
             print('--------------------------------------------------')
             print('--------------------------------------------------')
-            print('Removing the estimated Strain Tensor from the gps {}'.format(self.name)) 
+            print('Computing the estimated Strain Tensor from the gps {}'.format(self.name)) 
             print('Note: Extension is negative...')
             print('Note: ClockWise Rotation is positive...')
             print('Note: There might be a scaling factor to apply to get the things right.')
@@ -2914,13 +2943,13 @@ class gps(SourceInv):
                     synth = Gp*fault.deltaopening
                     N = 0
                     if east:
-                        self.synth[:,0] += synth[N:Nd]
+                        self.synth[:,0] += synth[N:Nd].squeeze()
                         N += Nd
                     if north:
-                        self.synth[:,1] += synth[N:N+Nd]
+                        self.synth[:,1] += synth[N:N+Nd].squeeze()
                         N += Nd
                     if vertical:
-                        self.synth[:,2] += synth[N:N+Nd]
+                        self.synth[:,2] += synth[N:N+Nd].squeeze()
 
             if custom:
                 Gc = G['custom']
@@ -3578,9 +3607,9 @@ class gps(SourceInv):
                 timeseries.north.value += nts.north.value
                 timeseries.up.value += nts.up.value
             # Mean
-            timeseries.east.value /= np.float(N)
-            timeseries.north.value /= np.float(N)
-            timeseries.up.value /= np.float(N)
+            timeseries.east.value /= float(N)
+            timeseries.north.value /= float(N)
+            timeseries.up.value /= float(N)
 
             # Loop over the samples to get the std
             for n in range(N):
@@ -3593,9 +3622,9 @@ class gps(SourceInv):
                 timeseries.up.error += (nts.up.value - \
                                         timeseries.up.value)**2
             # Samples
-            timeseries.east.error /= np.float(N)
-            timeseries.north.error /= np.float(N)
-            timeseries.up.error /= np.float(N)
+            timeseries.east.error /= float(N)
+            timeseries.north.error /= float(N)
+            timeseries.up.error /= float(N)
 
             # Std
             timeseries.east.error = np.sqrt(timeseries.east.error)
@@ -3647,11 +3676,13 @@ class gps(SourceInv):
         return
 
     def plot(self, faults=None, figure=135, name=False, legendscale=10., scale=None, figsize=None,
-            plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True,
-            colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
-            landcolor='lightgrey', seacolor=None, shadedtopo=None,
-            vertical=False, verticalsize=[30], box=None,
-            data=['data'], color=['k'], titleyoffset=1.1, alpha=1.):
+             plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True, title=True,
+             colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
+             landcolor='lightgrey', seacolor=None, shadedtopo=None,
+             Map=True, Fault=True, zorder=None,
+             vertical=False, verticalsize=[30], verticalnorm=None, box=None,
+             width=0.005, headwidth=3, headlength=5, headaxislength=4.5, minshaft=1, minlength=1,
+             data=['data'], color=['k'], titleyoffset=1.1, alpha=1.):
         '''
         Plot the network
 
@@ -3695,14 +3726,10 @@ class gps(SourceInv):
             figsize=(None, None)
         fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 
                                      latmin=latmin, latmax=latmax, 
-                                     figsize=figsize)
+                                     figsize=figsize, Map=Map, Fault=Fault)
 
         # Shaded topo
-        if shadedtopo is not None:
-            smooth = shadedtopo['smooth']
-            al = shadedtopo['alpha']
-            zo = shadedtopo['zorder']
-            fig.shadedTopography(smooth=smooth, alpha=al, zorder=zo)
+        if shadedtopo is not None: fig.shadedTopography(**shadedtopo)
 
         # Draw the coastlines
         if drawCoastlines:
@@ -3722,20 +3749,24 @@ class gps(SourceInv):
 
         # Plot verticals?
         if vertical:
-            fig.gpsverticals(self, colorbar=True, data=data, markersize=verticalsize, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, alpha=alpha)
+            fig.gpsverticals(self, colorbar=True, data=data, norm=verticalnorm,
+                             markersize=verticalsize, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, alpha=alpha)
 
         # Plot GPS velocities
         fig.gps(self, data=data, name=name, error=error,
                       legendscale=legendscale, scale=scale, 
-                      color=color, alpha=alpha)
+                      color=color, alpha=alpha, zorder=zorder,
+                      width=width, headwidth=headwidth, headlength=headlength, 
+                      headaxislength=headaxislength, minshaft=minshaft, minlength=minlength)
 
         # Set up title
-        title = '{} '.format(self.name)
-        if type(data) is list:
-            for d in data: title += '- {}'.format(d) 
-        else:
-            title += '- {}'.format(data)
-        fig.titlemap(title, y=titleyoffset)
+        if title:
+            title = '{} '.format(self.name)
+            if type(data) is list:
+                for d in data: title += '- {}'.format(d) 
+            else:
+                title += '- {}'.format(data)
+            fig.titlemap(title, y=titleyoffset)
 
         # Save fig
         self.fig = fig

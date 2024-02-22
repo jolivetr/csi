@@ -77,8 +77,11 @@ from .velocitymodel import velocitymodel
 from .srcmodsolution import srcmodsolution
 from .strainfield import strainfield
 from .stressfield import stressfield
-from .geodeticplot import geodeticplot
 from .seismicplot import seismicplot
+
+## Plotting
+from .geodeticplot import geodeticplot
+from .gebco import GebcoSource
 
 ## Utils
 from .tidalfit import tidalfit

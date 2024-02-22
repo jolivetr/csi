@@ -2,26 +2,25 @@
 A Compound Dislocation Model (CDM) sub-class.
 
 Written by T. Shreve, June 2019
+Manual cleaned up by R. Jolivet, Feb 2024
 '''
 
 # Import Externals stuff
 import numpy as np
-import sys
-import os
 from argparse import Namespace
+import warnings
 
 # Personals
 from . import CDMfull
 from .Pressure import Pressure
-from .EDKSmp import sum_layered
-from .EDKSmp import dropSourcesInPatches as Patches2Sources
 
 #sub-class CDM
 class CDM(Pressure):
 
     # ----------------------------------------------------------------------
     # Initialize class
-    def __init__(self, name, x0=None, y0=None, z0=None, ax=None, ay=None, az=None, dip=None, strike=None, plunge=None, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
+    def __init__(self, name, utmzone=None, ellps='WGS84', lon0=None, lat0=None, 
+                             verbose=True):
         '''
         Sub-class implementing CDM pressure objects.
 
@@ -40,6 +39,8 @@ class CDM(Pressure):
             * ellps        : ellipsoid (optional, default='WGS84')
         '''
 
+        warnings.warn("CDM is not yet fully tested as the amplitudes are awkward. Please check the code.", FutureWarning)  
+
         # Attributes only for CDM and pCDM
 
         # Potency given semi-axes and unit opening
@@ -52,15 +53,10 @@ class CDM(Pressure):
         self.deltaopening   = None
 
         # Base class init
-        super(CDM,self).__init__(name, x0=x0, y0=y0, z0=z0, ax=ax, ay=ay, az=az, dip=dip, strike=strike, plunge=plunge, utmzone=utmzone, ellps=ellps, lon0=lon0, lat0=lat0, verbose=True)
+        super(CDM,self).__init__(name, utmzone=utmzone, ellps=ellps, lon0=lon0, lat0=lat0, verbose=verbose)
+        self.verbose=verbose
         self.source = "CDM"
-        if None not in {x0, y0, z0, ax, ay, az, dip, strike, plunge}:
-            self.createShape(x0, y0, z0, ax, ay, az, dip, strike, plunge)
-            print("Defining source parameters")
-
         return
-
-
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -82,8 +78,6 @@ class CDM(Pressure):
         self.DV = (DVx + DVy + DVz)
 
         return A, B, self.DV
-
-
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -94,7 +88,20 @@ class CDM(Pressure):
 
     # ----------------------------------------------------------------------
 
+    # ----------------------------------------------------------------------
+    # Set volume and pressure changes
+    def setOpening(self, opening):
+        '''
+        Set deltavolume given deltapressure.
 
+        Returns:
+            * deltapressure             : Pressure change
+        '''
+        self.deltaopening = opening
+        self.opening2potency()
+
+        # All done
+        return
     # ----------------------------------------------------------------------
     #
     # ----------------------------------------------------------------------
@@ -181,7 +188,6 @@ class CDM(Pressure):
     # Define the shape of the CDM
     #
     # ----------------------------------------------------------------------
-
     def createShape(self, x, y, z0, ax, ay, az, dip, strike, plunge, latlon=True):
         """"
         Defines the shape of the CDM pressure source.
@@ -213,3 +219,4 @@ class CDM(Pressure):
         self.ellipshape = {'x0': lon1,'x0m': x1,'y0': lat1, 'y0m': y1, 'z0': z0,'ax': ax,'ay': ay, 'az': az, 'dip': dip,'strike': strike, 'plunge': plunge}
 
         return
+#EOF

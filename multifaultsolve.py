@@ -14,6 +14,10 @@ import copy
 import numpy as np
 import pyproj as pp
 import matplotlib.pyplot as plt
+try:
+    import h5py
+except:
+    print('HDF5 capabilities not available')
 
 class multifaultsolve(object):
     '''
@@ -891,7 +895,7 @@ class multifaultsolve(object):
             return
 
         # Get the inverse of Cd
-        print ("Computing the inverse of the data covariance")
+        if self.verbose: print ("Computing the inverse of the data covariance")
         iCd = scilin.inv(Cd)
 
         # Construct mprior
@@ -899,7 +903,7 @@ class multifaultsolve(object):
             mprior = np.zeros((Nm,))
 
         # Compute mpost
-        print ("Computing m_post")
+        if self.verbose: print ("Computing m_post")
         One = scilin.inv(np.dot(  np.dot(G.T, iCd), G ) )
         Res = d - np.dot( G, mprior )
         Two = np.dot( np.dot( G.T, iCd ), Res )
@@ -971,7 +975,7 @@ class multifaultsolve(object):
 
         # Get the inverse of Cm
         if useCm:
-            print ("Computing the inverse of the model covariance")
+            if self.verbose: print ("Computing the inverse of the model covariance")
             iCm = scilin.inv(Cm)
         else:
             iCm = np.zeros(Cm.shape)
@@ -982,7 +986,7 @@ class multifaultsolve(object):
             return
 
         # Get the inverse of Cd
-        print ("Computing the inverse of the data covariance")
+        if self.verbose: print ("Computing the inverse of the data covariance")
         if rcond is None:
             iCd = scilin.inv(Cd)
         else:
@@ -993,7 +997,7 @@ class multifaultsolve(object):
             mprior = np.zeros((Nm,))
 
         # Compute mpost
-        print ("Computing m_post")
+        if self.verbose: print ("Computing m_post")
         One = scilin.inv(np.dot(  np.dot(G.T, iCd), G ) + iCm )
         Res = d - np.dot( G, mprior )
         Two = np.dot( np.dot( G.T, iCd ), Res )
@@ -1074,8 +1078,8 @@ class multifaultsolve(object):
         # Assert
         assert G.shape[0]==d.shape[0], "Green's functions and data not compatible: {} / {}".format(G.shape, d.shape)
         assert G.shape[1]==Cm.shape[1], "Green's functions and model covariance not compatible: {} / {}".format(G.shape, Cm.shape)
-        print('Final data space size: {}'.format(d.shape[0]))
-        print('Final model space size: {}'.format(Cm.shape[0]))
+        if self.verbose: print('Final data space size: {}'.format(d.shape[0]))
+        if self.verbose: print('Final model space size: {}'.format(Cm.shape[0]))
 
         # Get the number of model parameters
         Nm = Cm.shape[0]
@@ -1439,6 +1443,59 @@ class multifaultsolve(object):
         # all done
         return
 
+    def writeMpost2H5File(self, outfile, name='static.initialModel'):
+        '''
+        Writes the solution to a binary file.
+
+        Args:
+            * outfile       : Output file name
+
+        
+        Kwargs:
+            *name           : Name of the dataset
+
+        Returns:
+            * None
+        '''
+
+        # Do it
+        with h5py.File(outfile, 'w') as fout:
+            fout.create_dataset(name, data=self.mpost)
+
+        # all done
+        return
+
+    def writeGFs2H5File(self, outfile, name='static.gf'):
+        '''
+        Writes the assembled GFs to the file outfile.
+
+        Args:
+            * outfile       : Name of the output file.
+
+        Kwargs:
+            * name          : Name of the dataset in the file
+
+        Returns:
+            * None
+        '''
+
+        # Assert
+        assert self.ready, 'You need to assemble the GFs'
+
+        # Write to file
+        with h5py.File(outfile, 'w') as fout:
+            fout.create_dataset(name, data=self.G)
+
+        # Keep track of the file
+        self.Gfile = outfile
+
+        # Print stuff
+        if self.verbose: print("Writing Green's functions to file {}".format(outfile))
+        if self.verbose: print("Green's functions matrix size: {} ; {}".format(self.G.shape[0], self.G.shape[1]))
+
+        # All done
+        return
+
     def writeGFs2BinaryFile(self, outfile='GF.dat', dtype='f'):
         '''
         Writes the assembled GFs to the file outfile.
@@ -1458,7 +1515,7 @@ class multifaultsolve(object):
         if dtype in ('f', 'float'):
             dtype = np.float32
         elif dtype in ('d', 'double'):
-            dtype = np.float64
+            dtype = float
 
         # Convert the data
         G = self.G.astype(dtype)
@@ -1470,8 +1527,38 @@ class multifaultsolve(object):
         self.Gfile = outfile
 
         # Print stuff
-        print("Writing Green's functions to file {}".format(outfile))
-        print("Green's functions matrix size: {} ; {}".format(G.shape[0], G.shape[1]))
+        if self.verbose: print("Writing Green's functions to file {}".format(outfile))
+        if self.verbose: print("Green's functions matrix size: {} ; {}".format(G.shape[0], G.shape[1]))
+
+        # All done
+        return
+
+    def writeData2H5File(self, outfile, name='static.data'):
+        '''
+        Writes the assembled data vector to an output file.
+
+        Args:
+            * outfile       : Name of the output file.
+
+        Kwargs:
+            * name          : name of the dataset in the file
+
+        Returns:
+            * None
+        '''
+
+        # Assert
+        assert self.ready, 'You need to assemble the GFs'
+
+        # Write to file
+        with h5py.File(outfile, 'w') as fout:
+            fout.create_dataset(name, data=self.d)
+
+        # Keep track of the file
+        self.dfile = outfile
+
+        # Print stuff
+        if self.verbose: print("Data vector size: {}".format(self.d.shape[0]))
 
         # All done
         return
@@ -1495,7 +1582,7 @@ class multifaultsolve(object):
         if dtype in ('f', 'float'):
             dtype = np.float32
         elif dtype in ('d', 'double'):
-            dtype = np.float64
+            dtype = float
 
         # Convert the data
         d = self.d.astype(dtype)
@@ -1507,7 +1594,38 @@ class multifaultsolve(object):
         self.dfile = outfile
 
         # Print stuff
-        print("Data vector size: {}".format(d.shape[0]))
+        if self.verbose: print("Data vector size: {}".format(d.shape[0]))
+
+        # All done
+        return
+
+    def writeCd2H5File(self, outfile, name='static.Cd', scale=1.):
+        '''
+        Writes the assembled Data Covariance matrix to a hdf5 file
+
+        Args:
+            * outfile       : Name of the output file.
+
+        Kwargs:
+            * scale         : Multiply the data covariance.
+            * name          : name of the dataset in the file
+
+        Returns:
+            * None
+        '''
+
+        # Assert
+        assert self.ready, 'You need to assemble the GFs'
+
+        # Write to file
+        with h5py.File(outfile, 'w') as fout:
+            fout.create_dataset(name, data=self.Cd*scale)
+
+        # keep track of the file
+        self.Cdfile = outfile
+
+        # print stuff
+        if self.verbose: print("Data Covariance Size: {} ; {}".format(self.Cd.shape[0], self.Cd.shape[1]))
 
         # All done
         return
@@ -1532,7 +1650,7 @@ class multifaultsolve(object):
         if dtype in ('f', 'float'):
             dtype = np.float32
         elif dtype in ('d', 'double'):
-            dtype = np.float64
+            dtype = float
 
         # Convert the data
         Cd = self.Cd.astype(dtype) * scale
@@ -1544,7 +1662,7 @@ class multifaultsolve(object):
         self.Cdfile = outfile
 
         # print stuff
-        print("Data Covariance Size: {} ; {}".format(Cd.shape[0], Cd.shape[1]))
+        if self.verbose: print("Data Covariance Size: {} ; {}".format(Cd.shape[0], Cd.shape[1]))
 
         # All done
         return
@@ -1562,6 +1680,9 @@ class multifaultsolve(object):
         Returns:
             * None
         '''
+
+        # Obsolet
+        assert False, 'This is totally obsolete'
 
         # Create the cfg and py file
         self.writeAltarCfgFile(prefix=self.name, tasks=tasks, chains=chains, steps=steps, support=support)
@@ -1589,6 +1710,8 @@ class multifaultsolve(object):
         Returns:
             * None
         '''
+
+        assert False, 'This is totally obsolete...'
 
         # Open the file and print the opening credits
         fout = open(prefix+'.cfg', 'w')

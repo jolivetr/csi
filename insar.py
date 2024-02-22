@@ -1,8 +1,9 @@
 '''
-A class that deals with InSAR data, after decimation using VarRes.
+A class that deals with InSAR data.
 
 Written by R. Jolivet, B. Riel and Z. Duputel, April 2013.
 Edited by T. Shreve, June 2019. Edited buildsynth to include pressure sources.
+Continuous updates by R. Jolivet since 2013.
 '''
 
 # Externals
@@ -249,11 +250,11 @@ class insar(SourceInv):
             # Get values
             line = Lines[i].split()
             # Fill in the values
-            self.lon.append(np.float(line[0]))
-            self.lat.append(np.float(line[1]))
-            self.vel.append(np.float(line[2]))
+            self.lon.append(float(line[0]))
+            self.lat.append(float(line[1]))
+            self.vel.append(float(line[2]))
             if len(line)>3:
-                self.err.append(np.float(line[3]))
+                self.err.append(float(line[3]))
             else:
                 self.err.append(0.0)
 
@@ -324,11 +325,11 @@ class insar(SourceInv):
             # Get values
             line = Lines[i].split()
             # Fill in the values
-            self.lon.append(np.float(line[0]))
-            self.lat.append(np.float(line[1]))
-            self.vel.append(np.float(line[2]))
-            self.err.append(np.float(line[3]))
-            self.los.append([np.float(line[4]), np.float(line[5]), np.float(line[6])])
+            self.lon.append(float(line[0]))
+            self.lat.append(float(line[1]))
+            self.vel.append(float(line[2]))
+            self.err.append(float(line[3]))
+            self.los.append([float(line[4]), float(line[5]), float(line[6])])
 
         # Make arrays
         self.vel = (np.array(self.vel)+step)*factor
@@ -360,7 +361,7 @@ class insar(SourceInv):
             * factor        : Factor to multiply the LOS velocity.
             * step          : Add a value to the velocity.
             * header        : Size of the header.
-            * cov           : Read an additional covariance file (binary float32, Nd*Nd elements).
+            * cov           : Read an additional covariance file (binary np.float32, Nd*Nd elements).
 
         Returns:
             * None
@@ -388,13 +389,13 @@ class insar(SourceInv):
         # Loop over the A, there is a header line header
         for i in range(header, len(A)):
             tmp = A[i].split()
-            self.vel.append(np.float(tmp[5]))
-            self.lon.append(np.float(tmp[3]))
-            self.lat.append(np.float(tmp[4]))
-            self.err.append(np.float(tmp[6]))
-            self.los.append([np.float(tmp[8]), np.float(tmp[9]), np.float(tmp[10])])
+            self.vel.append(float(tmp[5]))
+            self.lon.append(float(tmp[3]))
+            self.lat.append(float(tmp[4]))
+            self.err.append(float(tmp[6]))
+            self.los.append([float(tmp[8]), float(tmp[9]), float(tmp[10])])
             tmp = B[i].split()
-            self.corner.append([np.float(tmp[6]), np.float(tmp[7]), np.float(tmp[8]), np.float(tmp[9])])
+            self.corner.append([float(tmp[6]), float(tmp[7]), float(tmp[8]), float(tmp[9])])
 
         # Make arrays
         self.vel = (np.array(self.vel)+step)*factor
@@ -531,7 +532,7 @@ class insar(SourceInv):
             if type(incidence) is np.ndarray:
                 self.inchd2los(incidence, heading, origin='binaryfloat')
                 self.los = self.los[::downsample,:]
-            elif type(incidence) in (float, np.float):
+            elif type(incidence) in (float, float):
                 self.inchd2los(incidence, heading, origin='float')
             elif type(incidence) is str:
                 self.inchd2los(incidence, heading, origin='binary')
@@ -541,7 +542,7 @@ class insar(SourceInv):
                 self.incaz2los(incidence, azimuth, origin='binaryfloat',
                         dtype=dtype)
                 self.los = self.los[::downsample,:]
-            elif type(incidence) in (float, np.float):
+            elif type(incidence) in (float, float):
                 self.incaz2los(incidence, azimuth, origin='float')
             elif type(incidence) is str:
                 self.incaz2los(incidence, azimuth, origin='binary',
@@ -554,6 +555,8 @@ class insar(SourceInv):
                 self.los = np.fromfile(los, 'f').reshape((len(vel), 3))
         else:
             self.los = None
+            self.incidence = None
+            self.heading = None
         if self.los is not None:
             self.los = self.los[iKeep,:]
 
@@ -1129,9 +1132,8 @@ class insar(SourceInv):
         vel, err, los = self.returnAverageNearPoint(lon, lat, radius)
     
         # Check
-        if np.isnan(vel): 
-            print('Referencing impossible for data {}: Only NaNs in the reference'.format(self.name))
-            return
+        assert vel is not None, 'Referencing impossible for data {}: None'.format(self.name)
+        assert not np.isnan(vel), 'Referencing impossible for data {}: NaNs'.format(self.name)
 
         # Correct
         self.vel -= vel
@@ -1139,9 +1141,7 @@ class insar(SourceInv):
         # All done
         return
 
-        
-
-    def extractAroundGPS(self, inp, distance, doprojection=True):
+    def extractAroundGPS(self, inp, distance, doprojection=True, verbose=False):
         '''
         Returns a gps object with values projected along the LOS around the
         gps stations included in gps. In addition, it projects the gps displacements
@@ -1163,7 +1163,7 @@ class insar(SourceInv):
         out = gps('{} - {}'.format(self.name, inp.name), lon0=self.lon0, 
                                                          lat0=self.lat0,
                                                          utmzone=self.utmzone,
-                                                         ellps=self.ellps)
+                                                         ellps=self.ellps, verbose=verbose)
         out.setStat(inp.station, inp.lon, inp.lat, initVel=True)
         out.vel_enu = copy.deepcopy(inp.vel_enu)
         out.err_enu = copy.deepcopy(inp.err_enu)
@@ -1237,7 +1237,8 @@ class insar(SourceInv):
         self.lat = self.lat[u]
         self.x = self.x[u]
         self.y = self.y[u]
-        self.vel = self.vel[u]
+        if self.vel is not None:
+            self.vel = self.vel[u]
         if self.err is not None:
             self.err = self.err[u]
         if self.los is not None:
@@ -1431,7 +1432,10 @@ class insar(SourceInv):
 
     def get2DstrainEst(self, computeNormFact=True):
         '''
-        Returns the matrix to estimate the 2d aerial strain tensor. When building the estimator, third column is the Epsilon_xx component, Fourth column is the Epsilon_xy component, fifth column is the Epsilon_yy component.
+        Returns the matrix to estimate the 2d aerial strain tensor. 
+        First column is the Epsilon_xx component
+        Second column is the Epsilon_xy component
+        Fourth column is the Epsilon_yy component.
 
         Kwargs:
             * computeNormFact       : Recompute the normalization factor
@@ -1550,7 +1554,10 @@ class insar(SourceInv):
             params = params[ptype]
 
         # Get the estimator
-        Horb = self.getPolyEstimator(ptype, computeNormFact=computeNormFact)
+        if type(ptype) is int:
+            Horb = self.getPolyEstimator(ptype, computeNormFact=computeNormFact)
+        elif type(ptype) is str:
+            Horb = self.get2DstrainEst(computeNormFact=computeNormFact)
 
         # Compute the polynomial
         self.orbit = np.dot(Horb, params)
@@ -2617,7 +2624,9 @@ class insar(SourceInv):
         fout.close()
 
 
-    def plotprofile(self, name, legendscale=10., fault=None, norm=None, synth=False, alpha=.3, plotType='scatter', drawCoastlines=True):
+    def plotprofile(self, name, figsize=(10,10), fault=None, norm=None, synth=False, 
+                    cbaxis=[0.1, 0.1, 0.1, 0.01],
+                    alpha=.3, plotType='scatter', drawCoastlines=True):
         '''
         Plot profile.
 
@@ -2639,7 +2648,12 @@ class insar(SourceInv):
         assert len(x)>5, 'There is less than 5 points in your profile...'
 
         # Plot the insar
-        self.plot(faults=fault, norm=norm, show=False, alpha=alpha, plotType=plotType, expand=0., drawCoastlines=drawCoastlines)
+        self.plot(faults=fault, norm=norm, figsize=figsize, 
+                  show=False, alpha=alpha, 
+                  plotType=plotType, expand=0., 
+                  drawCoastlines=drawCoastlines, 
+                  cbaxis=cbaxis,
+                  Map=True, Fault=False)
 
         # plot the box on the map
         b = self.profiles[name]['Box']
@@ -2655,17 +2669,17 @@ class insar(SourceInv):
         self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=3, linewidth=2)
 
         # open a figure
-        fig = plt.figure()
-        prof = fig.add_subplot(111)
+        figp = plt.figure(figsize=(10,5))
+        prof = figp.add_subplot(111)
 
         # plot the profile
         x = self.profiles[name]['Distance']
         y = self.profiles[name]['LOS Velocity']
         ey = self.profiles[name]['LOS Error']
         try:
-            p = prof.errorbar(x, y, yerr=ey, label='LOS', fmt='o', alpha=alpha)
+            p = prof.errorbar(x, y, yerr=ey, label='LOS', fmt='.', alpha=alpha, color='k')
         except:
-            p = prof.plot(x, y, label='LOS', marker='.', alpha=alpha)
+            p = prof.plot(x, y, label='LOS', marker='.', color='k', alpha=alpha)
         if synth:
             sy = self.profiles[name]['LOS Synthetics']
             s = prof.plot(x, sy, '-r', label='synthetics')
@@ -2682,12 +2696,14 @@ class insar(SourceInv):
                 if d is not None:
                     ymin, ymax = prof.get_ylim()
                     prof.plot([d, d], [ymin, ymax], '--', label=f.name)
+        prof.set_xlabel('Distance along the profile')
+        prof.set_ylabel('LOS measurement')
 
         # plot the legend
         prof.legend()
 
-        # Show to screen
-        self.fig.show(showFig=['map'])
+        # Show me
+        plt.show()
 
         # All done
         return
@@ -2828,9 +2844,10 @@ class insar(SourceInv):
         # All done
 
     def plot(self, faults=None, figure=None, gps=None, norm=None, data='data', show=True, 
+             Map=True, Fault=True, lognorm=False,
              drawCoastlines=True, expand=0.2, edgewidth=1, figsize=None, markersize=1.,
              plotType='scatter', cmap='jet', alpha=1., box=None, titleyoffset=1.1,
-             landcolor='lightgrey', seacolor=None, shadedtopo=None, title=True, los=None,
+             landcolor='lightgrey', seacolor=None, shadedtopo=None, title=False, los=None,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel=''):
         '''
         Plot the data set, together with a fault, if asked.
@@ -2875,14 +2892,11 @@ class insar(SourceInv):
             figsize=(None, None)
         fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 
                                      latmin=latmin, latmax=latmax, 
+                                     Map=Map, Fault=Fault,
                                      figsize=figsize)
 
         # Shaded topo
-        if shadedtopo is not None:
-            smooth = shadedtopo['smooth']
-            al = shadedtopo['alpha']
-            zo = shadedtopo['zorder']
-            fig.shadedTopography(smooth=smooth, alpha=al, zorder=zo)
+        if shadedtopo is not None: fig.shadedTopography(**shadedtopo)
 
         # Draw the coastlines
         if drawCoastlines:
@@ -2897,9 +2911,9 @@ class insar(SourceInv):
                 fig.gps(g)
 
         # Plot the decimation process, if asked
-        fig.insar(self, norm=norm, colorbar=True, data=data, plotType=plotType, markersize=markersize,
-                        cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, los=los,
-                        edgewidth=edgewidth, cmap=cmap, zorder=1, alpha=alpha)
+        fig.insar(self, norm=norm, colorbar=colorbar, data=data, plotType=plotType, markersize=markersize,
+                        cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, los=los, 
+                        edgewidth=edgewidth, cmap=cmap, zorder=1, alpha=alpha, lognorm=lognorm)
 
         # Plot the fault trace if asked
         if faults is not None:
@@ -2911,7 +2925,7 @@ class insar(SourceInv):
 
         # Title
         if title:
-            title = '{} - {} '.format(self.name, data)
+            if type(title) is not str: title = '{} - {} '.format(self.name, data)
             fig.titlemap(title, y=titleyoffset)
 
         # Show

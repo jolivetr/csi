@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Installation &#8212; CSI 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=f78ba3b0" />
+    <script src="_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=e637711f"></script>
+    <script src="_static/copybutton.js?v=56c01ce6"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Basic Tutorials" href="basictutorials.html" />
+    <link rel="prev" title="CSI user manual" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
+<section id="dependencies">
+<h2>Dependencies:<a class="headerlink" href="#dependencies" title="Link to this heading">¶</a></h2>
+<p>CSI relies on a lot of amazing librairies written by smart people. Please install:</p>
+<ul class="simple">
+<li><p>python3</p></li>
+<li><p>gcc</p></li>
+<li><p>numpy</p></li>
+<li><p>spicy</p></li>
+<li><p>shapely</p></li>
+<li><p>pyproj</p></li>
+<li><p>matplotlib</p></li>
+<li><p>cartopy</p></li>
+<li><p>multiprocessing</p></li>
+<li><p>h5py</p></li>
+<li><p>okada4py (available on <a class="reference external" href="https://github.com/jolivetr/okada4py">GitHub</a>)</p></li>
+</ul>
+<p>CSI also has ties with EDKS, a software written by Luis Rivera (Univ. Strasbourg). Since this is not mine, I cannot distribute it. It allows to compute Green’s functions in a layered medium. Other softwares can be used but we haven’t implmemented the links with CSI.</p>
+</section>
+<section id="repositories">
+<h2>Repositories:<a class="headerlink" href="#repositories" title="Link to this heading">¶</a></h2>
+<p>CSI is available on <a class="reference external" href="https://github.com/jolivetr/csi">GitHub</a>! Go get it and clone it to your computer.</p>
+</section>
+<section id="install">
+<h2>Install:<a class="headerlink" href="#install" title="Link to this heading">¶</a></h2>
+<p>There is nothing to compile for CSI. It is pure python and we haven’t written a proper install script.
+Therefore, the easiest way to go is to add the directory where you have cloned CSI to your PYTHONPATH environment variable:</p>
+<p>For instance, in Bash, add to your .bashrc or .bash_profile:</p>
+<p>&gt;&gt; export PYTHONPATH=/where/I/did/drop/the/code:$PYTHONPATH</p>
+<p>This should do it!</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">CSI</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basictutorials.html">Basic Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CSIpublications.html">CSI Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">CSI user manual</a></li>
+      <li>Next: <a href="basictutorials.html" title="next chapter">Basic Tutorials</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Romain Jolivet.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/installation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

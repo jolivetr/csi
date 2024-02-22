@@ -332,7 +332,7 @@ class imagedownsampling(object):
         # All done
         return
 
-    def initialstate(self, startingsize, minimumsize, tolerance=0.5, plot=False, decimorig=10):
+    def initialstate(self, startingsize, minimumsize, tolerance=0.5, plot=False):
         '''
         Does the first cut onto the data.
 
@@ -342,7 +342,6 @@ class imagedownsampling(object):
 
         Kwargs:
             * tolerance     : Between 0 and 1. If 1, all the pixels must have a value so that the box is kept. If 0, no pixels are needed... Default is 0.5
-            * decimorig     : Decimation ofr plotting purposes only.
             * plot          : True/False
 
         Returns:
@@ -370,7 +369,7 @@ class imagedownsampling(object):
         self.setBlocks(blocks)
 
         # Generate the sampling to test
-        self.downsample(plot=plot, decimorig=decimorig)
+        self.downsample(plot=plot)
 
         # All done
         return
@@ -403,13 +402,12 @@ class imagedownsampling(object):
         # All done
         return
 
-    def downsample(self, plot=False, decimorig=10,norm=None):
+    def downsample(self, plot=False, norm=None):
         '''
         From the saved list of blocks, computes the downsampled data set and the informations that come along.
 
         Kwargs:
             * plot      : True/False
-            * decimorig : decimate a bit for plotting
             * Norm      : colorlimits for plotting
 
         Returns:
@@ -521,12 +519,12 @@ class imagedownsampling(object):
 
         # plot y/n
         if plot:
-            self.plotDownsampled(decimorig=decimorig,norm=norm)
+            self.plotDownsampled(norm=norm)
 
         # All done
         return
 
-    def downsampleFromSampler(self, sampler, plot=False, decimorig=10):
+    def downsampleFromSampler(self, sampler, plot=False):
         '''
         From the downsampling scheme in a previous sampler, downsamples the image.
 
@@ -535,7 +533,6 @@ class imagedownsampling(object):
 
         Kwargs:
             * plot          : Plot the downsampled data (True/False)
-            * decimorig     : Stupid decimation factor for lighter plotting.
 
         Returns:
             * None
@@ -545,12 +542,12 @@ class imagedownsampling(object):
         self.setDownsamplingScheme(sampler)
 
         # Downsample
-        self.downsample(plot=plot, decimorig=decimorig)
+        self.downsample(plot=plot)
 
         # All done
         return
 
-    def downsampleFromRspFile(self, prefix, tolerance=0.5, plot=False, decimorig=10):
+    def downsampleFromRspFile(self, prefix, tolerance=0.5, plot=False):
         '''
         From the downsampling scheme saved in a .rsp file, downsamples the image.
 
@@ -560,7 +557,6 @@ class imagedownsampling(object):
         Kwargs:
             * tolerance     : Minimum surface covered in a patch to be kept.
             * plot          : Plot the downsampled data (True/False)
-            * decimorig     : Simple decimation factor of the data for lighter plotting.
 
         Returns:    
             * None
@@ -573,7 +569,7 @@ class imagedownsampling(object):
         self.readDownsamplingScheme(prefix)
 
         # Downsample
-        self.downsample(plot=plot, decimorig=decimorig)
+        self.downsample(plot=plot)
 
         # All done
         return
@@ -729,7 +725,7 @@ class imagedownsampling(object):
         return bs1, bs2, bs3
 
 
-    def distanceBased(self, chardist=15, expodist=1, plot=False, decimorig=10,norm=None):
+    def distanceBased(self, chardist=15, expodist=1, plot=False, norm=None):
         '''
         Downsamples the dataset depending on the distance from the fault R.Grandin, April 2015
 
@@ -737,7 +733,6 @@ class imagedownsampling(object):
             * chardist      : Characteristic distance of downsampling.
             * expodist      : Exponent of the distance-based downsampling criterion.
             * plot          : True/False
-            * decimorig     : decimate for plotting
             * Norm          : colorlimits for plotting
 
         Returns:
@@ -790,7 +785,7 @@ class imagedownsampling(object):
             # Set the blocks
             self.setBlocks(newblocks)
             # Do the downsampling
-            self.downsample(plot=plot, decimorig=decimorig, norm=norm)
+            self.downsample(plot=plot, norm=norm)
 
         # All done
         return
@@ -849,7 +844,7 @@ class imagedownsampling(object):
         # All done
         return
 
-    def dataBased(self, threshold, plot=False, verboseLevel='minimum', decimorig=10, quantity='curvature', smooth=None, itmax=100):
+    def dataBased(self, threshold, plot=False, verboseLevel='minimum', quantity='curvature', smooth=None, itmax=100):
         '''
         Iteratively downsamples the dataset until value compute inside each block is lower than the threshold.
         Threshold is based on the gradient or curvature of the phase field inside the block.
@@ -861,7 +856,6 @@ class imagedownsampling(object):
         Kwargs:
             * plot          : True/False
             * verboseLevel  : Talk to me
-            * decimorig     : decimate before plotting
             * quantity      : curvature or gradient
             * smooth        : Smooth the {quantity} spatial with a filter of kernel size of {smooth} km
             * itmax         : Maximum number of iterations
@@ -917,7 +911,7 @@ class imagedownsampling(object):
                 # Set the blocks
                 self.setBlocks(newblocks)
                 # Do the downsampling
-                self.downsample(plot=False, decimorig=decimorig)
+                self.downsample(plot=False)
             else:
                 do_cut = True
 
@@ -943,12 +937,12 @@ class imagedownsampling(object):
 
             # Plot at the end of that iteration
             if plot:
-                self.plotDownsampled(decimorig=decimorig)
+                self.plotDownsampled()
 
         # All done
         return
 
-    def resolutionBased(self, threshold, damping, slipdirection='s', plot=False, verboseLevel='minimum', decimorig=10, vertical=False):
+    def resolutionBased(self, threshold, damping, slipdirection='s', plot=False, verboseLevel='minimum', vertical=False):
         '''
         Iteratively downsamples the dataset until value compute inside each block is lower than the threshold.
 
@@ -960,7 +954,6 @@ class imagedownsampling(object):
             * slipdirection : Which direction to accout for to build the slip Green's functions (s, d or t)
             * plot          : False/True
             * verboseLevel  : talk to me
-            * decimorig     : decimate a bit before plotting
             * vertical      : Use vertical green's functions.
 
         Returns:
@@ -1017,7 +1010,7 @@ class imagedownsampling(object):
                 # Set the blocks
                 self.setBlocks(newblocks)
                 # Do the downsampling
-                self.downsample(plot=False, decimorig=decimorig)
+                self.downsample(plot=False)
             else:
                 do_cut = True
 
@@ -1040,7 +1033,7 @@ class imagedownsampling(object):
 
             # Plot at the end of that iteration
             if plot:
-                self.plotDownsampled(decimorig=decimorig)
+                self.plotDownsampled()
 
         if self.verbose:
             print(" ")
@@ -1159,7 +1152,7 @@ class imagedownsampling(object):
         # all done
         return
 
-    def plotDownsampled(self, figure=145, ref='utm', norm=None, data2plot='north', decimorig=1, savefig=None, show=True):
+    def plotDownsampled(self, norm=None, show=True):
         '''
         Plots the downsampling as it is at this step.
 
@@ -1168,7 +1161,6 @@ class imagedownsampling(object):
             * ref       : utm or lonlat
             * Norm      : [colormin, colormax]
             * data2plot : used if datatype is opticorr: can be north or east.
-            * decimorig : decimate a bit beofre plotting
             * savefig   : True/False
             * show      : display True/False
 
@@ -1189,10 +1181,10 @@ class imagedownsampling(object):
             norm = minmax
 
         # Plot the original 
-        original.plot(faults=self.faults, plotType='scatter', norm=norm, 
-                        show=False, drawCoastlines=False)
-        downsampled.plot(faults=self.faults, plotType='decimate', norm=norm, 
-                        show=False, drawCoastlines=False)
+        original.plot(faults=self.faults, plotType='scatter', norm=norm, title='Original',
+                        show=False, drawCoastlines=False, Map=True, Fault=False)
+        downsampled.plot(faults=self.faults, plotType='decimate', norm=norm, title='Downsampled',
+                        show=False, drawCoastlines=False, Map=True, Fault=False)
 
         # Gradient?
         if hasattr(self, 'Gradient'):
@@ -1385,7 +1377,7 @@ class imagedownsampling(object):
 
         # Loop
         for line in Lines[2:]:
-            ulx, uly, drx, dry = [np.float(line.split()[i]) for i in range(2,6)]
+            ulx, uly, drx, dry = [float(line.split()[i]) for i in range(2,6)]
             c1 = [ulx, uly]
             c2 = [drx, uly]
             c3 = [drx, dry]

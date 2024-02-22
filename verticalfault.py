@@ -575,9 +575,9 @@ class verticalfault(RectangularPatches):
             sys.stdout.write('\r Patch {}/{}'.format(i,self.slip.shape[0]))
             sys.stdout.flush()
             # integers are needed
-            iss = np.int(istrikeslip[i])
-            ids = np.int(idipslip[i])
-            its = np.int(itensile[i])
+            iss = int(istrikeslip[i])
+            ids = int(idipslip[i])
+            its = int(itensile[i])
             # Create the file names
             pss = None
             pds = None

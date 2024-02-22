@@ -247,7 +247,7 @@ class imagecovariance(object):
                 if Nsamp>d.shape[0]:
                     Nsamp = d.shape[0]
             else:
-                Nsamp = np.int(np.floor(frac*x.size))
+                Nsamp = int(np.floor(frac*x.size))
             if self.verbose: 
                 print('Selecting {} random samples to estimate the covariance function'.format(Nsamp))
 
@@ -359,7 +359,7 @@ class imagecovariance(object):
                 if Nsamp>d.shape[0]:
                     Nsamp = d.shape[0]
             else:
-                Nsamp = np.int(np.floor(frac*x.size))
+                Nsamp = int(np.floor(frac*x.size))
             if self.verbose: 
                 print('Selecting {} random samples to estimate the covariance function'.format(Nsamp))
 
@@ -504,8 +504,8 @@ class imagecovariance(object):
             # Minimize
             res = sp.minimize(costFunction, mprior, 
                     args=(x, covariance, y, weights, function), 
-                    method='L-BFGS-B',
-                    bounds=[[0., np.inf], [0., np.inf], [0.01, np.inf]], tol=tol, 
+                    method='SLSQP',
+                    bounds=[[0., np.inf], [0., np.inf], [0., np.inf]], tol=tol, 
                     options={'maxiter': 200, 'disp': True})
             pars = res.x
 
@@ -659,7 +659,8 @@ class imagecovariance(object):
         # All done
         return
 
-    def plot(self, data='covariance', plotData=False, figure=1, savefig=False, show=True, savedir='./'):
+    def plot(self, data='covariance', plotData=False, figure=1, figsize=(10,5),
+             savefig=False, show=True, savedir='./'):
         '''
         Plots the covariance function.
 
@@ -695,7 +696,7 @@ class imagecovariance(object):
                 plt.savefig(figname)
 
         # Create a figure
-        fig = plt.figure(figure)
+        fig = plt.figure(figure, figsize=figsize)
         plt.clf()
 
         # How many data sets

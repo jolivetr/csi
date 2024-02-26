@@ -2701,8 +2701,8 @@ class TriangularPatches(Fault):
 
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', equiv=False, show=True, Map=True, Fault=True,
-             axesscaling=True, norm=None, linewidth=1.0, plot_on_2d=True,
-             shadedtopo=False,
+             norm=None, linewidth=1.0, plot_on_2d=True,
+             shadedtopo=None, view=None, alpha=1.0,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              drawCoastlines=True, expand=0.2, savefig=False, figsize=(None, None)):
         '''
@@ -2728,16 +2728,16 @@ class TriangularPatches(Fault):
         # Get lons lats
         if hasattr(self, 'patchll'):
             lonmin = np.min([p[:,0] for p in self.patchll])-expand
-            if lonmin<0: lonmin += 360
+            #if lonmin<0: lonmin += 360
             lonmax = np.max([p[:,0] for p in self.patchll])+expand
-            if lonmax<0: lonmax+= 360
+            #if lonmax<0: lonmax+= 360
             latmin = np.min([p[:,1] for p in self.patchll])-expand
             latmax = np.max([p[:,1] for p in self.patchll])+expand
         else:
             lonmin = np.min(self.lon)-expand
-            if lonmin<0: lonmin += 360
+            #if lonmin<0: lonmin += 360
             lonmax = np.max(self.lon)+expand
-            if lonmax<0: lonmax+= 360
+            #if lonmax<0: lonmax+= 360
             latmin = np.min(self.lat)-expand
             latmax = np.max(self.lat)+expand
 
@@ -2767,7 +2767,7 @@ class TriangularPatches(Fault):
 
         # Draw the fault
         if Fault:
-            fig.faultpatches(self, slip=slip, norm=norm, colorbar=True, 
+            fig.faultpatches(self, slip=slip, norm=norm, colorbar=colorbar, alpha=alpha,
                              cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
                              plot_on_2d=plot_on_2d, linewidth=linewidth)
 
@@ -2775,6 +2775,10 @@ class TriangularPatches(Fault):
         if savefig:
             prefix = self.name.replace(' ','_')
             fig.savefig(prefix+'_{}'.format(slip), ftype='eps')
+
+        # View?
+        if view is not None:
+            fig.set_view(**view)
 
         # show
         if show:

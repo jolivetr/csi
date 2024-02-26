@@ -733,7 +733,13 @@
       "Assembling the Cm matrix \n",
       "Sigma = 20.0\n",
       "Lambda = (10.0, 1.0)\n",
-      "Lambda0 = 0.2722630725042683\n",
+      "Lambda0 = 0.2722630725042683\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
       "---------------------------------\n",
       "---------------------------------\n",
       "Assembling the Cm matrix \n"
@@ -1488,7 +1494,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 25,
+   "execution_count": 24,
    "metadata": {},
    "outputs": [
     {
@@ -1521,7 +1527,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 24,
+   "execution_count": 25,
    "metadata": {
     "scrolled": true
    },

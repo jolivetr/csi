@@ -3189,7 +3189,7 @@ class RectangularPatches(Fault):
 
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', Fault=True, Map=True,
-                 show=True, shadedtopo=False,
+                 show=True, shadedtopo=None,
                  norm=None, linewidth=1.0, plot_on_2d=True, view=None,
                  colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
                  drawCoastlines=True, expand=0.2, figsize=(None, None)):

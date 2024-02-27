@@ -1534,7 +1534,7 @@ class TriangularPatches(Fault):
         assert float(sign)!=0., 'sign must be different from 0'
 
         # Compute normals
-        normals = np.array([self.getpatchgeometry(p, retNormal=True) for p in self.patch])
+        normals = np.array([self.getpatchgeometry(p, retNormal=True)[-1] for p in self.patch])
 
         # Find the normals that are not following the rule
         inormals = np.flatnonzero(np.sign(normals[:,direction])==np.sign(sign))

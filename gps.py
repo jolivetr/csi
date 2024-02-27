@@ -3675,7 +3675,7 @@ class gps(SourceInv):
         # All done
         return
 
-    def plot(self, faults=None, figure=135, name=False, legendscale=10., scale=None, legendunit=None, figsize=None,
+    def plot(self, faults=None, figure=135, name=False, legendscale=10., scale=None, legendunit='', figsize=None,
              plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True, title=True,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              landcolor='lightgrey', seacolor=None, shadedtopo=None,

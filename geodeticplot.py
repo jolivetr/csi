@@ -1161,7 +1161,7 @@ class geodeticplot(object):
         return
 
     def gps(self, gps, data=['data'], color=['k'], scale=None, 
-            legendscale=10., legendunit=None, linewidths=.1, name=False, error=True,
+            legendscale=10., legendunit='', linewidths=.1, name=False, error=True,
             zorder=5, alpha=1., width=0.005, headwidth=3, headlength=5, 
             headaxislength=4.5, minshaft=1, minlength=1, quiverkeypos=(0.1, 0.1)):
         '''

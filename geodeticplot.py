@@ -1260,8 +1260,8 @@ class geodeticplot(object):
                     # Found this on stackoverflow. Thanks!
                     # Basic ellipse definition
                     ellipse = patches.Ellipse((0, 0),
-                            width=(err[0])**2,
-                            height=(err[1])**2,
+                            width=(err[0]),
+                            height=(err[1]),
                             facecolor='none',
                             edgecolor=c, zorder=zorder)
 

@@ -2702,7 +2702,7 @@ class TriangularPatches(Fault):
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', equiv=False, show=True, Map=True, Fault=True,
              norm=None, linewidth=1.0, plot_on_2d=True,
-             shadedtopo=None, view=None, alpha=1.0,
+             shadedtopo=None, view=None, alpha=1.0, shape=None,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              drawCoastlines=True, expand=0.2, savefig=False, figsize=(None, None)):
         '''
@@ -2778,7 +2778,7 @@ class TriangularPatches(Fault):
 
         # View?
         if view is not None:
-            fig.set_view(**view)
+            fig.set_view(**view, shape=shape)
 
         # show
         if show:
@@ -3047,11 +3047,14 @@ class TriangularPatches(Fault):
                                   lat0=self.lat0,
                                   ellps=self.ellps,
                                   verbose=verbose)
+
         # set up patches
         fault.patch = [np.array(p) for p in allSplitted]
         fault.patch2ll()
+
         # Patches 2 vertices
         fault.setVerticesFromPatches()
+
         # Depth
         fault.setdepth()
 
@@ -3060,6 +3063,15 @@ class TriangularPatches(Fault):
         fault.slip[:,0] = self._getSlipOnSubSources(Ids, xs, ys, zs, self.slip[:,0])
         fault.slip[:,1] = self._getSlipOnSubSources(Ids, xs, ys, zs, self.slip[:,1])
         fault.slip[:,2] = self._getSlipOnSubSources(Ids, xs, ys, zs, self.slip[:,2])
+
+        # Set up some elements
+        fault.lon = copy.deepcopy(self.lon)
+        fault.lat = copy.deepcopy(self.lat)
+        fault.trace2xy()
+
+        # other elements
+        if hasattr(self, 'color'): fault.color = copy.deepcopy(self.color)
+        if hasattr(self, 'linewidth'): fault.linewidth = copy.deepcopy(self.linewidth)
 
         # All done
         return fault

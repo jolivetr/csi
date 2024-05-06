@@ -133,7 +133,7 @@ class geodeticplot(object):
             self.figCarte = figCarte
         else:
             self.carte = None
-            self.figCarte = Non
+            self.figCarte = None
 
         # All done
         return

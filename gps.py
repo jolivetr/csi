@@ -516,7 +516,7 @@ class gps(SourceInv):
         gpsNew = gps(name, utmzone=self.utmzone, verbose=self.verbose, lon0=self.lon0, lat0=self.lat0)
 
         # Set Stations
-        gpsNew.setStat(stations, Lon, Lat)
+        gpsNew.setStat(stations, np.array(Lon).squeeze(), np.array(Lat).squeeze())
 
         # Set Velocity and Error
         gpsNew.vel_enu = np.array(Vel).squeeze()

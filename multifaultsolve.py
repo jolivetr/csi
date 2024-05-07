@@ -915,7 +915,7 @@ class multifaultsolve(object):
         # All done
         return
 
-    def GeneralizedLeastSquareSoln(self, mprior=None, rcond=None, useCm=True):
+    def GeneralizedLeastSquareSoln(self, mprior=None, rcond=None, useCm=True, mw=False):
         '''
         Solves the generalized least-square problem using the following formula (Tarantolla, 2005,         Inverse Problem Theory, SIAM):
 
@@ -1005,9 +1005,10 @@ class multifaultsolve(object):
         Err = d - np.dot( G, mpost )
         # Store m_post
         self.mpost = mpost
+        
         mu = 22.5e9
         Mw_thresh = 10
-        if self.type=="Fault":
+        if self.type=="Fault" and mw:
             computeMwDiff(self.mpost, Mw_thresh, self.patchAreas*1.e6, mu)
 
         # All done

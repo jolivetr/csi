@@ -133,7 +133,7 @@ class geodeticplot(object):
             self.figCarte = figCarte
         else:
             self.carte = None
-            self.figCarte = Non
+            self.figCarte = None
 
         # All done
         return
@@ -933,8 +933,8 @@ class geodeticplot(object):
         return
 
     def faultTents(self, fault,
-                   slip='strikeslip', norm=None, colorbar=True,
-                    cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
+                   slip='strikeslip', norm=None, colorbar=True, alpha=1.0,
+                   cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
                    method='scatter', cmap='jet', plot_on_2d=False,
                    revmap=False, factor=1.0, npoints=10,
                    xystrides=[100, 100], zorder=0,
@@ -1013,8 +1013,8 @@ class geodeticplot(object):
             z = [-1.0*v[2] for v in verts]
             x.append(x[0]); y.append(y[0]); z.append(z[0])
             x = np.array(x); #x[x<0.] += 360.
-            if self.faille is not None: self.faille.plot3D(x, y, z, '-', color='gray', linewidth=1)
-            if plot_on_2d and self.carte is not None: self.carte.plot(x, y, '-', color='gray', linewidth=1, zorder=zorder)
+            if self.faille is not None: self.faille.plot3D(x, y, z, '-', color='gray', linewidth=1, alpha=alpha)
+            if plot_on_2d and self.carte is not None: self.carte.plot(x, y, '-', color='gray', linewidth=1, zorder=zorder, alpha=alpha)
 
         # Plot the color for slip
         # 1. Get the subpoints for each triangle
@@ -1063,23 +1063,23 @@ class geodeticplot(object):
 
             lon, lat = fault.xy2ll(x, y)
             #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
-            if self.faille is not None: self.faille.plot_surface(lon, lat, -1.0*z, facecolors=cols, rstride=1, cstride=1, antialiased=True, linewidth=0)
+            if self.faille is not None: self.faille.plot_surface(lon, lat, -1.0*z, facecolors=cols, rstride=1, cstride=1, antialiased=True, linewidth=0, alpha=alpha)
 
             # On 2D?
             if plot_on_2d and self.carte is not None:
                 lon, lat = fault.xy2ll(X, Y)
                 #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
-                self.carte.scatter(lon, lat, c=Slip, cmap=cmap, linewidth=0, s=2, vmin=vmin, vmax=vmax, zorder=zorder)
+                self.carte.scatter(lon, lat, c=Slip, cmap=cmap, linewidth=0, s=2, vmin=vmin, vmax=vmax, zorder=zorder, alpha=alpha)
 
         elif method == 'scatter':
             # Do the scatter ploto
             lon, lat = fault.xy2ll(X, Y)
             #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
-            if self.faille is not None: cb = self.faille.scatter3D(lon, lat, zs=-1.0*Z, c=Slip, cmap=cmap, linewidth=0, s=2, vmin=vmin, vmax=vmax)
+            if self.faille is not None: cb = self.faille.scatter3D(lon, lat, zs=-1.0*Z, c=Slip, cmap=cmap, linewidth=0, s=2, vmin=vmin, vmax=vmax, alpha=alpha)
 
             # On 2D?
             if plot_on_2d and self.carte is not None:
-                self.carte.scatter(lon, lat, c=Slip, cmap=cmap, linewidth=0, vmin=vmin, vmax=vmax, zorder=zorder)
+                self.carte.scatter(lon, lat, c=Slip, cmap=cmap, linewidth=0, vmin=vmin, vmax=vmax, zorder=zorder, alpha=alpha)
                 if vertIndex:
                     for ivert,vert in enumerate(fault.Vertices_ll):
                         x,y = self.carte(vert[0], vert[1])
@@ -1161,7 +1161,7 @@ class geodeticplot(object):
         return
 
     def gps(self, gps, data=['data'], color=['k'], scale=None, 
-            legendscale=10., linewidths=.1, name=False, error=True,
+            legendscale=10., legendunit='', linewidths=.1, name=False, error=True,
             zorder=5, alpha=1., width=0.005, headwidth=3, headlength=5, 
             headaxislength=4.5, minshaft=1, minlength=1, quiverkeypos=(0.1, 0.1)):
         '''
@@ -1250,20 +1250,24 @@ class geodeticplot(object):
                 sigma = Data[dName]['Error']
 
                 if scale is None:
-                    print('Cannot plot ellipses if scale is None')
+                    print('Cannot plot ellipses or quiverkey if scale is None')
                     return
+
+                self.carte.ellipses = []
 
                 for vel, err, lo, la in zip(values, sigma, lon, lat):
 
                     # Found this on stackoverflow. Thanks!
                     # Basic ellipse definition
                     ellipse = patches.Ellipse((0, 0),
-                            width=(err[0])**2,
-                            height=(err[1])**2,
+                            width=(err[0]),
+                            height=(err[1]),
                             facecolor='none',
-                            edgecolor=c)
+                            edgecolor=c, zorder=zorder)
 
                     # Transformation of the ellipse according to external parameters (obtained from various statistics on the data)
+                    # We have a 360° issue with the ellipse that I don't understand here
+                    if lo>180.: lo = lo - 360.
                     center=(lo+vel[0]/scale, la+vel[1]/scale)
                     transf = transforms.Affine2D().scale(1/scale, 1/scale).translate(center[0], center[1])
                     ellipse.set_transform(transf + self.carte.transData)
@@ -1273,9 +1277,10 @@ class geodeticplot(object):
 
         # Plot Legend
         if quiverkeypos is not None:
-            q = plt.quiverkey(p, quiverkeypos[0], quiverkeypos[1],
-                              legendscale, '{}'.format(legendscale),
-                              coordinates='axes', color='k', zorder=10)
+            q = self.carte.quiverkey(p, quiverkeypos[0], quiverkeypos[1],
+                                     legendscale, '{} {}'.format(legendscale, legendunit),
+                                     coordinates='axes', color=c, 
+                                     zorder=max([_.zorder for _ in self.carte.get_children()]))
 
         # Plot the name of the stations if asked
         if name:

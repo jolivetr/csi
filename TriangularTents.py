@@ -1361,9 +1361,9 @@ class TriangularTents(TriangularPatches):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def plot(self, figure=134, slip='total', equiv=False, figsize=(None, None), Map=True, Fault=True,
-             show=True, axesscaling=True, norm=None, linewidth=1.0, plot_on_2d=True, 
-             method='scatter', npoints=10, cmap='jet', shadedtopo=False,
+    def plot(self, figure=134, slip='total', figsize=(None, None), Map=True, Fault=True,
+             show=True, norm=None, linewidth=1.0, plot_on_2d=True, alpha=1.0,
+             method='scatter', npoints=10, cmap='jet', shadedtopo=False, view=None, shape=None,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              drawCoastlines=False, expand=0.2, vertIndex=False, savefig=False):
         '''
@@ -1428,7 +1428,7 @@ class TriangularTents(TriangularPatches):
 
         # Draw the fault
         if Fault:
-            x, y, z, slipval = fig.faultTents(self, slip=slip, norm=norm, colorbar=colorbar, 
+            x, y, z, slipval = fig.faultTents(self, slip=slip, norm=norm, colorbar=colorbar, alpha=alpha,
                                               cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
                                               plot_on_2d=plot_on_2d, npoints=npoints, cmap=cmap,
                                               method=method, vertIndex=vertIndex)
@@ -1438,6 +1438,10 @@ class TriangularTents(TriangularPatches):
             prefix = self.name.replace(' ','_')
             fig.savefig('{}_{}_meanslip{}'.format(prefix,slip,round(np.nanmean(slipval),3)), ftype='eps')
 
+        # View?
+        if view is not None:
+            fig.set_view(**view, shape=shape)
+            
         # show
         if show:
             showFig = ['fault']

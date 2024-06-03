@@ -17,10 +17,12 @@ release = '1.0'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx.ext.autodoc', 'nbsphinx', 'sphinx_copybutton', 'IPython.sphinxext.ipython_console_highlighting']
+extensions = ['sphinx.ext.autodoc', 'nbsphinx', 'IPython.sphinxext.ipython_console_highlighting']
+#'sphinx_copybutton', 
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+copybutton_exclude = ['.linenos, .gp', '.go']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -31,6 +33,7 @@ pygments_style = 'sphinx'
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+html_baseurl =''
 html_theme_options = {
     'page_width': '1500px',
 }

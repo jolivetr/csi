@@ -12,6 +12,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import copy
 import csv
+import pandas as pd
 
 # Personals
 from .SourceInv import SourceInv
@@ -525,6 +526,56 @@ class seismiclocations(SourceInv):
         self.lat = np.array(self.lat)
         self.depth = np.array(self.depth)
         self.mag = np.array(self.mag)
+
+        # Create the utm
+        self.lonlat2xy()
+
+        # All done
+        return
+
+    def read_from_dirkBecker(self, infile, header=0):
+        '''
+        Reads data from a file given to me by Dirk Becker.
+
+        Format: year,month,day,hour,minute,second,latitude,longitude,depth,magnitude,number of phases,length of major error ellipsoid half axis,rms value
+
+        Args:
+            * infile    : input file
+            
+        Kwargs:
+            * header    : length of the header
+
+        Returns:
+            * None
+        '''
+
+        # Open and load in Pandas
+        with open(infile, 'r') as fin:
+            data = pd.read_csv(fin, header=header, delimiter=',', names=['year', 'month', 'day', 'hour', 'minute', 'second', 
+                                                                    'lat', 'lon', 'depth', 'mag', 'numPhases', 'err', 'rms'])
+        
+        # Do some time management
+        data['time'] = [dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'], 
+                                                                                                           data['month'], 
+                                                                                                           data['day'], 
+                                                                                                           data['hour'], 
+                                                                                                           data['minute'], 
+                                                                                                           data['second'])]
+
+        # Initialize things
+        self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'],
+                                                                                                           data['month'],
+                                                                                                           data['day'],
+                                                                                                           data['hour'],
+                                                                                                           data['minute'],
+                                                                                                           data['second'])])
+        self.lon = data['lon'].values
+        self.lat = data['lat'].values
+        self.depth = data['depth'].values
+        self.mag = data['mag'].astype(float).values
+
+        # Save data
+        self.data = data
 
         # Create the utm
         self.lonlat2xy()
@@ -1093,7 +1144,7 @@ class seismiclocations(SourceInv):
             # Compute the distance to the fault
             dl = np.sqrt( (x[imin1]-x[imin2])**2 + (y[imin1]-y[imin2])**2 ) # 3 side of the triangle
             semiperi = (dmin1 + dmin2 + dl)/2.                              # Semi-perimeter of the triangle
-            A = semiperi*(semiperi-dmin1)*(semiperi-dmin2)*(semiperi-dl)    # Area of the triangle (Heron's formula)
+            A = np.sqrt(semiperi*(semiperi-dmin1)*(semiperi-dmin2)*(semiperi-dl))    # Area of the triangle (Heron's formula)
             qh = 2*A/dl                                                     # Height of the triangle
             # Store all that in a structure
             proj['x'].append(qx)
@@ -2149,7 +2200,7 @@ class seismiclocations(SourceInv):
 
     def plot(self, faults=None, figure=None, norm=None, data='mag', show=True, Map=True, Fault=True,
              drawCoastlines=True, resolution='auto', expand=0.2, linewidth=0.3, figsize=None, markersize=10,
-             cmap='jet', alpha=1., box=None, titleyoffset=1.1, zorder=1,
+             cmap='jet', alpha=1., box=None, title='auto', titleyoffset=1.1, zorder=1,
              shadedtopo=None, landcolor='lightgrey', seacolor=None,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], 
              cborientation='horizontal', cblabel=''):
@@ -2215,17 +2266,16 @@ class seismiclocations(SourceInv):
                 d = self.getattr(data)
             except:
                 d = data
+            # Special case
+            if data=='time':
+                tmin = np.min(self.time)
+                d = np.array([(t-tmin).days for t in self.time]) 
+                cblabel = 'Days since {}'.format(tmin.date().isoformat())
         else:
             d = data
 
-        # Special case
-        if data=='time':
-            tmin = np.min(self.time)
-            d = np.array([(t-tmin).days for t in self.time]) 
-            cblabel = 'Days since {}'.format(tmin.date().isoformat())
-
         # Size 
-        if type(markersize) in (float, int):
+        if type(markersize) is float:
             markersize = np.log(self.mag**markersize)
 
         # Plot earthquakes
@@ -2246,8 +2296,10 @@ class seismiclocations(SourceInv):
                     fig.faulttrace(fault, zorder=2)
 
         # Title
-        title = '{} - {} '.format(self.name, data)
-        fig.titlemap(title, y=titleyoffset)
+        if title is not None:
+            if title == 'auto':
+                title = '{} - {} '.format(self.name, data)
+            fig.titlemap(title, y=titleyoffset)
 
         # Show
         if show:

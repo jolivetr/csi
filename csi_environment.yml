@@ -1,0 +1,15 @@
+#Installation of CSI environment and dependencies using Conda
+name: csi
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - scipy
+  - matplotlib
+  - basemap
+  - h5py
+  - pyproj
+  - pymc3
+  - numpy
+  - shapely
+  - cartopy

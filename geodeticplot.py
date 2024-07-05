@@ -689,7 +689,7 @@ class geodeticplot(object):
 
     def faultpatches(self, fault, slip='strikeslip', norm=None, colorbar=True,
                      cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
-                     plot_on_2d=False, revmap=False, linewidth=.0, cmap='jet', offset=None,
+                     plot_on_2d=False, revmap=False, linewidth=1.0, cmap='jet', offset=None,
                      alpha=1.0, factor=1.0, zorder=3, edgecolor='slip', colorscale='normal',stdfault=None):
         '''
         Plot the fualt patches

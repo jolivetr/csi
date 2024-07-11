@@ -6,10 +6,14 @@ Written by R. Jolivet, April 2013.
 
 # Externals
 import numpy as np
+import sys
 import pyproj as pp
 import matplotlib.pyplot as plt
 
 from .SourceInv import SourceInv
+from . import okadafull as okada
+from . import csiutils as utils
+from . import triangularDisp as triDisp
 
 class strainfield(SourceInv):
     '''
@@ -129,6 +133,231 @@ class strainfield(SourceInv):
 
         # All done
         return
+
+    def setXYZ(self, x, y, z):
+        '''
+        Sets the values of x, y and z.
+
+        Args:
+            * x     : array of floats (km)
+            * y     : array of floats (km)
+            * z     : array of floats (km)
+
+        Returns:
+            * None
+        '''
+
+        # Set
+        self.x = x
+        self.y = y
+        self.depth = z
+
+        # Set lon lat
+        lon, lat = self.xy2ll(x, y)
+        self.lon = lon
+        self.lat = lat
+    
+        # All done
+        return
+
+    def setLonLatZ(self, lon, lat , z):
+        '''
+        Sets longitude, latitude and depth.
+
+        Args:
+            * lon     : array of floats (km)
+            * lat     : array of floats (km)
+            * z       : array of floats (km)
+
+        Returns:
+            * None
+        '''
+
+        # Set 
+        self.lon = lon
+        self.lat = lat
+        self.depth = z
+
+        # XY
+        x, y = self.ll2xy(lon, lat)
+        self.x = x
+        self.y = y
+
+        # All done
+        return
+
+    def fault2Strain(self, fault, s2m=1., p2m=1e3, slipdirection='sd', nu=0.25, force_dip=None, verbose=False):
+        '''
+        Takes a fault, or a list of faults, and computes the strain change associated with the slip on the fault.
+
+        Args:   
+            * fault             : Fault object (RectangularFault).
+
+        Kwargs:
+            * s2m               : Conversion factor for the slip units. Factor is to put everything in meters.
+            * p2m               : Conversion factor for the distance units. Factor is to put everything in meters.
+            * slipdirection     : any combination of s, d, and t.
+            * force_dip         : Specify the dip angle of the patches
+            * verbos            : talk to me
+
+        Returns:
+            * None
+        '''
+
+        # Verbose?
+        if verbose: print('Computing strain changes from fault {}'.format(fault.name))
+
+        # Check if fault type corresponds
+        if fault.patchType=='rectangle':
+
+            # Get a number
+            nPatch = len(fault.patch)
+
+            # Build Arrays
+            xc = np.zeros((nPatch,))
+            yc = np.zeros((nPatch,))
+            zc = np.zeros((nPatch,))
+            width = np.zeros((nPatch,))
+            length = np.zeros((nPatch,)) 
+            strike = np.zeros((nPatch,)) 
+            dip = np.zeros((nPatch,))
+
+            # Build the arrays for okada
+            for ii in range(len(fault.patch)):
+                if verbose:
+                    sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
+                    sys.stdout.flush()
+                xc[ii], yc[ii], zc[ii], width[ii], length[ii], strike[ii], dip[ii] = fault.getpatchgeometry(fault.patch[ii], center=True)
+
+            # Don't invert zc (for the patches, we give depths, so it has to be positive)
+            xc *= p2m
+            yc *= p2m
+            zc *= p2m
+            width *= p2m
+            length *= p2m
+
+            # Get the slip distribution
+            strikeslip = np.zeros((nPatch,))
+            dipslip = np.zeros((nPatch,))
+            tensileslip = np.zeros((nPatch,))
+            if 's' in slipdirection: strikeslip = fault.slip[:,0]*s2m
+            if 'd' in slipdirection: dipslip = fault.slip[:,1]*s2m
+            if 't' in slipdirection: tensileslip = fault.slip[:,2]*s2m
+
+            # If force dip
+            if force_dip is not None: dip[:] = force_dip
+
+            # Get the Stress
+            self.staintype = 'total'
+            self.Strain, flag, flag2 = okada.strain(self.x*p2m, self.y*p2m, -1.0*self.depth*p2m, 
+                                                    xc, yc, zc, 
+                                                    width, length, 
+                                                    strike, dip,
+                                                    strikeslip, dipslip, tensileslip, 
+                                                    nu, 
+                                                    full=True)
+            
+            # Flags
+            self.flag = flag
+            self.flag2 = flag2
+
+        elif fault.patchType=='triangle':
+
+            # A small displacement
+            dx = 10 # 10 m
+
+            nPatch = len(fault.patch)
+
+            # Get the slip distribution
+            strikeslip = np.zeros((nPatch,))
+            dipslip = np.zeros((nPatch,))
+            tensileslip = np.zeros((nPatch,))
+            if 's' in slipdirection: strikeslip = fault.slip[:,0]*s2m
+            if 'd' in slipdirection: dipslip = fault.slip[:,1]*s2m
+            if 't' in slipdirection: tensileslip = fault.slip[:,2]*s2m
+
+            # Compute the unit displacements along the three dimensions at each earthquake location
+            plusdx = []
+            minusdx = []
+            plusdy = []
+            minusdy = []
+            plusdz = []
+            minusdz = []
+            ii = 0
+            for patch, ss, ds, ts in zip(fault.patch, strikeslip, dipslip, tensileslip):
+                if verbose:
+                    sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
+                    sys.stdout.flush()
+                # X-axis
+                plusdx.append(triDisp.displacement(self.x*p2m+dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                minusdx.append(triDisp.displacement(self.x*p2m-dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                # Y-axis
+                plusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m+dx, self.depth*p2m, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                minusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m-dx, self.depth*p2m, list(patch*p2m), 
+                                                    ss, ds, ts, nu=nu))
+            
+                # Z-axis
+                plusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m+dx, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                minusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m-dx, list(patch*p2m), 
+                                                    ss, ds, ts, nu=nu))
+                ii += 1
+
+            # Sum the contributions
+            plusdx = np.array(plusdx).sum(axis=0)
+            minusdx = np.array(minusdx).sum(axis=0)
+            plusdy = np.array(plusdy).sum(axis=0)
+            minusdy = np.array(minusdy).sum(axis=0)
+            plusdz = np.array(plusdz).sum(axis=0)
+            minusdz = np.array(minusdz).sum(axis=0)
+
+            # First line of Δu
+            Δuxx = (plusdx[0]-minusdx[0])/(2*dx)
+            Δuxy = (plusdy[0]-minusdy[0])/(2*dx) 
+            Δuxz = (plusdz[0]-minusdz[0])/(2*dx)
+            
+            # Second line of Δu
+            Δuyx = (plusdx[1]-minusdx[1])/(2*dx) 
+            Δuyy = (plusdy[1]-minusdy[1])/(2*dx) 
+            Δuyz = (plusdz[1]-minusdz[1])/(2*dx)
+
+            # Third line of Δu
+            Δuzx = (plusdx[2]-minusdx[2])/(2*dx) 
+            Δuzy = (plusdy[2]-minusdy[2])/(2*dx) 
+            Δuzz = (plusdz[2]-minusdz[2])/(2*dx) 
+
+            # Build up the matrix
+            Δu = np.zeros((3,3,self.x.shape[0]))
+            Δu[0,:,:] = np.vstack((Δuxx, Δuxy, Δuxz))
+            Δu[1,:,:] = np.vstack((Δuyx, Δuyy, Δuyz))
+            Δu[2,:,:] = np.vstack((Δuzx, Δuzy, Δuzz))
+
+            # Make a strain tensor
+            self.Strain = 0.5*(Δu + Δu.transpose((1,0,2)))
+            self.straintype = 'total'
+
+        # Else
+        else:
+
+            # Nothing to do
+            print('Stress calculation not implemented for the triangular tent case yet...')
+
+        # All done
+        return
+
+    def computeSecInv(self):
+        ''' Computes the second invariant of the strain tensor and returns it'''
+
+        # Calculate the second invariant of the strain tensor
+        eigenvals = np.linalg.eigvals(self.Strain.transpose(2,0,1))
+
+        # There it is
+        J2 = 0.5*(eigenvals[:,0]**2 + eigenvals[:,1]**2 + eigenvals[:,2]**2)
+
+        return J2
 
     def computeStrainRateTensor(self):
         '''

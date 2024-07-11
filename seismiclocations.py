@@ -533,11 +533,11 @@ class seismiclocations(SourceInv):
         # All done
         return
 
-    def read_from_dirkBecker(self, infile, header=0):
+    def read_from_HypoDD(self, infile, header=0, delimiter='\s+'):
         '''
-        Reads data from a file given to me by Dirk Becker.
+        Reads data from a file from HypoDD (as given by to me by Dirk Beker).
 
-        Format: year,month,day,hour,minute,second,latitude,longitude,depth,magnitude,number of phases,length of major error ellipsoid half axis,rms value
+        Format: event no, lat, lon, depth, internal_x, internal_y, internal_z, err_x, err_y, err_z, year, month, day, hour, minute, second, magnitude, no CC P-times, no CC S-times, no CT P-times, no CT S-times, rms value CC data, rms value CT data, cluster ID
 
         Args:
             * infile    : input file
@@ -551,8 +551,56 @@ class seismiclocations(SourceInv):
 
         # Open and load in Pandas
         with open(infile, 'r') as fin:
-            data = pd.read_csv(fin, header=header, delimiter=',', names=['year', 'month', 'day', 'hour', 'minute', 'second', 
-                                                                    'lat', 'lon', 'depth', 'mag', 'numPhases', 'err', 'rms'])
+            data = pd.read_csv(fin, header=header, delimiter=delimiter, names=['event no', 'lat', 'lon', 'depth', 
+                                                                               'internal_x', 'internal_y', 'internal_z',
+                                                                               'err_x', 'err_y', 'err_z', 
+                                                                               'year', 'month', 'day', 'hour', 'minute', 'second', 
+                                                                               'mag',
+                                                                               'no CC P-times', 'no CC S-times', 
+                                                                               'no CT P-times', 'no CT S-times', 
+                                                                               'rms value CC data', 'rms value CT data', 'cluster ID'])
+
+        # Initialize things
+        self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'],
+                                                                                                           data['month'],
+                                                                                                           data['day'],
+                                                                                                           data['hour'],
+                                                                                                           data['minute'],
+                                                                                                           data['second'])])
+        self.lon = data['lon'].values
+        self.lat = data['lat'].values
+        self.depth = data['depth'].values
+        self.mag = data['mag'].astype(float).values
+
+        # Save data
+        self.data = data
+
+        # Create the utm
+        self.lonlat2xy()
+
+        # All done
+        return
+
+    def read_from_dirkBecker(self, infile, header=0, delimiter='\s+'):
+        '''
+        Reads data from a file given to me by Dirk Becker.
+
+        Format: year,month,day,hour,minute,second,latitude,longitude,depth,magnitude,length of major error ellipsoid half axis,rms value
+
+        Args:
+            * infile    : input file
+            
+        Kwargs:
+            * header    : length of the header
+
+        Returns:
+            * None
+        '''
+
+        # Open and load in Pandas
+        with open(infile, 'r') as fin:
+            data = pd.read_csv(fin, header=header, delimiter=delimiter, names=['year', 'month', 'day', 'hour', 'minute', 'second', 
+                                                                    'lat', 'lon', 'depth', 'mag', 'err', 'rms'])
         
         # Do some time management
         data['time'] = [dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'], 
@@ -573,6 +621,8 @@ class seismiclocations(SourceInv):
         self.lat = data['lat'].values
         self.depth = data['depth'].values
         self.mag = data['mag'].astype(float).values
+        self.rms = data['rms'].values
+        self.err = data['err'].values
 
         # Save data
         self.data = data
@@ -934,12 +984,17 @@ class seismiclocations(SourceInv):
         # Create the list
         u = []
 
+        # holder
+        self.distancetofaults = {}
+
         # Loop over the faults
         for fault in faults:
             dis = np.array(self._getDistance2FaultPlane(fault))
             ut = np.flatnonzero( dis < distance )
             for i in ut:
                 u.append(i)
+            # Save the distance to the fault for further use
+            self.distancetofaults[fault.name] = dis
 
         # make u an array
         u = np.array(u)
@@ -947,6 +1002,10 @@ class seismiclocations(SourceInv):
 
         # Selection
         self._select(u)
+
+        # Selection
+        for fault in faults:
+            self.distancetofaults[fault.name] = self.distancetofaults[fault.name][u]
 
         # All done
         return
@@ -1919,7 +1978,7 @@ class seismiclocations(SourceInv):
         xc, yc = self.ll2xy(loncenter, latcenter)
 
         # Get the profile
-        Dalong, Mag, Depth, Dacros, boxll, xe1, ye1, xe2, ye2, lon, lat, Bol = self.coord2prof(
+        Dalong, Mag, Depth, Time, Dacros, boxll, xe1, ye1, xe2, ye2, lon, lat, Bol = self.coord2prof(
                 xc, yc, length, azimuth, width)
 
         # Store it in the profile list
@@ -1933,11 +1992,12 @@ class seismiclocations(SourceInv):
         dic['Lat'] = lat
         dic['Magnitude'] = Mag
         dic['Depth'] = Depth
+        dic['Time'] = Time
         dic['Distance'] = np.array(Dalong)
         dic['Normal Distance'] = np.array(Dacros)
         dic['EndPoints'] = [[xe1, ye1], [xe2, ye2]]
-        lone1, late1 = self.putm(xe1*1000., ye1*1000., inverse=True)
-        lone2, late2 = self.putm(xe2*1000., ye2*1000., inverse=True)
+        lone1, late1 = self.xy2ll(xe1, ye1)
+        lone2, late2 = self.xy2ll(xe2, ye2)
         dic['EndPointsLL'] = [[lone1, late1],
                               [lone2, late2]]
         dic['Indices'] = Bol                              
@@ -2035,6 +2095,7 @@ class seismiclocations(SourceInv):
         lon = self.lon[Bol]
         lat = self.lat[Bol]
         mag = self.mag[Bol]
+        time = self.time[Bol]
         depth = self.depth[Bol]
 
         # Check if lengths are ok
@@ -2073,9 +2134,10 @@ class seismiclocations(SourceInv):
         Dalong = Dalong[jj]
         Dacros = Dacros[jj]
         depth = depth[jj]
+        time = time[jj]
 
         # All done
-        return Dalong, mag, depth, Dacros, boxll, xe1, ye1, xe2, ye2, lon, lat, Bol
+        return Dalong, mag, depth, time, Dacros, boxll, xe1, ye1, xe2, ye2, lon, lat, Bol
 
     def writeProfile2File(self, name, filename, fault=None):
         '''
@@ -2376,6 +2438,38 @@ class seismiclocations(SourceInv):
         # All done
         return dis
 
+    def _delete(self, u):
+        '''
+        delete earthquakes
+        '''
+
+        # Select the stations
+        self.lon = np.delete(self.lon, u)
+        self.lat = np.delete(self.lat, u)
+        self.x = np.delete(self.x,u)
+        self.y = np.delete(self.y,u)
+        self.time = np.delete(self.time,u)
+        self.depth = np.delete(self.depth,u)
+        self.mag = np.delete(self.mag,u)
+
+        # Conditional
+        if hasattr(self, 'CMTinfo'):
+            self.CMTinfo = np.array(self.CMTinfo)
+            self.CMTinfo = np.delete(self.CMTinfo,u)
+            self.CMTinfo = self.CMTinfo.tolist()
+
+        # Conditional
+        if hasattr(self, 'err'): self.err = np.delete(self.err, u)
+
+        # Conditional
+        if hasattr(self, 'Mo'): self.Mo = np.delete(self.Mo,u)
+
+        # Conditional
+        if hasattr(self, 'rms'): self.rms = np.delete(self.rms,u)
+
+        # All done
+        return
+
     def _select(self, u):
         '''
         Makes a selection.
@@ -2397,8 +2491,13 @@ class seismiclocations(SourceInv):
             self.CMTinfo = self.CMTinfo.tolist()
 
         # Conditional
-        if hasattr(self, 'Mo'):
-            self.Mo = self.Mo[u]
+        if hasattr(self, 'err'): self.err = self.err[u]
+
+        # Conditional
+        if hasattr(self, 'Mo'): self.Mo = self.Mo[u]
+
+        # Conditional
+        if hasattr(self, 'rms'): self.rms = self.rms[u]
 
         # All done
         return

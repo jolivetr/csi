@@ -2289,7 +2289,7 @@ class RectangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def getcenter(self, p):
+    def getcenter(self, p, coordinates='xy'):
         ''' 
         Get the center of one rectangular patch.
 
@@ -2307,6 +2307,9 @@ class RectangularPatches(Fault):
         x = p1[0] + (p3[0] - p1[0])/2.
         y = p1[1] + (p3[1] - p1[1])/2.
         z = p1[2] + (p3[2] - p1[2])/2.
+
+        # CHeck 
+        if coordinates == 'll': x,y = self.xy2ll(x,y)
 
         # All done
         return x,y,z
@@ -2329,7 +2332,7 @@ class RectangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def getcenters(self):
+    def getcenters(self, coordinates='xy'):
         '''
         Get the center of the patches.
 
@@ -2345,7 +2348,7 @@ class RectangularPatches(Fault):
 
         # loop over the patches
         for p in patch:
-            x, y, z = self.getcenter(p)
+            x, y, z = self.getcenter(p, coordinates=coordinates)
             center.append([x, y, z])
 
         # All done

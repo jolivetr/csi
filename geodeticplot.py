@@ -799,6 +799,7 @@ class geodeticplot(object):
             for p, patch in zip(range(len(fault.patchll)), fault.patchll):
                 x = []
                 y = []
+                ncorners = len(fault.patchll[0])
                 for i in range(ncorners):
                     x.append(patch[i][0]+offset[0])
                     y.append(patch[i][1]+offset[1])

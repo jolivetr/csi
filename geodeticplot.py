@@ -794,8 +794,9 @@ class geodeticplot(object):
                     rect.set_edgecolors(edgecolor)
                 if alpha<1.0:
                     rect.set_alpha(alpha)
-                if stdfault!=None:
-                    rect.set_alpha(np.min([1.,np.max([slip[p],0.])/stdslip[p]]))
+                if (stdfault!=None):
+                    if (stdslip[p]>0) and (slip[p]!=0):
+                        rect.set_alpha(np.min([1.,np.max([slip[p],0.])/stdslip[p]]))
                 rect.set_linewidth(linewidth)
                 self.faille.add_collection3d(rect)
 
@@ -822,7 +823,8 @@ class geodeticplot(object):
                 if alpha<1.0:
                     rect.set_alpha(alpha)
                 if stdfault!=None:
-                    rect.set_alpha(np.min([1.,np.max([slip[p],0.])/stdslip[p]]))
+                    if (stdslip[p]>0) and (slip[p]!=0):
+                        rect.set_alpha(np.min([1.,np.max([slip[p],0.])/stdslip[p]]))
                 rect.set_zorder(zorder)
                 self.carte.add_collection(rect)
 

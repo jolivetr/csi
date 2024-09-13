@@ -5,6 +5,7 @@ Written by R. Jolivet, Feb 2014.
 '''
 
 # Externals
+import sys
 import numpy as np
 import pyproj as pp
 import matplotlib.pyplot as plt
@@ -13,6 +14,7 @@ import matplotlib.pyplot as plt
 from .SourceInv import SourceInv
 from . import okadafull as okada
 from . import csiutils as utils
+from . import triangularDisp as triDisp
 
 class stressfield(SourceInv):
     '''
@@ -112,7 +114,7 @@ class stressfield(SourceInv):
         # All done
         return
 
-    def Fault2Stress(self, fault, factor=0.001, mu=30e9, nu=0.25, slipdirection='sd', force_dip=None, stressonpatches=False, verbose=False):
+    def fault2Stress(self, fault, s2m=1., p2m=1e3, la=30e9, mu=30e9, nu=0.25, slipdirection='sd', force_dip=None, verbose=False):
         '''
         Takes a fault, or a list of faults, and computes the stress change associated with the slip on the fault.
 
@@ -120,11 +122,12 @@ class stressfield(SourceInv):
             * fault             : Fault object (RectangularFault).
 
         Kwargs:
-            * factor            : Conversion factor between the slip units and distance units. Usually, distances are in Km. Therefore, if slip is in mm, then factor=1e-6.
+            * s2m               : Conversion factor for the slip units. Factor is to put everything in meters.
+            * p2m               : Conversion factor for the distance units. Factor is to put everything in meters.
             * slipdirection     : any combination of s, d, and t.
+            * la                : Lamé parameter (default is 30GPa)
             * mu                : Shear Modulus (default is 30GPa).
             * nu                : Poisson's ratio (default is 0.25).
-            * stressonpatches   : Re-sets the station locations to be where the center of the patches are.
             * force_dip         : Specify the dip angle of the patches
             * verbos            : talk to me
 
@@ -133,72 +136,150 @@ class stressfield(SourceInv):
         '''
 
         # Verbose?
-        if verbose:
-            print('Computing stress changes from fault {}'.format(fault.name))
+        if verbose: print('Computing stress changes from fault {}'.format(fault.name))
 
         # Check if fault type corresponds
-        assert len(fault.patch[0])==4, 'Fault is not made of rectangular patches'
+        if fault.patchType=='rectangle':
 
-        # Get a number
-        nPatch = len(fault.patch)
+            # Get a number
+            nPatch = len(fault.patch)
 
-        # Build Arrays
-        xc = np.zeros((nPatch,))
-        yc = np.zeros((nPatch,))
-        zc = np.zeros((nPatch,))
-        width = np.zeros((nPatch,))
-        length = np.zeros((nPatch,)) 
-        strike = np.zeros((nPatch,)) 
-        dip = np.zeros((nPatch,))
-        strikeslip = np.zeros((nPatch,))
-        dipslip = np.zeros((nPatch,))
-        tensileslip = np.zeros((nPatch,))
+            # Build Arrays
+            xc = np.zeros((nPatch,))
+            yc = np.zeros((nPatch,))
+            zc = np.zeros((nPatch,))
+            width = np.zeros((nPatch,))
+            length = np.zeros((nPatch,)) 
+            strike = np.zeros((nPatch,)) 
+            dip = np.zeros((nPatch,))
 
-        # Build the arrays for okada
-        for ii in range(len(fault.patch)):
-            xc[ii], yc[ii], zc[ii], width[ii], length[ii], strike[ii], dip[ii] = fault.getpatchgeometry(fault.patch[ii], center=True)
-            strikeslip[ii], dipslip[ii], tensileslip[ii] = fault.slip[ii,:]
+            # Build the arrays for okada
+            for ii in range(len(fault.patch)):
+                if verbose:
+                    sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
+                    sys.stdout.flush()
+                xc[ii], yc[ii], zc[ii], width[ii], length[ii], strike[ii], dip[ii] = fault.getpatchgeometry(fault.patch[ii], center=True)
 
-        # Don't invert zc (for the patches, we give depths, so it has to be positive)
-        # Apply the conversion factor
-        strikeslip *= factor
-        dipslip *= factor
-        tensileslip *= factor
+            # Don't invert zc (for the patches, we give depths, so it has to be positive)
+            xc *= p2m
+            yc *= p2m
+            zc *= p2m
+            width *= p2m
+            length *= p2m
 
-        # Set slips
-        if 's' not in slipdirection:
-            strikeslip[:] = 0.0
-        if 'd' not in slipdirection:
-            dipslip[:] = 0.0
-        if 't' not in slipdirection:
-            tensileslip[:] = 0.0
+            # Get the slip distribution
+            strikeslip = np.zeros((nPatch,))
+            dipslip = np.zeros((nPatch,))
+            tensileslip = np.zeros((nPatch,))
+            if 's' in slipdirection: strikeslip = fault.slip[:,0]*s2m
+            if 'd' in slipdirection: dipslip = fault.slip[:,1]*s2m
+            if 't' in slipdirection: tensileslip = fault.slip[:,2]*s2m
 
-        # Get the stations
-        if not stressonpatches:
-            xs = self.x
-            ys = self.y
-            zs = -1.0*self.depth            # Okada wants the z position, we have the depth, so x-1.
+            # If force dip
+            if force_dip is not None: dip[:] = force_dip
+
+            # Get the Stress
+            self.stresstype = 'total'
+            self.Stress, flag, flag2 = okada.stress(self.x*p2m, self.y*p2m, -1.0*self.depth*p2m, 
+                                                    xc, yc, zc, 
+                                                    width, length, 
+                                                    strike, dip,
+                                                    strikeslip, dipslip, tensileslip, 
+                                                    mu, nu, 
+                                                    full=True)
+            
+            # Flags
+            self.flag = flag
+            self.flag2 = flag2
+
+        elif fault.patchType=='triangle':
+
+            # A small displacement
+            dx = 10 # 10 m
+
+            nPatch = len(fault.patch)
+
+            # Get the slip distribution
+            strikeslip = np.zeros((nPatch,))
+            dipslip = np.zeros((nPatch,))
+            tensileslip = np.zeros((nPatch,))
+            if 's' in slipdirection: strikeslip = fault.slip[:,0]*s2m
+            if 'd' in slipdirection: dipslip = fault.slip[:,1]*s2m
+            if 't' in slipdirection: tensileslip = fault.slip[:,2]*s2m
+
+            # Compute the unit displacements along the three dimensions at each earthquake location
+            plusdx = []
+            minusdx = []
+            plusdy = []
+            minusdy = []
+            plusdz = []
+            minusdz = []
+            ii = 0
+            for patch, ss, ds, ts in zip(fault.patch, strikeslip, dipslip, tensileslip):
+                if verbose:
+                    sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
+                    sys.stdout.flush()
+                # X-axis
+                plusdx.append(triDisp.displacement(self.x*p2m+dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                minusdx.append(triDisp.displacement(self.x*p2m-dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                # Y-axis
+                plusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m+dx, self.depth*p2m, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                minusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m-dx, self.depth*p2m, list(patch*p2m), 
+                                                    ss, ds, ts, nu=nu))
+            
+                # Z-axis
+                plusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m+dx, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                minusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m-dx, list(patch*p2m), 
+                                                    ss, ds, ts, nu=nu))
+                ii += 1
+
+            # Sum the contributions
+            plusdx = np.array(plusdx).sum(axis=0)
+            minusdx = np.array(minusdx).sum(axis=0)
+            plusdy = np.array(plusdy).sum(axis=0)
+            minusdy = np.array(minusdy).sum(axis=0)
+            plusdz = np.array(plusdz).sum(axis=0)
+            minusdz = np.array(minusdz).sum(axis=0)
+
+            # First line of Δu
+            Δuxx = (plusdx[0]-minusdx[0])/(2*dx)
+            Δuxy = (plusdy[0]-minusdy[0])/(2*dx) 
+            Δuxz = (plusdz[0]-minusdz[0])/(2*dx)
+            
+            # Second line of Δu
+            Δuyx = (plusdx[1]-minusdx[1])/(2*dx) 
+            Δuyy = (plusdy[1]-minusdy[1])/(2*dx) 
+            Δuyz = (plusdz[1]-minusdz[1])/(2*dx)
+
+            # Third line of Δu
+            Δuzx = (plusdx[2]-minusdx[2])/(2*dx) 
+            Δuzy = (plusdy[2]-minusdy[2])/(2*dx) 
+            Δuzz = (plusdz[2]-minusdz[2])/(2*dx) 
+
+            # Build up the matrix
+            Δu = np.zeros((3,3,self.x.shape[0]))
+            Δu[0,:,:] = np.vstack((Δuxx, Δuxy, Δuxz))
+            Δu[1,:,:] = np.vstack((Δuyx, Δuyy, Δuyz))
+            Δu[2,:,:] = np.vstack((Δuzx, Δuzy, Δuzz))
+
+            # Make a strain tensor
+            self.Strain = 0.5*(Δu + Δu.transpose((1,0,2)))
+            
+            # Compute the stress tensor assuming μ=30 GPa and λ=30 GPa
+            μ = la
+            λ = la
+            self.Stress = 2*μ*self.Strain + (λ*np.trace(self.Strain, axis1=0, axis2=1)[:,np.newaxis, np.newaxis]*np.eye(3)).transpose((1, 2, 0))
+            self.stresstype = 'total'
+
+        # Else
         else:
-            xs = xc
-            ys = yc
-            zs = -1.0*zc                    # Okada wants the z position, we have the depth, so x-1.
 
-        # If force dip
-        if force_dip is not None:
-            dip[:] = force_dip
-
-        # Get the Stress
-        self.stresstype = 'total'
-        self.Stress, flag, flag2 = okada.stress(xs, ys, zs, 
-                                                xc, yc, zc, 
-                                                width, length, 
-                                                strike, dip,
-                                                strikeslip, dipslip, tensileslip, 
-                                                mu, nu, 
-                                                full=True)
-
-        self.flag = flag
-        self.flag2 = flag2
+            # Nothing to do
+            print('Stress calculation not implemented for the triangular tent case yet...')
 
         # All done
         return
@@ -232,14 +313,8 @@ class stressfield(SourceInv):
             print('Stress tensor is already a deviatoric tensor...')
             return
 
-        # Trace
-        if self.trace is None:
-            self.computeTrace()
-
         # Remove Trace
-        self.Stress[0,0,:] -= self.trace
-        self.Stress[1,1,:] -= self.trace
-        self.Stress[2,2,:] -= self.trace
+        self.Stress -= (np.trace(self.Stress, axis1=0, axis2=1)[..., np.newaxis, np.newaxis]*np.eye(3)).transpose(1,2,0)
 
         # Change
         self.stresstype = 'deviatoric'
@@ -280,6 +355,17 @@ class stressfield(SourceInv):
 
         # All done
         return n1, n2, n3, T, Sigma, TauStrike, TauDip
+
+    def computeSecInv(self):
+        ''' Computes the second invariant of the stress tensor and returns it'''
+
+        # Calculate the second invariant of the stress tensor
+        eigenvals = np.linalg.eigvals(self.Stress.transpose(2,0,1))
+
+        # There it is
+        J2 = 0.5*(eigenvals[:,0]**2 + eigenvals[:,1]**2 + eigenvals[:,2]**2)
+
+        return J2
 
     def getTractions(self, strike, dip):
         '''

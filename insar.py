@@ -73,6 +73,27 @@ class insar(SourceInv):
         # All done
         return
 
+    def lonlat2xy(self):
+        '''
+        Pass the position of the stations into the utm coordinate system.
+        '''
+        
+        # Transform
+        self.x, self.y = self.ll2xy(self.lon, self.lat)
+
+        # All done
+        return 
+
+    def xy2lonlat(self):
+        '''
+        Convert all stations x, y to lon lat using the utm transform.
+        '''
+
+        self.lon, self.lat = self.xy2ll(self.x, self.y)
+
+        # all done
+        return 
+
     def mergeInsar(self, sar):
         '''
         Combine the existing data set with another insar object.
@@ -1665,12 +1686,12 @@ class insar(SourceInv):
         # All done
         return
 
-    def buildsynth(self, faults, direction='sd', poly=None, vertical=True, custom=False, computeNormFact=True):
+    def buildsynth(self, sources, direction='sd', poly=None, vertical=True, custom=False, computeNormFact=True):
         '''
         Computes the synthetic data using either the faults and the associated slip distributions or the pressure sources.
 
         Args:
-            * faults        : List of faults or pressure sources.
+            * sources        : List of faults or pressure sources.
 
         Kwargs:
             * direction         : Direction of slip to use or None for pressure sources.
@@ -1684,8 +1705,8 @@ class insar(SourceInv):
         '''
 
         # Check list
-        if type(faults) is not list:
-            faults = [faults]
+        if type(sources) is not list:
+            sources = [sources]
 
         # Number of data
         Nd = self.vel.shape[0]
@@ -1693,71 +1714,88 @@ class insar(SourceInv):
         # Clean synth
         self.synth = np.zeros((self.vel.shape))
 
-        # Loop on each fault
-        for fault in faults:
-            if fault.type=="Fault":
+        # Loop on each source
+        for source in sources:
+
+            # object type: SurfaceMotion
+            if source.type == 'Surface':
+
+                # Get the GFs
+                G = source.G[self.name]
+                # Get the motion
+                motion = []
+                if 'e' in source.direction[self.name]: motion.append(source.motion[:,0])
+                if 'n' in source.direction[self.name]: motion.append(source.motion[:,1])
+                if 'u' in source.direction[self.name]: motion.append(source.motion[:,2])
+                motion = np.array(motion).flatten()
+                # Do it
+                self.synth += G.dot(motion)
+
+            # Source type: a fault
+            if source.type=="Fault":
+
                 # Get the good part of G
-                G = fault.G[self.name]
+                G = source.G[self.name]
 
                 if ('s' in direction) and ('strikeslip' in G.keys()):
                     Gs = G['strikeslip']
-                    Ss = fault.slip[:,0]
+                    Ss = source.slip[:,0]
                     losss_synth = np.dot(Gs,Ss)
                     self.synth += losss_synth
                 if ('d' in direction) and ('dipslip' in G.keys()):
                     Gd = G['dipslip']
-                    Sd = fault.slip[:,1]
+                    Sd = source.slip[:,1]
                     losds_synth = np.dot(Gd, Sd)
                     self.synth += losds_synth
                 if ('t' in direction) and ('tensile' in G.keys()):
                     Gt = G['tensile']
-                    St = fault.slip[:,2]
+                    St = source.slip[:,2]
                     losop_synth = np.dot(Gt, St)
                     self.synth += losop_synth
                 if ('c' in direction) and ('coupling' in G.keys()):
                     Gc = G['coupling']
-                    Sc = fault.coupling
+                    Sc = source.coupling
                     losdc_synth = np.dot(Gc,Sc)
                     self.synth += losdc_synth
 
                 if custom:
                     Gc = G['custom']
-                    Sc = fault.custom[self.name]
+                    Sc = source.custom[self.name]
                     losdc_synth = np.dot(Gc, Sc)
                     self.synth += losdc_synth
 
                 if poly is not None:
                     # Compute the polynomial
-                    self.computePoly(fault,computeNormFact=computeNormFact)
+                    self.computePoly(source,computeNormFact=computeNormFact)
                     if poly=='include':
-                        self.removePoly(fault, computeNormFact=computeNormFact)
+                        self.removePoly(source, computeNormFact=computeNormFact)
                     else:
                         self.synth += self.orbit
 
             #Loop on each pressure source
-            elif fault.type=="Pressure":
+            elif source.type=="Pressure":
 
                 # Get the good part of G
-                G = fault.G[self.name]
-                if fault.source in {"Mogi", "Yang"}:
+                G = source.G[self.name]
+                if source.source in {"Mogi", "Yang"}:
                     Gp = G['pressure']
-                    losdp_synth = Gp*fault.deltapressure
+                    losdp_synth = Gp*source.deltapressure
                     self.synth += losdp_synth
 
-                elif fault.source==("pCDM"):
+                elif source.source==("pCDM"):
                     Gdx = G['pressureDVx']
-                    lossx_synth = np.dot(Gdx,fault.DVx)
+                    lossx_synth = np.dot(Gdx,source.DVx)
                     self.synth += lossx_synth
                     Gdy = G['pressureDVy']
-                    lossy_synth = np.dot(Gdy, fault.DVy)
+                    lossy_synth = np.dot(Gdy, source.DVy)
                     self.synth += lossy_synth
                     Gdz = G['pressureDVz']
-                    lossz_synth = np.dot(Gdz, fault.DVz)
+                    lossz_synth = np.dot(Gdz, source.DVz)
                     self.synth += lossz_synth
 
-                elif fault.source==("CDM"):
+                elif source.source==("CDM"):
                     Gp = G['pressure']
-                    Sp = fault.deltaopening
+                    Sp = source.deltaopening
                     print("Scaling by opening")
                     losdp_synth = Gp*Sp
                     self.synth += losdp_synth
@@ -1765,15 +1803,15 @@ class insar(SourceInv):
 
                 if custom:
                     Gc = G['custom']
-                    Sc = fault.custom[self.name]
+                    Sc = source.custom[self.name]
                     losdc_synth = np.dot(Gc, Sc)
                     self.synth += losdc_synth
 
                 if poly is not None:
                     # Compute the polynomial
-                    self.computePoly(fault,computeNormFact=computeNormFact)
+                    self.computePoly(source,computeNormFact=computeNormFact)
                     if poly=='include':
-                        self.removePoly(fault, computeNormFact=computeNormFact)
+                        self.removePoly(source, computeNormFact=computeNormFact)
                     else:
                         self.synth += self.orbit
 

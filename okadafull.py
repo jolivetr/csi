@@ -114,7 +114,7 @@ def strain(xs, ys, zs, xc, yc, zc, width, length, strike, dip, ss, ds, ts, nu=0.
     d = d.reshape((len(xs), 9))
 
     if not full: 
-        return d
+        return d, flag, flag2
     else:
         # Strain
         Strain = np.zeros((3,3,len(xs)))
@@ -128,7 +128,7 @@ def strain(xs, ys, zs, xc, yc, zc, width, length, strike, dip, ss, ds, ts, nu=0.
         Strain[2,0,:] = d[:,6]  # Uzx
         Strain[2,1,:] = d[:,7]  # Uzy
         Strain[2,2,:] = d[:,8]  # UUzz
-        return Strain
+        return Strain, flag, flag2
          
 #--------------------------------------------------
 # Stress only

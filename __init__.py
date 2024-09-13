@@ -10,6 +10,7 @@ from .SourceInv import SourceInv
 # Parent class(es)
 from .Fault import Fault
 from .Pressure import Pressure
+from .SurfaceMotion import SurfaceMotion
 from .RectangularPatches    import RectangularPatches
 from .TriangularPatches     import TriangularPatches
 from .TriangularTents       import TriangularTents

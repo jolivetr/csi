@@ -7,6 +7,8 @@ Edited by T. Shreve, May 2019. Commented out lines 386, 391, 460, 485, 1121, 113
 Added plotting option for pressure sources
 
 July 2019: R Jolivet replaced basemap by cartopy.
+
+Sept 2024: JD Dianala, some cleanup...
 '''
 
 # Numerics
@@ -84,6 +86,8 @@ class geodeticplot(object):
 
         # Projection
         self.projection = ccrs.PlateCarree()
+
+        self.resolution = resolution
 
         # Open a figure
         if Fault:
@@ -569,6 +573,8 @@ class geodeticplot(object):
 
         # check
         if self.carte is None: return
+        if self.resolution != 'auto':
+            resolution = resolution
 
         # Scale bar
         if drawMapScale is not None:
@@ -581,13 +587,13 @@ class geodeticplot(object):
             if seacolor is not None: 
                 self.carte.add_feature(cfeature.NaturalEarthFeature('physical', 
                                                                     'ocean', 
-                                                                    '10m',
+                                                                    scale=resolution,
                                                                     edgecolor=color, 
                                                                     facecolor=seacolor, 
                                                                     zorder=np.max([zorder-1,0])))
 
         # coastlines in cartopy are multipolygon objects. Polygon has exterior, which has xy
-        self.coastlines = cfeature.NaturalEarthFeature('physical', 'land', scale='10m',
+        self.coastlines = cfeature.NaturalEarthFeature('physical', 'land', scale=resolution,
                                                 edgecolor=color, 
                                                 facecolor=landcolor, 
                                                 linewidth=linewidth, 
@@ -626,14 +632,17 @@ class geodeticplot(object):
         # All done
         return
 
-    def drawCountries(self, scale='110m', linewidth=1., edgecolor='gray', facecolor='lightgray', alpha=1., zorder=0):
+    def drawCountries(self, resolution='10m', linewidth=1., edgecolor='gray', facecolor='lightgray', alpha=1., zorder=0):
         '''
         See the cartopy manual for options
         '''
+        # check
+        if self.resolution != 'auto':
+            resolution = resolution
 
         # Check
         if self.carte is not None:
-            self.countries = cfeature.NaturalEarthFeature(scale=scale, category='cultural', name='admin_0_countries', 
+            self.countries = cfeature.NaturalEarthFeature(scale=resolution, category='cultural', name='admin_0_countries', 
                                                           linewidth=linewidth, edgecolor=edgecolor, facecolor=facecolor,
                                                           alpha=alpha, zorder=zorder)
             self.carte.add_feature(self.countries)

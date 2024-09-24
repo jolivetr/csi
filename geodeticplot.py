@@ -573,8 +573,6 @@ class geodeticplot(object):
 
         # check
         if self.carte is None: return
-        if self.resolution != 'auto':
-            resolution = resolution
 
         # Scale bar
         if drawMapScale is not None:
@@ -636,9 +634,6 @@ class geodeticplot(object):
         '''
         See the cartopy manual for options
         '''
-        # check
-        if self.resolution != 'auto':
-            resolution = resolution
 
         # Check
         if self.carte is not None:

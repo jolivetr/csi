@@ -428,7 +428,7 @@ class multifaultsolve(object):
                 #Prepare the table
                 if self.verbose:
                     print('-----------------')
-                    print('{:30s}||{:12s}||{:12s}'.format('Fault Name', 'Pressure', 'Extra Parms'))
+                    print('{:30s}||{:12s}||{:12s}'.format('Object Name', 'Pressure', 'Extra Parms'))
 
                 # Get info
                 if 'Pressure' in description:
@@ -444,6 +444,18 @@ class multifaultsolve(object):
                 if self.verbose:
                     print('{:30s}||{:12s}||{:12s}'.format(fault, dp, op))
     
+            elif 'Surface' in description:
+                    
+                #Prepare the table
+                if self.verbose:
+                    print('-----------------')
+                    print('{:30s}||{:12s}'.format('Surface Name', 'Surface'))
+
+                # Get the size
+                dp = description['Surface']
+
+                # print things
+                if self.verbose: print('{:30s}||{:12s}'.format(fault, dp))
 
         if 'Equalized' in self.paramDescription:
             for case in self.paramDescription['Equalized']:
@@ -568,6 +580,15 @@ class multifaultsolve(object):
                 self.paramDescription[fault.name] = {}
                 self.paramDescription[fault.name]['Pressure'] = dp
                 self.paramDescription[fault.name]['Extra Parameters'] = op
+
+            elif fault.type == 'Surface':
+                
+                # Get how long the GFs are
+                ne += fault.Gassembled.shape[1]
+                for i in range(ns,ne): self.paramTypes[i] = (fault.name, 'Surface')
+                dp = '{:12s}'.format('{:4d} - {:4d}'.format(ns,ne))
+                self.paramDescription[fault.name] = {}
+                self.paramDescription[fault.name]['Surface'] = dp
 
         # Store the number of slip parameters
         self.nSlip = nSlip
@@ -737,6 +758,22 @@ class multifaultsolve(object):
                     se = st + 1
                     fault.deltaopening = fault.mpost[st:se].item()
                     st += 1
+
+            elif fault.type == 'Surface':
+                
+                directions = [fault.direction[data] for data in fault.direction][0]
+                st = 0
+                if 'e' in directions:
+                    se = st + fault.motion.shape[0]
+                    fault.motion[:,0] = fault.mpost[st:se]
+                    st += fault.motion.shape[0]
+                if 'n' in directions:
+                    se = st + fault.motion.shape[0]
+                    fault.motion[:,1] = fault.mpost[st:se]
+                    st += fault.motion.shape[0]
+                if 'u' in directions:
+                    se = st + fault.motion.shape[0]
+                    fault.motion[:,2] = fault.mpost[st:se]
 
             # Get the polynomial/orbital/helmert values if they exist
             if fault.type in ('Fault', 'Pressure'):
@@ -1819,7 +1856,6 @@ class multifaultsolve(object):
 
         # All done
         return
-
 
     def writeAltarPriors(self, priors, params, modelName, files=['static.data.txt','static.Cd.txt','static.gf.txt'], prefix= 'model', chains = 2048):
 

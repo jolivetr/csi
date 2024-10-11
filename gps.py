@@ -2795,12 +2795,12 @@ class gps(SourceInv):
         # All done
         return
 
-    def buildsynth(self, faults, direction='sd', poly=None, vertical=True, custom=False):
+    def buildsynth(self, sources, direction='sd', poly=None, vertical=True, custom=False):
         '''
-        Takes the slip model in each of the faults and builds the synthetic displacement using the Green's functions.
+        Takes the slip model in each of the sources and builds the synthetic displacement using the Green's functions.
 
         Args:
-            * faults        : list of faults to include.
+            * sources        : list of sources to include.
 
         Kwargs:
             * direction     : list of directions to use. Can be any combination of 's', 'd' and 't'.
@@ -2813,8 +2813,8 @@ class gps(SourceInv):
         '''
 
         # Check list
-        if type(faults) is not list:
-            faults = [faults]
+        if type(sources) is not list:
+            sources = [sources]
 
         # Number of data
         Nd = self.x.shape[0]
@@ -2834,17 +2834,42 @@ class gps(SourceInv):
         # Clean synth
         self.synth = np.zeros((Nd,3))
 
-        # Loop on each fault
-        for fault in faults:
+        # Loop on each source
+        for source in sources:
 
             # Get the good part of G
-            G = fault.G[self.name]
+            G = source.G[self.name]
 
-            if fault.type=="Fault":
+            # Surface motion 
+            if source.type == 'Surface':
+
+                # Get the prediction
+                motion = []
+                if 'e' in source.direction[self.name]: motion.append(source.motion[:,0])
+                if 'n' in source.direction[self.name]: motion.append(source.motion[:,1])
+                if 'u' in source.direction[self.name]: motion.append(source.motion[:,2])
+                motion = np.array(motion).flatten()
+                disp = G.dot(motion)
+
+                # Distribute it 
+                nd = 0
+                if 'e' in source.direction[self.name]: 
+                    ne = nd+self.lon.size
+                    self.synth[:,0] += disp[nd:ne]
+                    nd += self.lon.size
+                if 'n' in source.direction[self.name]:
+                    ne = nd+self.lon.size
+                    self.synth[:,1] += disp[nd:ne]
+                    nd += self.lon.size
+                if 'u' in source.direction[self.name]:
+                    ne = nd+self.lon.size
+                    self.synth[:,2] += disp[nd:ne]
+
+            if source.type=="Fault":
 
                 if ('s' in direction) and ('strikeslip' in G.keys()):
                     Gs = G['strikeslip']
-                    Ss = fault.slip[:,0]
+                    Ss = source.slip[:,0]
                     ss_synth = np.dot(Gs,Ss)
                     N = 0
                     if east:
@@ -2858,7 +2883,7 @@ class gps(SourceInv):
                         self.synth[:,2] += ss_synth[N:N+Nd]
                 if ('d' in direction) and ('dipslip' in G.keys()):
                     Gd = G['dipslip']
-                    Sd = fault.slip[:,1]
+                    Sd = source.slip[:,1]
                     ds_synth = np.dot(Gd, Sd)
                     N = 0
                     if east:
@@ -2872,7 +2897,7 @@ class gps(SourceInv):
                         self.synth[:,2] += ds_synth[N:N+Nd]
                 if ('t' in direction) and ('tensile' in G.keys()):
                     Gt = G['tensile']
-                    St = fault.slip[:,2]
+                    St = source.slip[:,2]
                     op_synth = np.dot(Gt, St)
                     N = 0
                     if east:                
@@ -2886,7 +2911,7 @@ class gps(SourceInv):
                         self.synth[:,2] += op_synth[N:N+Nd]
                 if ('c' in direction) and ('coupling' in G.keys()):
                     Gc = G['coupling']
-                    Sc = fault.coupling
+                    Sc = source.coupling
                     dc_synth = np.dot(Gc,Sc)
                     N = 0
                     if east:
@@ -2899,11 +2924,11 @@ class gps(SourceInv):
                         #if dc_synth.size > 2*Nd and east and north:
                         self.synth[:,2] += dc_synth[N:N+Nd]
 
-            elif fault.type == "Pressure":
+            elif source.type == "Pressure":
 
-                if fault.source in {"Mogi", "Yang"}:
+                if source.source in {"Mogi", "Yang"}:
                     Gp = G['pressure']
-                    synth = Gp*fault.deltapressure
+                    synth = Gp*source.deltapressure
                     N = 0
                     if east:
                         self.synth[:,0] += synth[N:Nd].squeeze()
@@ -2914,13 +2939,13 @@ class gps(SourceInv):
                     if vertical:
                         self.synth[:,2] += synth[N:N+Nd].squeeze()
 
-                elif fault.source==("pCDM"):
+                elif source.source==("pCDM"):
                     Gdx = G['pressureDVx']
-                    synthx = np.dot(Gdx,fault.DVx)
+                    synthx = np.dot(Gdx,source.DVx)
                     Gdy = G['pressureDVy']
-                    synthy = np.dot(Gdy, fault.DVy)
+                    synthy = np.dot(Gdy, source.DVy)
                     Gdz = G['pressureDVz']
-                    synthz = np.dot(Gdz, fault.DVz)
+                    synthz = np.dot(Gdz, source.DVz)
                     N = 0
                     if east:
                         self.synth[:,0] += synthx[N:N+Nd]
@@ -2938,9 +2963,9 @@ class gps(SourceInv):
                         self.synth[:,2] += synthz[N:N+Nd]
                         N += Nd
 
-                elif fault.source==("CDM"):
+                elif source.source==("CDM"):
                     Gp = G['pressure']
-                    synth = Gp*fault.deltaopening
+                    synth = Gp*source.deltaopening
                     N = 0
                     if east:
                         self.synth[:,0] += synth[N:Nd].squeeze()
@@ -2953,7 +2978,7 @@ class gps(SourceInv):
 
             if custom:
                 Gc = G['custom']
-                Sc = fault.custom[self.name]
+                Sc = source.custom[self.name]
                 cu_synth = np.dot(G, Sc)
                 N = 0
                 if east:
@@ -2966,14 +2991,14 @@ class gps(SourceInv):
                     self.synth[:,2] += cu_synth[N:N+Nd]
 
             if poly == 'build' or poly == 'include':
-                if (self.name in fault.poly.keys()):
-                    gpsref = fault.poly[self.name]
+                if (self.name in source.poly.keys()):
+                    gpsref = source.poly[self.name]
                     if type(gpsref) is str:
                         if gpsref in ('strain', 'strainonly', 'strainnorotation', 'strainnotranslation'):
-                            self.compute2Dstrain(fault)
+                            self.compute2Dstrain(source)
                             self.synth = self.synth + self.Strain
                         elif gpsref == 'full':
-                            self.computeHelmertTransform(fault)
+                            self.computeHelmertTransform(source)
                             self.synth = self.synth + self.HelmTransform
                     elif type(gpsref) is float:
                         self.synth[:,0] += gpsref[0]
@@ -3675,7 +3700,8 @@ class gps(SourceInv):
         # All done
         return
 
-    def plot(self, faults=None, figure=135, name=False, legendscale=10., scale=None, legendunit='', figsize=None,
+    def plot(self, faults=None, figure=135, name=False, figsize=None,
+             legendscale=10., scale=None, legendunit='', 
              plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True, title=True,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              landcolor='lightgrey', seacolor=None, shadedtopo=None,

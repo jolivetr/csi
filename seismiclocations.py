@@ -533,6 +533,134 @@ class seismiclocations(SourceInv):
         # All done
         return
 
+    def read_from_AfadCsv(self, infile):
+        '''
+        Reads data from a file from Afad CSV file
+
+        Args:
+            * infile    : input file
+
+        Returns:
+            * None
+        '''
+
+        # Open and load in Pandas
+        with open(infile, 'r') as fin:
+            data = pd.read_csv(fin)
+
+        # organize things
+        data['day']     = [int(date.split(' ')[0].split('/')[0]) for date in data['Date']]
+        data['month']   = [int(date.split(' ')[0].split('/')[1]) for date in data['Date']]
+        data['year']    = [int(date.split(' ')[0].split('/')[2]) for date in data['Date']]
+        data['hour']    = [int(date.split(' ')[1].split(':')[0]) for date in data['Date']]
+        data['min']     = [int(date.split(' ')[1].split(':')[1]) for date in data['Date']]
+        data['sec']     = [int(date.split(' ')[1].split(':')[2]) for date in data['Date']]
+
+        # Initialize things
+        self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'],
+                                                                                                           data['month'],
+                                                                                                           data['day'],
+                                                                                                           data['hour'],
+                                                                                                           data['min'],
+                                                                                                           data['sec'])])
+        self.lon = data['Longitude'].values
+        self.lat = data['Latitude'].values
+        self.depth = data['Depth'].values
+        self.mag = data['Magnitude'].values
+
+        # Save data
+        self.data = data
+
+        # Create the utm
+        self.lonlat2xy()
+
+        # All done
+        return
+
+    def read_from_Lomax(self, infile):
+        '''
+        Reads data from a file from NonNinLoc as given by Anthony Lomax
+
+        Args:
+            * infile    : input file
+
+        Returns:
+            * None
+        '''
+
+        # Open and load in Pandas
+        with open(infile, 'r') as fin:
+            data = pd.read_csv(fin, delimiter=', ')
+
+        # Initialize things
+        self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'],
+                                                                                                           data['month'],
+                                                                                                           data['day'],
+                                                                                                           data['hour'],
+                                                                                                           data['min'],
+                                                                                                           data['sec'])])
+        self.lon = data['longitude'].values
+        self.lat = data['latitude'].values
+        self.depth = data['depth'].values
+        self.mag = data['Mamp'].astype(float).values
+
+        # Save data
+        self.data = data
+
+        # Create the utm
+        self.lonlat2xy()
+
+        # All done
+        return
+
+    def read_from_HypoDD(self, infile, header=0, delimiter='\s+'):
+        '''
+        Reads data from a file from HypoDD (as given by to me by Dirk Beker).
+
+        Format: event no, lat, lon, depth, internal_x, internal_y, internal_z, err_x, err_y, err_z, year, month, day, hour, minute, second, magnitude, no CC P-times, no CC S-times, no CT P-times, no CT S-times, rms value CC data, rms value CT data, cluster ID
+
+        Args:
+            * infile    : input file
+            
+        Kwargs:
+            * header    : length of the header
+
+        Returns:
+            * None
+        '''
+
+        # Open and load in Pandas
+        with open(infile, 'r') as fin:
+            data = pd.read_csv(fin, header=header, delimiter=delimiter, names=['event no', 'lat', 'lon', 'depth', 
+                                                                               'internal_x', 'internal_y', 'internal_z',
+                                                                               'err_x', 'err_y', 'err_z', 
+                                                                               'year', 'month', 'day', 'hour', 'minute', 'second', 
+                                                                               'mag',
+                                                                               'no CC P-times', 'no CC S-times', 
+                                                                               'no CT P-times', 'no CT S-times', 
+                                                                               'rms value CC data', 'rms value CT data', 'cluster ID'])
+
+        # Initialize things
+        self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'],
+                                                                                                           data['month'],
+                                                                                                           data['day'],
+                                                                                                           data['hour'],
+                                                                                                           data['minute'],
+                                                                                                           data['second'])])
+        self.lon = data['lon'].values
+        self.lat = data['lat'].values
+        self.depth = data['depth'].values
+        self.mag = data['mag'].astype(float).values
+
+        # Save data
+        self.data = data
+
+        # Create the utm
+        self.lonlat2xy()
+
+        # All done
+        return
+
     def read_from_HypoDD(self, infile, header=0, delimiter='\s+'):
         '''
         Reads data from a file from HypoDD (as given by to me by Dirk Beker).
@@ -963,6 +1091,47 @@ class seismiclocations(SourceInv):
         '''
 
         raise NotImplementedError('not yet implemented')
+
+        # All done
+        return
+
+    def distance2point(self, point, distance=5., dstyle='horizontal'):
+        '''
+        Selects the earthquakes that are located less than {distance} away from the given point.
+
+        Args:
+            * point     : Tuple of (lon, lat, depth)
+
+        Kwargs:
+            * distance  : Threshold (km)
+            * dstyle    : horizontal or 3d
+
+        Returns:
+            * None. Selected events are kept. Others are deleted.
+        '''
+
+        # Get the x, y and z coordinates
+        xq = self.x
+        yq = self.y
+        if dstyle == '3d': zq = self.depth
+
+        # Translate the point to x,y coordinates
+        x,y = self.ll2xy(point[0], point[1])
+
+        # Compute the distance
+        d = (x-xq)**2 + (y-yq)**2 
+        if dstyle == '3d': d += (z-zq)**2
+        d = np.sqrt(d)
+
+        # Which points do we care about
+        u = np.flatnonzero(d<distance)
+
+        # Check
+        self._select(u)
+
+        # Save 
+        if not hasattr(self, 'distancetopoints'): self.distancetopoints = {}
+        self.distancetopoints[point] = d[d<distance]
 
         # All done
         return

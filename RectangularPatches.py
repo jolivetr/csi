@@ -3193,7 +3193,7 @@ class RectangularPatches(Fault):
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', Fault=True, Map=True,
                  show=True, shadedtopo=None,
-                 norm=None, linewidth=1.0, plot_on_2d=True, view=None,
+                 norm=None, linewidth=1.0, plot_on_2d=True, view=None, cmap='jet',
                  colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
                  drawCoastlines=True, expand=0.2, figsize=(None, None)):
             '''
@@ -3239,7 +3239,7 @@ class RectangularPatches(Fault):
 
             # Draw the fault
             fig.faultpatches(self, slip=slip, norm=norm, colorbar=colorbar, linewidth=linewidth,
-                             cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
+                             cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, cmap=cmap,
                              plot_on_2d=plot_on_2d)
 
             # Plot the trace of there is one

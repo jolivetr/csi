@@ -426,11 +426,20 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
     file.close()
   
     # call sum_layered
-    cmd = '{}/sum_layered {} {} {} {} {} {}'.format(BIN_EDKS, edks, prefix, nrec, Np, npw, npy)
+    if not os.path.exists(os.path.basename(edks)):
+        os.symlink(edks, os.path.basename(edks))
+        os.symlink(os.path.join(os.path.dirname(edks), 'hdr.'+os.path.basename(edks)), 'hdr.'+os.path.basename(edks))
+        removeSymLink = True
+    else:
+        removeSymLink = False
+    cmd = '{}/sum_layered {} {} {} {} {} {}'.format(BIN_EDKS, os.path.basename(edks), prefix, nrec, Np, npw, npy)
     if verbose:
         print(cmd)
     os.system(cmd)
-     
+    if removeSymLink: 
+        os.unlink(os.path.basename(edks))
+        os.unlink('hdr.'+os.path.basename(edks))
+
     # read sum_layered output Greens function
     # ux
     ux = np.fromfile(file_dux, 'f').reshape((nrec, Np), order='F')

@@ -1432,7 +1432,7 @@ class Fault(SourceInv):
                 print('---------------------------------')
             self.kernelsEDKS = 'kernels.edks'
         stratKernels = self.kernelsEDKS
-        assert os.path.isfile(stratKernels), 'Kernels for EDKS not found...'
+        assert os.path.isfile(stratKernels), 'Kernels for EDKS not found...: {}'.format(stratKernels)
 
         # Show me
         if verbose:

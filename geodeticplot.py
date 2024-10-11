@@ -809,10 +809,12 @@ class geodeticplot(object):
                     verts.append((xi,yi))
                 rect = colls.PolyCollection([verts])
                 rect.set_facecolor(scalarMap.to_rgba(slip[p]))
-                rect.set_edgecolors('gray')
+                if edgecolor=='slip': 
+                    rect.set_edgecolors(scalarMap.to_rgba(slip[p]))
+                else:
+                    rect.set_edgecolors(edgecolor)
                 rect.set_linewidth(linewidth)
-                if alpha<1.0:
-                    rect.set_alpha(alpha)
+                if alpha<1.0: rect.set_alpha(alpha)
                 rect.set_zorder(zorder)
                 self.carte.add_collection(rect)
 

@@ -1363,7 +1363,7 @@ class TriangularTents(TriangularPatches):
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', figsize=(None, None), Map=True, Fault=True,
              show=True, norm=None, linewidth=1.0, plot_on_2d=True, alpha=1.0,
-             method='scatter', npoints=10, cmap='jet', shadedtopo=False, view=None, shape=None,
+             method='scatter', npoints=10, cmap='jet', shadedtopo=None, view=None, shape=None,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              drawCoastlines=False, expand=0.2, vertIndex=False, savefig=False):
         '''

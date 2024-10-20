@@ -581,13 +581,13 @@ class geodeticplot(object):
             if seacolor is not None: 
                 self.carte.add_feature(cfeature.NaturalEarthFeature('physical', 
                                                                     'ocean', 
-                                                                    '10m',
+                                                                    scale=resolution,
                                                                     edgecolor=color, 
                                                                     facecolor=seacolor, 
                                                                     zorder=np.max([zorder-1,0])))
 
         # coastlines in cartopy are multipolygon objects. Polygon has exterior, which has xy
-        self.coastlines = cfeature.NaturalEarthFeature('physical', 'land', scale='10m',
+        self.coastlines = cfeature.NaturalEarthFeature('physical', 'land', scale=resolution,
                                                 edgecolor=color, 
                                                 facecolor=landcolor, 
                                                 linewidth=linewidth, 
@@ -626,14 +626,14 @@ class geodeticplot(object):
         # All done
         return
 
-    def drawCountries(self, scale='110m', linewidth=1., edgecolor='gray', facecolor='lightgray', alpha=1., zorder=0):
+    def drawCountries(self, resolution='10m', linewidth=1., edgecolor='gray', facecolor='lightgray', alpha=1., zorder=0):
         '''
         See the cartopy manual for options
         '''
 
         # Check
         if self.carte is not None:
-            self.countries = cfeature.NaturalEarthFeature(scale=scale, category='cultural', name='admin_0_countries', 
+            self.countries = cfeature.NaturalEarthFeature(scale=resolution, category='cultural', name='admin_0_countries', 
                                                           linewidth=linewidth, edgecolor=edgecolor, facecolor=facecolor,
                                                           alpha=alpha, zorder=zorder)
             self.carte.add_feature(self.countries)

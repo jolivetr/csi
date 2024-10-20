@@ -2430,7 +2430,7 @@ class seismiclocations(SourceInv):
         return d
 
     def plot(self, faults=None, figure=None, norm=None, data='mag', show=True, Map=True, Fault=True,
-             drawCoastlines=True, resolution='auto', expand=0.2, linewidth=0.3, figsize=None, markersize=10,
+             drawCoastlines=True, resolution='10m', expand=0.2, linewidth=0.3, figsize=None, markersize=10,
              cmap='jet', alpha=1., box=None, title='auto', titleyoffset=1.1, zorder=1,
              shadedtopo=None, landcolor='lightgrey', seacolor=None,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], 

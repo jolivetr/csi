@@ -1362,8 +1362,8 @@ class TriangularTents(TriangularPatches):
 
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', figsize=(None, None), Map=True, Fault=True,
-             show=True, norm=None, linewidth=1.0, plot_on_2d=True, alpha=1.0,
-             method='scatter', npoints=10, cmap='jet', shadedtopo=None, view=None, shape=None,
+             show=True, norm=None, linewidth=1.0, plot_on_2d=True, alpha=1.0, box=None,
+             method='scatter', npoints=10, cmap='jet', shadedtopo=None, view=None, shape=(1., 1., 1.),
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              drawCoastlines=False, expand=0.2, vertIndex=False, savefig=False):
         '''
@@ -1403,6 +1403,11 @@ class TriangularTents(TriangularPatches):
             latmin = np.min(self.lat)-expand
             latmax = np.max(self.lat)+expand
 
+        # Override
+        if box is not None:
+            assert len(box)==4, 'box must be 4 floats: box = {}'.format(tuple(box))
+            lonmin, lonmax, latmin, latmax = box
+
         # Create a figure
         fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize, 
                       Map=Map, Fault=Fault)
@@ -1440,7 +1445,7 @@ class TriangularTents(TriangularPatches):
 
         # View?
         if view is not None:
-            fig.set_view(**view, shape=shape)
+            fig.set_view(*view, shape=shape)
             
         # show
         if show:

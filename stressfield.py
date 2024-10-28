@@ -114,7 +114,7 @@ class stressfield(SourceInv):
         # All done
         return
 
-    def fault2Stress_finitediff(self, fault, s2m=1., p2m=1e3, la=30e9, mu=30e9, nu=0.25, slipdirection='sd', force_dip=None, verbose=False, dx=1.):
+    def fault2Stress_finitediff(self, fault, s2m=1., p2m=1e3, la=30e9, mu=30e9, nu=0.25, slipdirection='sd', force_dip=None, verbose=False, dx=1., mp=True):
         '''
         Takes a fault, or a list of faults, and computes the stress change associated with the slip on the fault.
         The calculation is done with finite differences
@@ -163,31 +163,63 @@ class stressfield(SourceInv):
             plusdz = []
             minusdz = []
 
-            # Iterate over the patches
-            for ii, (patch, ss, ds, ts) in enumerate(zip(fault.patch, strikeslip, dipslip, tensileslip)):
+            if mp:
+                
+                # Imports
+                import multiprocessing as mp
+                from functools import partial
+
+                # Create a pool of workers
+                pool = mp.Pool(mp.cpu_count())
+
+                # Create a partial function with fixed arguments
+                func = partial(_calcDisp, self.x, self.y, self.depth, dx, p2m, nu)
+
+                # Iterate over the patches in parallel
+                results = pool.starmap(func, zip(fault.patch, strikeslip, dipslip, tensileslip))
+
+                # Close the pool and wait for the work to finish
+                pool.close()
+                pool.join()
+
+                # Clean up and sort
+                plusdx = [r[0] for r in results]
+                minusdx = [r[1] for r in results]
+                plusdy = [r[2] for r in results]
+                minusdy = [r[3] for r in results]
+                plusdz = [r[4] for r in results]
+                minusdz = [r[5] for r in results]
+
+            else:
+
+                # Iterate over the patches
+                for ii, (patch, ss, ds, ts) in enumerate(zip(fault.patch, strikeslip, dipslip, tensileslip)):
             
-                # Show me
-                if verbose:
-                    sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
-                    sys.stdout.flush()
+                    # Show me
+                    if verbose:
+                        sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
+                        sys.stdout.flush()
 
-                # X-axis
-                plusdx.append(triDisp.displacement(self.x*p2m+dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+                    # X-axis
+                    plusdx.append(triDisp.displacement(self.x*p2m+dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
                                                    ss, ds, ts, nu=nu))
-                minusdx.append(triDisp.displacement(self.x*p2m-dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+                    minusdx.append(triDisp.displacement(self.x*p2m-dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
                                                    ss, ds, ts, nu=nu))
 
-                # Y-axis
-                plusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m+dx, self.depth*p2m, list(patch*p2m), 
+                    # Y-axis
+                    plusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m+dx, self.depth*p2m, list(patch*p2m), 
                                                    ss, ds, ts, nu=nu))
-                minusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m-dx, self.depth*p2m, list(patch*p2m), 
+                    minusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m-dx, self.depth*p2m, list(patch*p2m), 
                                                     ss, ds, ts, nu=nu))
         
-                # Z-axis
-                plusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m-dx, list(patch*p2m), 
+                    # Z-axis
+                    plusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m-dx, list(patch*p2m), 
                                                    ss, ds, ts, nu=nu))
-                minusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m+dx, list(patch*p2m), 
+                    minusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m+dx, list(patch*p2m), 
                                                     ss, ds, ts, nu=nu))
+                    
+                sys.stdout.write('\n')
+                sys.stdout.flush()
 
             # Sum the contributions
             plusdx = np.array(plusdx).sum(axis=0)
@@ -196,9 +228,6 @@ class stressfield(SourceInv):
             minusdy = np.array(minusdy).sum(axis=0)
             plusdz = np.array(plusdz).sum(axis=0)
             minusdz = np.array(minusdz).sum(axis=0)
-
-            sys.stdout.write('\n')
-            sys.stdout.flush()
 
         elif fault.patchType=='rectangle':
 
@@ -1030,4 +1059,17 @@ class stressfield(SourceInv):
         fid.close()
 
         return
+    
+def _calcDisp(x, y, depth, dx, p2m, nu, patch, ss, ds, ts):
+    # X-axis
+    plusdx = triDisp.displacement(x*p2m+dx, y*p2m, depth*p2m, list(patch*p2m), ss, ds, ts, nu=nu)
+    minusdx = triDisp.displacement(x*p2m-dx, y*p2m, depth*p2m, list(patch*p2m), ss, ds, ts, nu=nu)
+    # Y-axis
+    plusdy = triDisp.displacement(x*p2m, y*p2m+dx, depth*p2m, list(patch*p2m), ss, ds, ts, nu=nu)
+    minusdy = triDisp.displacement(x*p2m, y*p2m-dx, depth*p2m, list(patch*p2m), ss, ds, ts, nu=nu)
+    # Z-axis
+    plusdz = triDisp.displacement(x*p2m, y*p2m, depth*p2m-dx, list(patch*p2m), ss, ds, ts, nu=nu)
+    minusdz = triDisp.displacement(x*p2m, y*p2m, depth*p2m+dx, list(patch*p2m), ss, ds, ts, nu=nu)
+    return plusdx, minusdx, plusdy, minusdy, plusdz, minusdz
+
 #EOF

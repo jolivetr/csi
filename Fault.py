@@ -721,7 +721,7 @@ class Fault(SourceInv):
         
         # Make the interpolator
         if recompute:
-            self.intcumdis = sciint.interp2d(x, y, self.cumdis, fill_value=0.) 
+            self.intcumdis = sciint.LinearNDInterpolator(np.vstack((x, y)).T, self.cumdis, fill_value=0.) 
         assert hasattr(self, 'intcumdis'), 'An interpolator is needed'
 
         # Make a function with this

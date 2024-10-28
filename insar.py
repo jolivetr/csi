@@ -1815,7 +1815,6 @@ class insar(SourceInv):
                     else:
                         self.synth += self.orbit
 
-
         # All done
         return
 

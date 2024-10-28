@@ -7,8 +7,6 @@ Edited by T. Shreve, May 2019. Commented out lines 386, 391, 460, 485, 1121, 113
 Added plotting option for pressure sources
 
 July 2019: R Jolivet replaced basemap by cartopy.
-
-Sept 2024: JD Dianala, some cleanup...
 '''
 
 # Numerics
@@ -86,8 +84,6 @@ class geodeticplot(object):
 
         # Projection
         self.projection = ccrs.PlateCarree()
-
-        self.resolution = resolution
 
         # Open a figure
         if Fault:
@@ -803,6 +799,7 @@ class geodeticplot(object):
             for p, patch in zip(range(len(fault.patchll)), fault.patchll):
                 x = []
                 y = []
+                ncorners = len(fault.patchll[0])
                 for i in range(ncorners):
                     x.append(patch[i][0]+offset[0])
                     y.append(patch[i][1]+offset[1])
@@ -812,10 +809,12 @@ class geodeticplot(object):
                     verts.append((xi,yi))
                 rect = colls.PolyCollection([verts])
                 rect.set_facecolor(scalarMap.to_rgba(slip[p]))
-                rect.set_edgecolors('gray')
+                if edgecolor=='slip': 
+                    rect.set_edgecolors(scalarMap.to_rgba(slip[p]))
+                else:
+                    rect.set_edgecolors(edgecolor)
                 rect.set_linewidth(linewidth)
-                if alpha<1.0:
-                    rect.set_alpha(alpha)
+                if alpha<1.0: rect.set_alpha(alpha)
                 rect.set_zorder(zorder)
                 self.carte.add_collection(rect)
 

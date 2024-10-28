@@ -114,6 +114,228 @@ class stressfield(SourceInv):
         # All done
         return
 
+    def fault2Stress_finitediff(self, fault, s2m=1., p2m=1e3, la=30e9, mu=30e9, nu=0.25, slipdirection='sd', force_dip=None, verbose=False, dx=1., mp=True):
+        '''
+        Takes a fault, or a list of faults, and computes the stress change associated with the slip on the fault.
+        The calculation is done with finite differences
+
+        Args:   
+            * fault             : Fault object (RectangularFault).
+
+        Kwargs:
+            * s2m               : Conversion factor for the slip units. Factor is to put everything in meters.
+            * p2m               : Conversion factor for the distance units. Factor is to put everything in meters.
+            * slipdirection     : any combination of s, d, and t.
+            * la                : Lamé parameter (default is 30GPa)
+            * mu                : Shear Modulus (default is 30GPa).
+            * nu                : Poisson's ratio (default is 0.25).
+            * force_dip         : Specify the dip angle of the patches
+            * verbos            : talk to me
+            * dx                : finite difference step (default is 1m)
+
+        Returns:
+            * None
+        '''
+
+        # Verbose?
+        if verbose: print('Computing stress changes from fault {}'.format(fault.name))
+
+        # Check if fault type corresponds
+        assert fault.patchType in ('rectangle', 'triangle'), 'FD Stress calculation not implemented for the triangular tent case yet...'
+
+        # Get the slip distribution
+        nPatch = len(fault.patch)
+        strikeslip = np.zeros((nPatch,))
+        dipslip = np.zeros((nPatch,))
+        tensileslip = np.zeros((nPatch,))
+        if 's' in slipdirection: strikeslip = fault.slip[:,0]*s2m
+        if 'd' in slipdirection: dipslip = fault.slip[:,1]*s2m
+        if 't' in slipdirection: tensileslip = fault.slip[:,2]*s2m
+
+        # Compute the unit displacements along the three dimensions at each earthquake location
+        if fault.patchType=='triangle':
+
+            # Create holders
+            plusdx = []
+            minusdx = []
+            plusdy = []
+            minusdy = []
+            plusdz = []
+            minusdz = []
+
+            if mp:
+                
+                # Imports
+                import multiprocessing as mp
+                from functools import partial
+
+                # Create a pool of workers
+                pool = mp.Pool(mp.cpu_count())
+
+                # Create a partial function with fixed arguments
+                func = partial(_calcDisp, self.x, self.y, self.depth, dx, p2m, nu)
+
+                # Iterate over the patches in parallel
+                results = pool.starmap(func, zip(fault.patch, strikeslip, dipslip, tensileslip))
+
+                # Close the pool and wait for the work to finish
+                pool.close()
+                pool.join()
+
+                # Clean up and sort
+                plusdx = [r[0] for r in results]
+                minusdx = [r[1] for r in results]
+                plusdy = [r[2] for r in results]
+                minusdy = [r[3] for r in results]
+                plusdz = [r[4] for r in results]
+                minusdz = [r[5] for r in results]
+
+            else:
+
+                # Iterate over the patches
+                for ii, (patch, ss, ds, ts) in enumerate(zip(fault.patch, strikeslip, dipslip, tensileslip)):
+            
+                    # Show me
+                    if verbose:
+                        sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
+                        sys.stdout.flush()
+
+                    # X-axis
+                    plusdx.append(triDisp.displacement(self.x*p2m+dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                    minusdx.append(triDisp.displacement(self.x*p2m-dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+
+                    # Y-axis
+                    plusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m+dx, self.depth*p2m, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                    minusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m-dx, self.depth*p2m, list(patch*p2m), 
+                                                    ss, ds, ts, nu=nu))
+        
+                    # Z-axis
+                    plusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m-dx, list(patch*p2m), 
+                                                   ss, ds, ts, nu=nu))
+                    minusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m+dx, list(patch*p2m), 
+                                                    ss, ds, ts, nu=nu))
+                    
+                sys.stdout.write('\n')
+                sys.stdout.flush()
+
+            # Sum the contributions
+            plusdx = np.array(plusdx).sum(axis=0)
+            minusdx = np.array(minusdx).sum(axis=0)
+            plusdy = np.array(plusdy).sum(axis=0)
+            minusdy = np.array(minusdy).sum(axis=0)
+            plusdz = np.array(plusdz).sum(axis=0)
+            minusdz = np.array(minusdz).sum(axis=0)
+
+        elif fault.patchType=='rectangle':
+
+            # Build Arrays
+            xc = np.zeros((nPatch,))
+            yc = np.zeros((nPatch,))
+            zc = np.zeros((nPatch,))
+            width = np.zeros((nPatch,))
+            length = np.zeros((nPatch,)) 
+            strike = np.zeros((nPatch,)) 
+            dip = np.zeros((nPatch,))
+
+            # Build the arrays for okada
+            for ii in range(len(fault.patch)):
+                if verbose:
+                    sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
+                    sys.stdout.flush()
+                xc[ii], yc[ii], zc[ii], width[ii], length[ii], strike[ii], dip[ii] = fault.getpatchgeometry(fault.patch[ii], center=True)
+            sys.stdout.write('\n')
+            sys.stdout.flush()
+
+            # Don't invert zc (for the patches, we give depths, so it has to be positive)
+            xc *= p2m
+            yc *= p2m
+            zc *= p2m
+            width *= p2m
+            length *= p2m
+
+            # If force dip
+            if force_dip is not None: dip[:] = force_dip
+
+            # X-axis
+            plusdx = okada.displacement(self.x*p2m+dx, self.y*p2m, -1.0*self.depth*p2m, 
+                                               xc, yc, zc, 
+                                               width, length, 
+                                               strike, dip,
+                                               strikeslip, dipslip, tensileslip, 
+                                               nu=nu).T
+            minusdx = okada.displacement(self.x*p2m-dx, self.y*p2m, -1.0*self.depth*p2m, 
+                                               xc, yc, zc, 
+                                               width, length, 
+                                               strike, dip,
+                                               strikeslip, dipslip, tensileslip, 
+                                               nu=nu).T
+            
+            # Y-axis
+            plusdy = okada.displacement(self.x*p2m, self.y*p2m+dx, -1.0*self.depth*p2m, 
+                                               xc, yc, zc, 
+                                               width, length, 
+                                               strike, dip,
+                                               strikeslip, dipslip, tensileslip, 
+                                               nu=nu).T
+            minusdy = okada.displacement(self.x*p2m, self.y*p2m-dx, -1.0*self.depth*p2m, 
+                                               xc, yc, zc, 
+                                               width, length, 
+                                               strike, dip,
+                                               strikeslip, dipslip, tensileslip, 
+                                               nu=nu).T
+
+            # Z-axis
+            plusdz = okada.displacement(self.x*p2m, self.y*p2m, -1.0*(self.depth*p2m-dx), 
+                                               xc, yc, zc, 
+                                               width, length, 
+                                               strike, dip,
+                                               strikeslip, dipslip, tensileslip, 
+                                               nu=nu).T
+            minusdz = okada.displacement(self.x*p2m, self.y*p2m, -1.0*(self.depth*p2m+dx), 
+                                               xc, yc, zc, 
+                                               width, length, 
+                                               strike, dip,
+                                               strikeslip, dipslip, tensileslip, 
+                                               nu=nu).T
+
+        # Now that we have the displacement in many places, just compute the finite difference
+        # First line of Δu
+        Δuxx = (plusdx[0]-minusdx[0])/(2*dx)
+        Δuxy = (plusdy[0]-minusdy[0])/(2*dx) 
+        Δuxz = (plusdz[0]-minusdz[0])/(2*dx)
+        
+        # Second line of Δu
+        Δuyx = (plusdx[1]-minusdx[1])/(2*dx) 
+        Δuyy = (plusdy[1]-minusdy[1])/(2*dx) 
+        Δuyz = (plusdz[1]-minusdz[1])/(2*dx)
+
+        # Third line of Δu
+        Δuzx = (plusdx[2]-minusdx[2])/(2*dx) 
+        Δuzy = (plusdy[2]-minusdy[2])/(2*dx) 
+        Δuzz = (plusdz[2]-minusdz[2])/(2*dx) 
+
+        # Build up the matrix
+        Δu = np.zeros((3,3,self.x.shape[0]))
+        Δu[0,:,:] = np.vstack((Δuxx, Δuxy, Δuxz))
+        Δu[1,:,:] = np.vstack((Δuyx, Δuyy, Δuyz))
+        Δu[2,:,:] = np.vstack((Δuzx, Δuzy, Δuzz))
+
+        self.Δu = Δu
+        # Make a strain tensor
+        self.Strain = 0.5*(Δu + Δu.transpose((1,0,2)))
+        
+        # Compute the stress tensor assuming μ=30 GPa and λ=30 GPa
+        μ = la
+        λ = la
+        self.Stress = 2*μ*self.Strain + (λ*np.trace(self.Strain, axis1=0, axis2=1)[:,np.newaxis, np.newaxis]*np.eye(3)).transpose((1, 2, 0))
+        self.stresstype = 'total'
+
+        # All done
+        return
+
     def fault2Stress(self, fault, s2m=1., p2m=1e3, la=30e9, mu=30e9, nu=0.25, slipdirection='sd', force_dip=None, verbose=False):
         '''
         Takes a fault, or a list of faults, and computes the stress change associated with the slip on the fault.
@@ -194,80 +416,31 @@ class stressfield(SourceInv):
 
         elif fault.patchType=='triangle':
 
-            # A small displacement
-            dx = 10 # 10 m
-
-            nPatch = len(fault.patch)
-
             # Get the slip distribution
-            strikeslip = np.zeros((nPatch,))
-            dipslip = np.zeros((nPatch,))
-            tensileslip = np.zeros((nPatch,))
+            strikeslip = np.zeros_like(fault.slip[:,0])
+            dipslip = np.zeros_like(fault.slip[:,1])
+            tensileslip = np.zeros_like(fault.slip[:,2])
             if 's' in slipdirection: strikeslip = fault.slip[:,0]*s2m
             if 'd' in slipdirection: dipslip = fault.slip[:,1]*s2m
             if 't' in slipdirection: tensileslip = fault.slip[:,2]*s2m
 
-            # Compute the unit displacements along the three dimensions at each earthquake location
-            plusdx = []
-            minusdx = []
-            plusdy = []
-            minusdy = []
-            plusdz = []
-            minusdz = []
-            ii = 0
-            for patch, ss, ds, ts in zip(fault.patch, strikeslip, dipslip, tensileslip):
+            # Create holder
+            Strain = np.zeros((3,3,self.x.shape[0]))
+
+            # Iterate
+            for ii, (patch, ss, ds, ts) in enumerate(zip(fault.patch, strikeslip, dipslip, tensileslip)):
                 if verbose:
                     sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
                     sys.stdout.flush()
-                # X-axis
-                plusdx.append(triDisp.displacement(self.x*p2m+dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
-                                                   ss, ds, ts, nu=nu))
-                minusdx.append(triDisp.displacement(self.x*p2m-dx, self.y*p2m, self.depth*p2m, list(patch*p2m), 
-                                                   ss, ds, ts, nu=nu))
-                # Y-axis
-                plusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m+dx, self.depth*p2m, list(patch*p2m), 
-                                                   ss, ds, ts, nu=nu))
-                minusdy.append(triDisp.displacement(self.x*p2m, self.y*p2m-dx, self.depth*p2m, list(patch*p2m), 
-                                                    ss, ds, ts, nu=nu))
+                Strain[:,:,:] += triDisp.strain(self.x*p2m, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+                                                ss, ds, ts, nu=nu)
+
+            # Clean up
+            sys.stdout.write('\n')
+            sys.stdout.flush()
             
-                # Z-axis
-                plusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m+dx, list(patch*p2m), 
-                                                   ss, ds, ts, nu=nu))
-                minusdz.append(triDisp.displacement(self.x*p2m, self.y*p2m, self.depth*p2m-dx, list(patch*p2m), 
-                                                    ss, ds, ts, nu=nu))
-                ii += 1
-
-            # Sum the contributions
-            plusdx = np.array(plusdx).sum(axis=0)
-            minusdx = np.array(minusdx).sum(axis=0)
-            plusdy = np.array(plusdy).sum(axis=0)
-            minusdy = np.array(minusdy).sum(axis=0)
-            plusdz = np.array(plusdz).sum(axis=0)
-            minusdz = np.array(minusdz).sum(axis=0)
-
-            # First line of Δu
-            Δuxx = (plusdx[0]-minusdx[0])/(2*dx)
-            Δuxy = (plusdy[0]-minusdy[0])/(2*dx) 
-            Δuxz = (plusdz[0]-minusdz[0])/(2*dx)
-            
-            # Second line of Δu
-            Δuyx = (plusdx[1]-minusdx[1])/(2*dx) 
-            Δuyy = (plusdy[1]-minusdy[1])/(2*dx) 
-            Δuyz = (plusdz[1]-minusdz[1])/(2*dx)
-
-            # Third line of Δu
-            Δuzx = (plusdx[2]-minusdx[2])/(2*dx) 
-            Δuzy = (plusdy[2]-minusdy[2])/(2*dx) 
-            Δuzz = (plusdz[2]-minusdz[2])/(2*dx) 
-
-            # Build up the matrix
-            Δu = np.zeros((3,3,self.x.shape[0]))
-            Δu[0,:,:] = np.vstack((Δuxx, Δuxy, Δuxz))
-            Δu[1,:,:] = np.vstack((Δuyx, Δuyy, Δuyz))
-            Δu[2,:,:] = np.vstack((Δuzx, Δuzy, Δuzz))
-
-            # Make a strain tensor
-            self.Strain = 0.5*(Δu + Δu.transpose((1,0,2)))
+            # Save the strain
+            self.Strain = Strain
             
             # Compute the stress tensor assuming μ=30 GPa and λ=30 GPa
             μ = la
@@ -886,4 +1059,17 @@ class stressfield(SourceInv):
         fid.close()
 
         return
+    
+def _calcDisp(x, y, depth, dx, p2m, nu, patch, ss, ds, ts):
+    # X-axis
+    plusdx = triDisp.displacement(x*p2m+dx, y*p2m, depth*p2m, list(patch*p2m), ss, ds, ts, nu=nu)
+    minusdx = triDisp.displacement(x*p2m-dx, y*p2m, depth*p2m, list(patch*p2m), ss, ds, ts, nu=nu)
+    # Y-axis
+    plusdy = triDisp.displacement(x*p2m, y*p2m+dx, depth*p2m, list(patch*p2m), ss, ds, ts, nu=nu)
+    minusdy = triDisp.displacement(x*p2m, y*p2m-dx, depth*p2m, list(patch*p2m), ss, ds, ts, nu=nu)
+    # Z-axis
+    plusdz = triDisp.displacement(x*p2m, y*p2m, depth*p2m-dx, list(patch*p2m), ss, ds, ts, nu=nu)
+    minusdz = triDisp.displacement(x*p2m, y*p2m, depth*p2m+dx, list(patch*p2m), ss, ds, ts, nu=nu)
+    return plusdx, minusdx, plusdy, minusdy, plusdz, minusdz
+
 #EOF

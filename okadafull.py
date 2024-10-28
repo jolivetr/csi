@@ -127,7 +127,7 @@ def strain(xs, ys, zs, xc, yc, zc, width, length, strike, dip, ss, ds, ts, nu=0.
         Strain[1,2,:] = d[:,5]  # Uyz
         Strain[2,0,:] = d[:,6]  # Uzx
         Strain[2,1,:] = d[:,7]  # Uzy
-        Strain[2,2,:] = d[:,8]  # UUzz
+        Strain[2,2,:] = d[:,8]  # Uzz
         return Strain, flag, flag2
          
 #--------------------------------------------------

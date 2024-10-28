@@ -3192,8 +3192,8 @@ class RectangularPatches(Fault):
 
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', Fault=True, Map=True,
-                 show=True, shadedtopo=None,
-                 norm=None, linewidth=1.0, plot_on_2d=True, view=None, cmap='jet',
+                 show=True, shadedtopo=None, box=None,
+                 norm=None, linewidth=1.0, plot_on_2d=True, view=None, cmap='jet', shape=(1., 1., 1.),
                  colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
                  drawCoastlines=True, expand=0.2, figsize=(None, None)):
             '''
@@ -3226,6 +3226,10 @@ class RectangularPatches(Fault):
             latmin = np.min([p[:,1] for p in self.patchll])-expand
             latmax = np.max([p[:,1] for p in self.patchll])+expand
 
+            if box is not None:
+                assert len(box)==4, 'box must be 4 floats: box = {}'.format(tuple(box))
+                lonmin, lonmax, latmin, latmax = box
+
             # Create a figure
             fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax, figsize=figsize, 
                           Map=Map, Fault=Fault)
@@ -3248,7 +3252,7 @@ class RectangularPatches(Fault):
 
             # View?
             if view is not None:
-                fig.set_view(**view)
+                fig.set_view(*view, shape=shape)
             
             # show
             if show:

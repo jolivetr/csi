@@ -2701,8 +2701,8 @@ class TriangularPatches(Fault):
 
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', equiv=False, show=True, Map=True, Fault=True,
-             norm=None, linewidth=1.0, plot_on_2d=True,
-             shadedtopo=None, view=None, alpha=1.0, shape=None,
+             norm=None, linewidth=1.0, plot_on_2d=True, box=None, 
+             shadedtopo=None, view=None, alpha=1.0, shape=(1., 1., 1.),
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              drawCoastlines=True, expand=0.2, savefig=False, figsize=(None, None)):
         '''
@@ -2741,6 +2741,11 @@ class TriangularPatches(Fault):
             latmin = np.min(self.lat)-expand
             latmax = np.max(self.lat)+expand
 
+        # Override
+        if box is not None:
+            assert len(box)==4, 'box must be 4 floats: box = {}'.format(tuple(box))
+            lonmin, lonmax, latmin, latmax = box
+
         # Create a figure
         fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax,
                                      latmin=latmin, latmax=latmax, figsize=figsize,
@@ -2778,7 +2783,7 @@ class TriangularPatches(Fault):
 
         # View?
         if view is not None:
-            fig.set_view(**view, shape=shape)
+            fig.set_view(*view, shape=shape)
 
         # show
         if show:

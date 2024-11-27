@@ -2975,6 +2975,90 @@ class insar(SourceInv):
         # All done
         return
 
+    def plotDecimation(self, norm=None, data=None, show=True, figsize=None,
+                       zorder=1, alpha=1., edgewidth=1, edgecolor='k',
+                       cmap='jet', lognorm=False, axisNames=None):
+        '''
+        Show me as many plots of decimated InSAR data as requested in the data Kwargs
+        
+        Kwargs:
+            * figure:   Plot things in a pre-existing figure
+            * norm  :   Colorbar limits
+            * data  :   Any list of attributes that are in self. Default is None and vel will be plotted
+            * show  :   Show on screen?
+        '''
+        
+        # Get the data
+        if data is None:
+            data = ['vel']
+        
+        # Check 
+        if axisNames is None:
+            axisNames = data
+        
+        # Check wether the attributes exists and are of the correct size
+        values = []
+        for d in data:
+            assert hasattr(self, d), 'Attribute {} not found in the data'.format(d)
+            assert getattr(self, d).shape[0]==self.lon.shape[0], 'Attribute {} has the wrong size'.format(d)
+            values.append(getattr(self, d))
+        
+        # Loop over the data
+        if norm is None:
+            vmin = np.nanmin([np.nanmin(v) for v in values])
+            vmax = np.nanmax([np.nanmax(v) for v in values])
+        else:
+            vmin = norm[0]
+            vmax = norm[1]  
+        
+        # Prepare the colormap
+        cmap = plt.get_cmap(cmap)
+        if lognorm:
+            cNorm = colors.LogNorm(vmin=vmin, vmax=vmax)
+        else:
+            cNorm = colors.Normalize(vmin=vmin, vmax=vmax)
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
+        
+        # Create a figure
+        if figsize is None: figsize = (len(data)*5, 5)
+        fig, axs = plt.subplots(1, len(data), figsize=figsize)
+        
+        # Loop over the data
+        for ax, val, name in zip(axs, values, axisNames):
+            # Iterate over the blocks
+            for corner, v in zip(self.corner, val): 
+                verts = [(corner[0], corner[1]), (corner[2], corner[1]), (corner[2], corner[3]), (corner[0], corner[3])]
+                rect = colls.PolyCollection([verts],linewidth=edgewidth)
+                rect.set_color(scalarMap.to_rgba(v))
+                rect.set_edgecolors(edgecolor)
+                rect.set_zorder(zorder)
+                rect.set_alpha(alpha)
+                ax.add_collection(rect)
+            ax.set_title(name, weight='bold')
+        
+        # Remove all spines and ticks
+        for ax in axs:
+            ax.autoscale_view()
+            ax.axis('off')
+        
+        # Add a colorbar
+        bbox = axs[0].get_position()
+        scalarMap.set_array(values[0])
+        cax = fig.add_axes([0.4, bbox.y0-0.1, 0.2, 0.02])
+        cb = fig.colorbar(scalarMap, cax=cax, orientation='horizontal')
+        cb.set_label('LOS displacement')
+        
+        # Keep it in mind
+        self.fig = fig
+        
+        # Show?
+        if show:
+            plt.plot
+        
+        # All done
+        return
+
+
     def write2grd(self, fname, oversample=1, data='data', interp=100, cmd='surface',
                         tension=None, useGMT=False, verbose=False, outDir='./'):
         '''

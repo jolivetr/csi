@@ -11,6 +11,11 @@ import numpy as np
 import pyproj as pp
 import matplotlib.pyplot as plt
 import matplotlib.path as path
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+import matplotlib.collections as colls
+import matplotlib.patches as patches
+import matplotlib.transforms as transforms
 import scipy.spatial.distance as scidis
 import copy
 import sys, os

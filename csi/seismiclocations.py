@@ -613,7 +613,7 @@ class seismiclocations(SourceInv):
         # All done
         return
 
-    def read_from_HypoDD(self, infile, header=0, delimiter='\s+'):
+    def read_from_HypoDD(self, infile, header=0, delimiter="\s+"):
         '''
         Reads data from a file from HypoDD (as given by to me by Dirk Beker).
 

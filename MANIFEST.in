@@ -1,0 +1,10 @@
+# Include all files 
+include *
+
+# Exclude
+global-exclude *.pyc
+exclude .* 
+exclude deprecated/*
+exclude documentation/*
+exclude probabilisticInterpolation/* 
+exclude texdoc/*

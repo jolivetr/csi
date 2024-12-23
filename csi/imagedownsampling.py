@@ -1268,7 +1268,8 @@ class imagedownsampling(object):
             * lam       : Characteristic distance
 
         Kwargs:
-            * function  : 'exp' (:math:`C = \mu^2 e^{\\frac{-d}{\lambda}}`) or 'gauss' (:math:`C = \mu^2 e^{\\frac{-d^2}{2\lambda^2}}`)
+            * function  : 'exp' (:math:`C = \mu^2 e^{\\frac{-d}{\lambda}}`) or 
+                          'gauss' (:math:`C = \mu^2 e^{\\frac{-d^2}{2\lambda^2}}`)
 
         Returns:
             * None

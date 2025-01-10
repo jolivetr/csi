@@ -3523,8 +3523,8 @@ class insar(SourceInv):
         fitRight_fn = np.poly1d(fitRight)
 
         # Get RMS Residual of fit
-        rmsleft  = (np.sum(wleft*(fitLeft_fn(dleft)-displeft)**2) )**(1/2.)
-        rmsright = (np.sum(wright*(fitRight_fn(dright)-dispright)**2) )**(1/2.)
+        rmsleft  = (np.sum(wleft*(fitLeft_fn(dleft)-displeft)**2)/len(displeft))**(1/2.)
+        rmsright = (np.sum(wright*(fitRight_fn(dright)-dispright)**2)/len(dispright))**(1/2.)
         creep_err = (rmsleft**2+rmsright**2)**(1/2.)
 
         # Get creep rate value

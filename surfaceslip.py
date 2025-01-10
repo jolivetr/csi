@@ -88,12 +88,9 @@ class surfaceslip(SourceInv):
             self.los = np.delete(self.los,u, axis=0)
         if self.synth is not None:
             self.synth = np.delete(self.synth, u)
-        if self.corner is not None:
-            self.corner = np.delete(self.corner, u, axis=0)
-            self.xycorner = np.delete(self.xycorner, u, axis=0)
         # Deal with the covariance matrix
         if self.Cd is not None:
-            self.Cd = np.delete(np.delete(Cd ,u, axis=0), u, axis=1)
+            self.Cd = np.delete(np.delete(self.Cd ,u, axis=0), u, axis=1)
         # All done
         return
 

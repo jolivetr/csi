@@ -824,15 +824,11 @@ class geodeticplot(object):
                 else:
                     rect.set_edgecolors(edgecolor)
                 rect.set_linewidth(linewidth)
-<<<<<<< HEAD
-                if alpha<1.0:
-                    rect.set_alpha(alpha)
                 if stdfault!=None:
                     if (stdslip[p]>0) and (slip[p]!=0):
                         rect.set_alpha(np.min([1.,np.max([slip[p],0.])/stdslip[p]]))
-=======
-                if alpha<1.0: rect.set_alpha(alpha)
->>>>>>> 28108dff06a07487bd5715b9568a794d12375b98
+                if alpha<1.0:
+                    rect.set_alpha(alpha)
                 rect.set_zorder(zorder)
                 self.carte.add_collection(rect)
 

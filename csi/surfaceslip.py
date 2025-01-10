@@ -65,6 +65,36 @@ class surfaceslip(SourceInv):
         # All done
         return
 
+    def deletePixels(self, u):
+        '''
+        Delete the pixels indicated by index in u.
+        
+        Args:
+        * u         : array of indexes
+        
+        Returns:
+        * None  
+        '''
+        
+        # Select the stations
+        self.lon = np.delete(self.lon,u)
+        self.lat = np.delete(self.lat,u)
+        self.x = np.delete(self.x,u)
+        self.y = np.delete(self.y,u)
+        self.vel = np.delete(self.vel,u)
+        if self.err is not None:
+            self.err = np.delete(self.err,u)
+        if self.los is not None:
+            self.los = np.delete(self.los,u, axis=0)
+        if self.synth is not None:
+            self.synth = np.delete(self.synth, u)
+        # Deal with the covariance matrix
+        if self.Cd is not None:
+            self.Cd = np.delete(np.delete(self.Cd ,u, axis=0), u, axis=1)
+        # All done
+        return
+
+
     def checkZeros(self):
         '''
         Checks and remove data points that have Zeros in vel, lon or lat

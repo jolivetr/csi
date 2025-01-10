@@ -690,7 +690,7 @@ class geodeticplot(object):
     def faultpatches(self, fault, slip='strikeslip', norm=None, colorbar=True,
                      cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
                      plot_on_2d=False, revmap=False, linewidth=1.0, cmap='jet', offset=None,
-                     alpha=1.0, factor=1.0, zorder=3, edgecolor='slip', colorscale='normal'):
+                     alpha=1.0, factor=1.0, zorder=3, edgecolor='slip', colorscale='normal',stdfault=None):
         '''
         Plot the fualt patches
 
@@ -712,22 +712,29 @@ class geodeticplot(object):
             * zorder        : matplotlib order of plotting
             * edgecolor     : either a color or 'slip'
             * colorscale    : 'normal' or 'log'
-
+            * alpha         : constant transparency value
+            * stdfault      : to plot slip with transparency varying as a function of the std/mean relation for each patch. To use with positive values of slip and colorbars that are lighter near zero.
         Returns:
             * None
         '''
 
-        # Get slip
+# Get slip
         if slip in ('strikeslip'):
             slip = fault.slip[:,0].copy()
+            if stdfault!=None:
+                stdslip = stdfault.slip[:,0].copy()
         elif slip in ('dipslip'):
             slip = fault.slip[:,1].copy()
+            if stdfault!=None:
+                stdslip = stdfault.slip[:,1].copy()
         elif slip in ('tensile'):
             slip = fault.slip[:,2].copy()
+            if stdfault!=None:
+                stdslip = stdfault.slip[:,2].copy()
         elif slip in ('total'):
             slip = np.sqrt(fault.slip[:,0]**2 + fault.slip[:,1]**2 + fault.slip[:,2]**2)
-        elif slip in ('coupling'):
-            slip = fault.coupling.copy()
+            if stdfault!=None:
+                stdslip = np.sqrt(stdfault.slip[:,0]**2 + stdfault.slip[:,1]**2 + stdfault.slip[:,2]**2)
         else:
             print ("Unknown slip direction")
             return
@@ -787,6 +794,9 @@ class geodeticplot(object):
                     rect.set_edgecolors(edgecolor)
                 if alpha<1.0:
                     rect.set_alpha(alpha)
+                if (stdfault!=None):
+                    if (stdslip[p]>0) and (slip[p]!=0):
+                        rect.set_alpha(np.min([1.,np.max([slip[p],0.])/stdslip[p]]))
                 rect.set_linewidth(linewidth)
                 self.faille.add_collection3d(rect)
 
@@ -814,7 +824,11 @@ class geodeticplot(object):
                 else:
                     rect.set_edgecolors(edgecolor)
                 rect.set_linewidth(linewidth)
-                if alpha<1.0: rect.set_alpha(alpha)
+                if stdfault!=None:
+                    if (stdslip[p]>0) and (slip[p]!=0):
+                        rect.set_alpha(np.min([1.,np.max([slip[p],0.])/stdslip[p]]))
+                if alpha<1.0:
+                    rect.set_alpha(alpha)
                 rect.set_zorder(zorder)
                 self.carte.add_collection(rect)
 

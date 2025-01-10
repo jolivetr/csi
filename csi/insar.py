@@ -11,7 +11,13 @@ import numpy as np
 import pyproj as pp
 import matplotlib.pyplot as plt
 import matplotlib.path as path
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+import matplotlib.collections as colls
+import matplotlib.patches as patches
+import matplotlib.transforms as transforms
 import scipy.spatial.distance as scidis
+import scipy.interpolate as scint
 import copy
 import sys, os
 import cartopy.io.shapereader as shpreader
@@ -2809,6 +2815,111 @@ class insar(SourceInv):
         # All done
         return d
 
+    def removeAtmosphere(self, elevation, quickPlot=False, cmap='jet', norm=None):
+        '''
+        Remove an empirical atmospheric phase. The phase is the simply the elevation of the pixel 
+        multitplied by a factor. The factor is the best fit between the two determined using standard
+        least squares. Correction is performed in place.
+        
+        Args:
+            * elevation : insar object with elevation as the main data.
+            
+        Kwargs:
+            * quickPlot : bool. Plot the data before and after the correction and the relationship
+                          between the two.    
+        
+        Returns:
+            * None
+        '''
+
+        # Get the phase data
+        phase = self.vel
+        elev = copy.deepcopy(elevation.vel)
+        
+        # If there is nans, make a mask
+        mask = np.isfinite(phase) & np.isfinite(elev)
+        nans = np.isnan(phase) | np.isnan(elev)
+        
+        # Compute a linear fit between the phase and the elevation
+        P = np.polyfit(elev[mask], phase[mask], 1)
+        
+        # Make a quick plot
+        if quickPlot:
+            # Create a figure
+            fig, axs = plt.subplots(1, 3, figsize=(15,5))
+            
+            # Create a scalarMap
+            if norm is None:
+                vmin = np.nanmin([np.nanmin(phase), np.nanmin(elev*P[0])])
+                vmax = np.nanmax([np.nanmax(phase), np.nanmax(elev*P[0])])
+            else:
+                vmin, vmax = norm
+            cNorm  = colors.Normalize(vmin=vmin, vmax=vmax)
+            
+            if hasattr(self, 'nx') and hasattr(self, 'ny'):
+                lon = self.lon.reshape((self.ny,self.nx))
+                lat = self.lat.reshape((self.ny,self.nx))
+                data = phase.reshape((self.ny,self.nx))
+            else:
+                # Build an interpolator
+                x, y = self.x, self.y
+                sarint = scint.LinearNDInterpolator(np.vstack((x,y)).T, phase, fill_value=np.nan)
+                # Interpolate
+                xx = np.linspace(np.nanmin(self.lon), np.nanmax(self.lon), 1000)
+                yy = np.linspace(np.nanmin(self.lat), np.nanmax(self.lat), 1000)
+                xx,yy = np.meshgrid(xx,yy)
+                xx,yy = self.ll2xy(xx,yy)
+                data = sarint(xx,yy)
+                lon,lat = self.xy2ll(xx,yy)
+            # Plot
+            sc = axs[0].pcolormesh(lon, lat, data, cmap=cmap, norm=cNorm)
+            
+            # Make a color bar
+            bbox = axs[0].get_position()
+            cax = fig.add_axes([bbox.x0-0.1, 0.4, 0.02, 0.2])
+            ac = fig.colorbar(sc, cax=cax, orientation='vertical')
+            ac.set_label('Data / Elevation scaled', weight='bold')
+            
+            if hasattr(self, 'nx') and hasattr(self, 'ny'):
+                lon = self.lon.reshape((self.ny,self.nx))
+                lat = self.lat.reshape((self.ny,self.nx))
+                data = elev.reshape((self.ny,self.nx))
+            else:
+                # Build an interpolator
+                x, y = self.x, self.y
+                elev[nans] = np.nan
+                sarint = scint.LinearNDInterpolator(np.vstack((x,y)).T, elev, fill_value=np.nan)
+                # Interpolate
+                xx = np.linspace(np.nanmin(self.lon), np.nanmax(self.lon), 1000)
+                yy = np.linspace(np.nanmin(self.lat), np.nanmax(self.lat), 1000)
+                xx,yy = np.meshgrid(xx,yy)
+                xx,yy = self.ll2xy(xx,yy)
+                data = sarint(xx,yy)
+                lon,lat = self.xy2ll(xx,yy)
+            # Plot
+            sc = axs[1].pcolormesh(lon, lat, data*P[0]+P[1], cmap=cmap, norm=cNorm)
+
+            # Show me the phase elevation plot
+            axs[2].plot(elev[mask], phase[mask], '.', color='k', alpha=0.02, markersize=1)
+            x = np.linspace(np.nanmin(elev), np.nanmax(elev), 10)
+            y = P[0]*x+P[1]
+            axs[2].plot(x, y, '-r', linewidth=2)
+            axs[2].set_xlabel('Elevation', weight='bold')
+            axs[2].set_ylabel('Data', weight='bold') 
+            
+            for ax in axs:
+                axs[2].spines['top'].set_visible(False)
+                axs[2].spines['right'].set_visible(False)
+            
+            # Show me
+            fig.show()
+        
+        # Remove the phase
+        self.vel -= elev*P[0] + P[1]
+        
+        # All done
+        return
+
     def getRMS(self):
         '''
         Computes the RMS of the data and if synthetics are computed, the RMS of the residuals
@@ -2972,6 +3083,89 @@ class insar(SourceInv):
         # Save the whole thing
         self.fig = fig
 
+        # All done
+        return
+
+    def plotDecimation(self, norm=None, data=None, show=True, figsize=None,
+                       zorder=1, alpha=1., edgewidth=1, edgecolor='k',
+                       cmap='jet', lognorm=False, axisNames=None):
+        '''
+        Show me as many plots of decimated InSAR data as requested in the data Kwargs
+        
+        Kwargs:
+            * figure:   Plot things in a pre-existing figure
+            * norm  :   Colorbar limits
+            * data  :   Any list of attributes that are in self. Default is None and vel will be plotted
+            * show  :   Show on screen?
+        '''
+        
+        # Get the data
+        if data is None:
+            data = ['vel']
+        
+        # Check 
+        if axisNames is None:
+            axisNames = data
+        
+        # Check wether the attributes exists and are of the correct size
+        values = []
+        for d in data:
+            assert hasattr(self, d), 'Attribute {} not found in the data'.format(d)
+            assert getattr(self, d).shape[0]==self.lon.shape[0], 'Attribute {} has the wrong size'.format(d)
+            values.append(getattr(self, d))
+        
+        # Loop over the data
+        if norm is None:
+            vmin = np.nanmin([np.nanmin(v) for v in values])
+            vmax = np.nanmax([np.nanmax(v) for v in values])
+        else:
+            vmin = norm[0]
+            vmax = norm[1]  
+        
+        # Prepare the colormap
+        cmap = plt.get_cmap(cmap)
+        if lognorm:
+            cNorm = colors.LogNorm(vmin=vmin, vmax=vmax)
+        else:
+            cNorm = colors.Normalize(vmin=vmin, vmax=vmax)
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
+        
+        # Create a figure
+        if figsize is None: figsize = (len(data)*5, 5)
+        fig, axs = plt.subplots(1, len(data), figsize=figsize)
+        
+        # Loop over the data
+        for ax, val, name in zip(axs, values, axisNames):
+            # Iterate over the blocks
+            for corner, v in zip(self.corner, val): 
+                verts = [(corner[0], corner[1]), (corner[2], corner[1]), (corner[2], corner[3]), (corner[0], corner[3])]
+                rect = colls.PolyCollection([verts],linewidth=edgewidth)
+                rect.set_color(scalarMap.to_rgba(v))
+                rect.set_edgecolors(edgecolor)
+                rect.set_zorder(zorder)
+                rect.set_alpha(alpha)
+                ax.add_collection(rect)
+            ax.set_title(name, weight='bold')
+        
+        # Remove all spines and ticks
+        for ax in axs:
+            ax.autoscale_view()
+            ax.axis('off')
+        
+        # Add a colorbar
+        bbox = axs[0].get_position()
+        scalarMap.set_array(values[0])
+        cax = fig.add_axes([0.4, bbox.y0-0.1, 0.2, 0.02])
+        cb = fig.colorbar(scalarMap, cax=cax, orientation='horizontal')
+        cb.set_label('LOS displacement')
+        
+        # Keep it in mind
+        self.fig = fig
+        
+        # Show?
+        if show:
+            plt.plot
+        
         # All done
         return
 
@@ -3463,21 +3657,24 @@ class insar(SourceInv):
         # Average the values in the bins
         averageNorth = [np.nanmean(valn[idisn==ibin]) for ibin, b in enumerate(bins[:-1])]
         averageSouth = [np.nanmean(vals[idiss==ibin]) for ibin, b in enumerate(bins[:-1])]
+        stdNorth = [np.nanstd(valn[idisn==ibin]) for ibin, b in enumerate(bins[:-1])]
+        stdSouth = [np.nanstd(valn[idisn==ibin]) for ibin, b in enumerate(bins[:-1])]
         lonn = [np.nanmean(lonn[idisn==ibin]) for ibin, b in enumerate(bins[:-1])]
         latn = [np.nanmean(latn[idisn==ibin]) for ibin, b in enumerate(bins[:-1])]
         lons = [np.nanmean(lons[idiss==ibin]) for ibin, b in enumerate(bins[:-1])]
         lats = [np.nanmean(lats[idiss==ibin]) for ibin, b in enumerate(bins[:-1])]
         diffNS = [n-s for n,s in zip(averageNorth,averageSouth)]
+        stdNS = [np.sqrt(n**2+s**2) for n,s in zip(stdNorth, stdSouth)]
 
         # Save
-        north = [disn, valn, lonn, latn, averageNorth]
-        south = [diss, vals, lons, lats, averageSouth]
+        north = [disn, valn, lonn, latn, averageNorth, stdNorth]
+        south = [diss, vals, lons, lats, averageSouth, stdSouth]
 
         # All done
         if returnBox:
             return distance, diffNS, north, south, northll, southll
         else:
-            return distance, diffNS, north, south
+            return distance, diffNS, north, south, stdNS
 
     def _getoffset(self, x, y, w, plot=True):
         '''

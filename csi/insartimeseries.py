@@ -374,7 +374,7 @@ class insartimeseries(insar):
 
     def readFromKFts(self, h5file, setmaster2zero=None,
                            zfile=None, lonfile=None, latfile=None, filetype='f',
-                           incidence=None, heading=None, inctype='onefloat', closeh5=True, box=None,
+                           incidence=None, heading=None, azimuth=None, inctype='onefloat', closeh5=True, box=None,
                            field='rawts', error='rawts_std', keepnan=False, mask=None, readModel=False):
         '''
         Read the output from a typical GIAnT h5 output file.
@@ -391,6 +391,7 @@ class insartimeseries(insar):
             * incidence     : Incidence angle (degree)
             * box           : Crop data (default None), ex: [y0:y1,x0:x1]
             * heading       : Heading angle (degree)
+            * azimuth       : Azimuth angle (degree)
             * inctype       : Type of the incidence and heading values (see insar.py for details). Can be 'onefloat', 'grd', 'binary', 'binaryfloat'
             * field         : Name of the field in the h5 file.
             * error         : Name of the phase std deviation field.
@@ -507,6 +508,9 @@ class insartimeseries(insar):
             if incidence is not None and heading is not None:
                 assert box is None, 'Incidence cropping not implemented yet'
                 sar.inchd2los(incidence, heading, origin=inctype)
+            if incidence is not None and azimuth is not None:
+                assert box is None, 'Incidence cropping not implemented yet'
+                sar.incaz2los(incidence, azimuth, origin=inctype)
             else:
                 sar.los = np.zeros((sar.vel.shape[0], 3))
 
@@ -520,6 +524,7 @@ class insartimeseries(insar):
         # Keep incidence and heading
         self.incidence = incidence
         self.heading = heading
+        self.azimuth = azimuth
         self.inctype = inctype
 
         # Close file if asked
@@ -1443,6 +1448,111 @@ class insartimeseries(insar):
         # All done
         return
 
+    def fitPoly(self, t0=None, order=1, rcond=None):
+        '''
+        Fits a polynomial to the time series
+
+        Kwargs:
+            * t0        : Start date of the fit
+            * order     : Order of the polynomial
+
+        Returns:
+            * None. Creates a new profile in the attribute {profiles} with name starting by "PolyFit"
+        '''
+
+        # BUild the design matrix
+        if t0 is None:
+            t0 = self.time[0]
+        A = np.ones((len(self.time), order+1))
+        time = np.array([(t - t0).days/365 for t in self.time])
+        for i in range(1, order+1):
+            A[:,i] = time**i
+
+        # Get the pixel values
+        x = np.array([sar.vel for sar in self.timeseries])
+
+        # Solve
+        xs, res, rank, s = np.linalg.lstsq(A, x, rcond=rcond)
+
+        # Save the frames
+        self.poly = []
+        for ix in range(order+1):
+            frame = copy.deepcopy(self.timeseries[0])
+            frame.vel[:] = 0.
+            frame.vel[:] = xs[ix,:]
+            frame.name = f'Polynom order {ix}'
+            self.poly.append(frame)
+        
+        # Save the design matrix
+        self.polyA = A
+        self.polyTime = t0
+
+        # ALl done
+        return
+
+    def predictPoly(self, t):
+        '''
+        From the polynomial fit that sits in the attribute {poly}, predicts the value at time t
+        '''
+        
+        # Create a frame
+        frame = copy.deepcopy(self.timeseries[0])
+        frame.vel[:] = 0.
+        frame.name = 'Prediction'
+        
+        # Get the time and offset with respect to t0
+        time = (t - self.polyTime).days/365
+        
+        # Make the prediction
+        for icoeff, coeff in enumerate(self.poly):
+            frame.vel += coeff.vel * time**icoeff
+        
+        # Return the prediction
+        return frame
+    
+    def showPolyPix(self, ipix, figsize=(10,3)):
+        '''
+        Show me the time series for a given pixel or a list of pixels
+        
+        Args:
+            * ipix    : index of the pixel or list of indices
+        
+        Returns:
+            * None
+        '''
+        
+        # Create a figure
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
+    
+        # Check the pixel list 
+        if type(ipix) is int:
+            ipix = [ipix]
+            
+        # Make a time vector
+        time = np.array([(t - self.polyTime).days/365 for t in self.time])
+        
+        # Iterate over the pixels
+        for pix in ipix:
+            
+            # Show me the data
+            pts = ax.plot(self.time, [sar.vel[pix] for sar in self.timeseries], '.-', markersize=10, label='Pixel {}'.format(pix))
+            
+            # Compute the time series
+            synth = np.sum([coeff.vel[pix]*time**i for i, coeff in enumerate(self.poly)], axis=0)
+            
+            # Show me
+            ax.plot(self.time, synth, '-', color=pts[0].get_color())
+            
+        # Legend and customization
+        ax.legend()
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Data')
+        
+        # All done
+        return
+    
     def write2GRDs(self, prefix, interp=100, cmd='surface', oversample=1, tension=None, verbose=False, useGMT=False):
         '''
         Write all the dates to GRD files.
@@ -1474,6 +1584,18 @@ class insartimeseries(insar):
 
         if verbose:
             print('')
+
+        # All done
+        return
+
+    def removeAtmospheres(self,):
+        '''
+        Remove an empirical atmosphere on each frame of the time series.
+        Needs an elevation object in the attribute {elevation}
+        '''
+        
+        for frame in self.timeseries:
+            frame.removeAtmosphere(self.elevation)
 
         # All done
         return

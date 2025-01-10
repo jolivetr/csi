@@ -890,7 +890,7 @@ class geodeticplot(object):
         rx, ry, rz = fault.ellipshape['ax']/1000.,fault.ellipshape['ay']/1000.,fault.ellipshape['az']/1000.
         #All spherical angles
         u = np.linspace(0, 2 * np.pi, 100)
-        v = np.linspace(0, np.pi, 100        )
+        v = np.linspace(0, np.pi, 100)
 
         #xyz coordinates for spherical angles
         ex = rx * np.outer(np.cos(u), np.sin(v))
@@ -1653,8 +1653,12 @@ class geodeticplot(object):
             assert insar.err is not None, 'No Error to plot'
             d = insar.err
         else:
-            print('Unknown data type')
-            return
+            if hasattr(insar, data):
+                assert len(getattr(insar, data)) == len(insar.vel), f'Attribute {data} has incorrect length ({len(getattr(insar, data))} instead of {len(insar.vel)}'
+                d = getattr(insar, data)
+            else:
+                print('Unknown data type')
+                return
 
         # Prepare the colorlimits
         if norm == None:

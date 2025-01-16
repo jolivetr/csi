@@ -3824,6 +3824,13 @@ class gps(SourceInv):
         latmin = self.lat.min()-expand
         latmax = self.lat.max()+expand
 
+        # A dirty Hack
+        if len(data)>1 and scale is None:
+            figtmp, ax = plt.subplots(1,1,figsize=figsize)
+            p = ax.quiver(self.lon, self.lat, self.vel_enu[:,0], self.vel_enu[:,1])
+            figtmp.draw_without_rendering()
+            scale = p.scale
+
         # This gets override if there is a box for plotting
         if box is not None:
             assert len(box)==4, 'box must be 4 floats: box = {}'.format(tuple(box))

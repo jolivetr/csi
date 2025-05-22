@@ -1238,7 +1238,9 @@ class geodeticplot(object):
                 dName = '{} Trans.'.format(gps.name)
                 Values = gps.transformation
             else:
-                assert False, 'Data name not recognized'
+                assert hasattr(gps, dtype), f'{dtype} is not available for plotting'
+                dName = f'{dtype}'
+                Values = getattr(gps, dtype)
             Data[dName] = {}
             Data[dName]['Values'] = Values
             Data[dName]['Color'] = col

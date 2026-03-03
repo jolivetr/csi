@@ -1579,7 +1579,6 @@ class Fault(SourceInv):
 
         # Run EDKS Tensile?
         if 't' in slipdir:
-            assert False, 'Sorry, this is not working so far... Bryan should get it done soon...'
             if verbose:
                 print('Running tensile component for data set {}'.format(data.name))
             if method not in ('fortran'): 

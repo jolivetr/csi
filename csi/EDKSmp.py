@@ -324,7 +324,7 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
                 xr, yr, edks,\
                 prefix, \
                 BIN_EDKS = 'EDKS_BIN',
-                cleanUp=True, verbose=True):
+                cleanUp=True, verbose=True, tensile=False):
     '''
     Compute the Green's functions for the given patches
 
@@ -362,6 +362,7 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
             * BIN_EDKS          : Environement variable where EDKS executables are.
             * cleanUp           : Remove the intermediate files
             * verbose           : Talk to me
+            * tensile           : Apply tensile slip
 
     Return:
         <-- 2D arrays (#receivers, #fault patches) -->
@@ -410,20 +411,17 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
     
     # write receiver location file (observation points)
     temp = [xr, yr]
-    file = open(file_rec, 'wb') 
-     
-    for k in range(0, nrec):
-       for i in range(0, len(temp)):
-          file.write( struct.pack( BIN_FILE_FMT, temp[i][k] ) )       
-    file.close() 
+    with open(file_rec, 'wb') as file:
+        for k in range(0, nrec):
+            for i in range(0, len(temp)):
+                file.write(struct.pack(BIN_FILE_FMT, temp[i][k]))
   
     # write point sources information
     temp = [xs, ys, zs, strike, dip, rake, width, length, slip]
-    file = open(file_pat, 'wb');
-    for k in range(0, Np):
-       for i in range(0, len(temp)):
-          file.write( struct.pack( BIN_FILE_FMT, temp[i][k] ) )
-    file.close()
+    with open(file_pat, 'wb') as file:
+        for k in range(0, Np):
+            for i in range(0, len(temp)):
+                file.write(struct.pack(BIN_FILE_FMT, temp[i][k]))
   
     # call sum_layered
     if not os.path.exists(os.path.basename(edks)):
@@ -432,7 +430,11 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
         removeSymLink = True
     else:
         removeSymLink = False
-    cmd = '{}/sum_layered {} {} {} {} {} {}'.format(BIN_EDKS, os.path.basename(edks), prefix, nrec, Np, npw, npy)
+    
+    tensile_flag = int(tensile)
+    
+    cmd = '{}/sum_layered {} {} {} {} {} {} {}'.format(BIN_EDKS, os.path.basename(edks), prefix, nrec, Np, npw, npy, tensile_flag)
+    
     if verbose:
         print(cmd)
     os.system(cmd)
@@ -440,14 +442,9 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
         os.unlink(os.path.basename(edks))
         os.unlink('hdr.'+os.path.basename(edks))
 
-    # read sum_layered output Greens function
-    # ux
+    # read sum_layered output Greens Function files
     ux = np.fromfile(file_dux, 'f').reshape((nrec, Np), order='F')
-
-    # uy
     uy = np.fromfile(file_duy, 'f').reshape((nrec, Np), order='F')
- 
-    # uz
     uz = np.fromfile(file_duz, 'f').reshape((nrec, Np), order='F')
  
     # remove IO files.

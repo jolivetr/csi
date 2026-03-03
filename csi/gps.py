@@ -908,6 +908,109 @@ class gps(SourceInv):
 
         # All done
         return d
+    
+    def read_from_binary(self, station, vel_enu, err_enu, x, y, utm=False, dtype=np.float32, factor=1., minerr=1., checkNaNs=True):
+        '''
+        Read from binary file or from array.
+
+        Args:
+            * station   : binary array (or binary file) containing the station names (type str)
+            * vel_enu   : binary array (or binary file) containing the ENU velocities (shape (Nsta, 3) formatted as [e_vel, n_vel, u_vel]
+                            or shape (Nsta, 2) formatted as [e_vel, n_vel])
+            * err_enu   : binary array (or binary file) containing the ENU velocity errors (shape (Nsta, 3) formatted as [e_err, n_err, u_err]
+                            or shape (Nsta, 2) formatted as [e_err, n_err])
+            * x       : binary array (or binary file) containing the longitude of the stations or utm coordinates if utm=True (in km)
+            * y       : binary array (or binary file) containing the latitude of the stations or utm coordinates if utm=True (in km)
+            * utm     : If True, x and y are UTM coordinates, otherwise they are longitude and latitude
+
+        Kwargs:
+            * factor    : multiplication factor for velocities
+            * dtype     : data type (default is np.float32 if data is a file)
+            * minerr    : if err=0, then err=minerr.
+            * checkNaNs : If True, kicks out stations with NaNs
+
+        Return:
+            * None
+        '''
+        
+        # Get the station codes
+        if type(station) is str:
+            station = np.fromfile(station, dtype=str)
+        else:
+            station = np.array(station)
+        
+        # Get the velocities
+        if type(vel_enu) is str:
+            vel_enu = np.fromfile(vel_enu, dtype=dtype) * factor
+        else:
+            vel_enu = np.array(vel_enu) * factor
+        
+        # Get the uncertainties
+        if type(err_enu) is str:
+            err_enu = np.fromfile(err_enu, dtype=dtype) * factor
+        else:
+            err_enu = np.array(err_enu) * factor
+        
+        # Get the longitude or x
+        if type(x) is str:
+            x = np.fromfile(x, dtype=dtype)
+        else:
+            x = np.array(x)
+        
+        # Get the latitude or y
+        if type(y) is str:
+            y = np.fromfile(y, dtype=dtype)
+        else:
+            y = np.array(y)
+        
+        # Check sizes
+        assert station.shape==x.shape, 'Something wrong with the sizes: station {} lon/x {}'.format(station.shape, x.shape)
+        assert station.shape==y.shape, 'Something wrong with the sizes: station {} lat/y {}'.format(station.shape, y.shape)
+        assert station.shape[0]==vel_enu.shape[0], 'Something wrong with the sizes: station {} vel {}'.format(station.shape, vel_enu.shape[0])
+        assert vel_enu.shape[1] in [2, 3], 'Something wrong with the sizes: vel {} (shoudl be 2 or 3)'.format(vel_enu.shape[1])
+        assert vel_enu.shape==err_enu.shape, 'Something wrong with the sizes: vel {} err {}'.format(vel_enu.shape, err_enu.shape)
+        
+        # If only EN velocities, add a column of NaNs
+        if vel_enu.shape[1]==2:
+            vel_enu = np.hstack((vel_enu, np.full(vel_enu.shape[0], np.nan)[..., np.newaxis]))
+            err_enu = np.hstack((err_enu, np.full(err_enu.shape[0], np.nan)[..., np.newaxis]))
+        
+        # Check for NaNs
+        if checkNaNs:
+            idx_drop = np.argwhere(np.isnan(vel_enu).all(axis=1))
+        
+            station = np.delete(station, idx_drop)
+            x = np.delete(x, idx_drop)
+            y = np.delete(y, idx_drop)
+            vel_enu = np.delete(vel_enu, idx_drop, axis=1)
+            err_enu = np.delete(err_enu, idx_drop, axis=1)
+        
+        # Set minimum error
+        err_enu[err_enu==0.] = minerr
+        
+        # Set things in self
+        
+        if utm:
+            lon, lat = self.xy2ll(x, y)
+        else:
+            lon = x
+            lat = y
+
+        self.lon = lon
+        self.lat = lat
+        self.vel_enu = vel_enu
+        self.err_enu = err_enu
+        self.station = station
+        self.factor = factor
+        
+        # set lon to (0, 360.)
+        self._checkLongitude()
+
+        # Pass to xy 
+        self.lonlat2xy()
+
+        # All done
+        return
 
     def read_from_en(self, velfile, factor=1., minerr=1., header=0, error='std'):
         '''

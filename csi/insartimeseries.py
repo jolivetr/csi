@@ -62,6 +62,8 @@ class insartimeseries(insar):
         self.lon = None
         self.lat = None
         self.los = None
+        self.incidence = None
+        self.heading = None
         self.corner = None
         self.xycorner = None
         self.Cd = None
@@ -143,7 +145,7 @@ class insartimeseries(insar):
             sar = insar(date.isoformat(), utmzone=self.utmzone, verbose=False, 
                         lon0=self.lon0, lat0=self.lat0, ellps=self.ellps)
             sar.read_from_binary(np.zeros(self.lon.shape), self.lon, self.lat, 
-                                 incidence=self.incidence, heading=self.heading, 
+                                 incidence=self.incidence, heading=self.heading, los=self.los,
                                  dtype=dtype, remove_nan=False, remove_zeros=False)
             self.timeseries.append(sar)
 

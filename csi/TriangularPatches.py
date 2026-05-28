@@ -2701,7 +2701,7 @@ class TriangularPatches(Fault):
 
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', equiv=False, show=True, Map=True, Fault=True,
-             norm=None, linewidth=1.0, plot_on_2d=True, box=None, 
+             norm=None, linewidth=1.0, plot_on_2d=True, box=None, cmap='jet',
              shadedtopo=None, view=None, alpha=1.0, shape=(1., 1., 1.),
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              drawCoastlines=True, expand=0.2, savefig=False, figsize=(None, None)):
@@ -2772,7 +2772,7 @@ class TriangularPatches(Fault):
 
         # Draw the fault
         if Fault:
-            fig.faultpatches(self, slip=slip, norm=norm, colorbar=colorbar, alpha=alpha,
+            fig.faultpatches(self, slip=slip, norm=norm, colorbar=colorbar, alpha=alpha, cmap=cmap,
                              cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
                              plot_on_2d=plot_on_2d, linewidth=linewidth)
 

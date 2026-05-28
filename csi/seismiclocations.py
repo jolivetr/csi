@@ -613,6 +613,80 @@ class seismiclocations(SourceInv):
         # All done
         return
 
+    def autoCSVread(self, infile, header=0, timekey=None, lonkey=None, latkey=None, depthkey=None, magkey=None, timeformat="%Y-%m-%dT%H:%M:%S.%f"):
+        '''
+        Attempts a direct read at a CSV file. Should work if the CSV file has a generic format that can be read 
+        with pandas. Then the code tries to find the longitude, latitude, depth, magnitude and time columns.
+
+        Args:
+            * infile    : input file
+            
+        Kwargs:
+            * header    : length of the header
+            
+        Returns:
+            * None
+        '''
+
+        # Open and load in Pandas
+        with open(infile, 'r') as fin:
+            data = pd.read_csv(fin, header=header)
+
+        # Get keys 
+        keys = [key.lower() for key in data.keys()]
+
+        # Initialize things
+        timekeys = ['time', 'date', 'origin']
+        if timekey is not None: timekeys.append(timekey.lower())
+        try:
+            self.time = data[[key for key in keys if key in timekeys]].values.squeeze()
+        except:
+            assert False, "Could not find the time column. Please provide the name of the time column with the timekey keyword argument. Possible keys are {}".format(keys)
+            
+        # Time format
+        try:
+            self.time = np.array([dt.datetime.strptime(t, timeformat) for t in self.time])
+        except:
+            assert False, f'Provide the time format in string mode. Currently trying {timeformat}'
+        
+        # Longitude, latitude, depth and magnitude
+        lonkeys = ['lon', 'longitude']
+        if lonkey is not None: lonkeys.append(lonkey.lower())
+        try:
+            self.lon = data[[key for key in keys if key in lonkeys]].astype(float).values.squeeze()
+        except:
+            assert False, "Could not find the longitude column. Please provide the name of the longitude column with the lonkey keyword argument. Possible keys are {}".format(keys)
+
+        latkeys = ['lat', 'latitude']
+        if latkey is not None: latkeys.append(latkey.lower())
+        try:
+            self.lat = data[[key for key in keys if key in latkeys]].astype(float).values.squeeze()
+        except:
+            assert False, "Could not find the latitude column. Please provide the name of the latitude column with the latkey keyword argument. Possible keys are {}".format(keys)
+
+        depthkeys = ['depth']
+        if depthkey is not None: depthkeys.append(depthkey.lower())
+        try:
+            self.depth = data[[key for key in keys if key in depthkeys]].astype(float).values.squeeze()
+        except:
+            assert False, "Could not find the depth column. Please provide the name of the depth column with the depthkey keyword argument. Possible keys are {}".format(keys)
+
+        magkeys = ['mag', 'magnitude']
+        if magkey is not None: magkeys.append(magkey.lower())
+        try:
+            self.mag = data[[key for key in keys if key in magkeys]].astype(float).values.squeeze()
+        except:
+            assert False, "Could not find the magnitude column. Please provide the name of the magnitude column with the magkey keyword argument. Possible keys are {}".format(keys)
+
+        # Save data
+        self.data = data
+
+        # Create the utm
+        self.lonlat2xy()
+
+        # All done
+        return
+
     def read_from_HypoDD(self, infile, header=0, delimiter="\s+"):
         '''
         Reads data from a file from HypoDD (as given by to me by Dirk Beker).
@@ -661,11 +735,11 @@ class seismiclocations(SourceInv):
         # All done
         return
 
-    def read_from_HypoDD(self, infile, header=0, delimiter='\s+'):
+    def read_from_csv(self, infile, ilon, ilat, idepth, imag, iyr, imo, ida, ihr, imi, isd,
+                      ierr=None, irms=None,
+                      header=None, delimiter='\s+'):
         '''
-        Reads data from a file from HypoDD (as given by to me by Dirk Beker).
-
-        Format: event no, lat, lon, depth, internal_x, internal_y, internal_z, err_x, err_y, err_z, year, month, day, hour, minute, second, magnitude, no CC P-times, no CC S-times, no CT P-times, no CT S-times, rms value CC data, rms value CT data, cluster ID
+        Reads data from a csv file. User must provide the column number (starting from 0) for all the fields,
 
         Args:
             * infile    : input file
@@ -679,26 +753,21 @@ class seismiclocations(SourceInv):
 
         # Open and load in Pandas
         with open(infile, 'r') as fin:
-            data = pd.read_csv(fin, header=header, delimiter=delimiter, names=['event no', 'lat', 'lon', 'depth', 
-                                                                               'internal_x', 'internal_y', 'internal_z',
-                                                                               'err_x', 'err_y', 'err_z', 
-                                                                               'year', 'month', 'day', 'hour', 'minute', 'second', 
-                                                                               'mag',
-                                                                               'no CC P-times', 'no CC S-times', 
-                                                                               'no CT P-times', 'no CT S-times', 
-                                                                               'rms value CC data', 'rms value CT data', 'cluster ID'])
+            data = pd.read_csv(fin, header=header, delimiter=delimiter)
 
         # Initialize things
-        self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'],
-                                                                                                           data['month'],
-                                                                                                           data['day'],
-                                                                                                           data['hour'],
-                                                                                                           data['minute'],
-                                                                                                           data['second'])])
-        self.lon = data['lon'].values
-        self.lat = data['lat'].values
-        self.depth = data['depth'].values
-        self.mag = data['mag'].astype(float).values
+        self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data[iyr],
+                                                                                                           data[imo],
+                                                                                                           data[ida],
+                                                                                                           data[ihr],
+                                                                                                           data[imi],
+                                                                                                           data[isd])])
+        self.lon = data[ilon].values
+        self.lat = data[ilat].values
+        self.depth = data[idepth].values
+        self.mag = data[imag].astype(float).values
+        if ierr is not None: self.err = data[ierr]
+        if irms is not None: self.rms = data[irms]
 
         # Save data
         self.data = data
@@ -1095,7 +1164,7 @@ class seismiclocations(SourceInv):
         # All done
         return
 
-    def distance2point(self, point, distance=5., dstyle='horizontal'):
+    def distance2point(self, point, distance=1e9, dstyle='horizontal'):
         '''
         Selects the earthquakes that are located less than {distance} away from the given point.
 

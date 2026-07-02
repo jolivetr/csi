@@ -5,6 +5,7 @@ Written by R. Jolivet in 2021
 '''
 
 # Externals
+from ast import Gt
 import numpy as np
 import pyproj as pp
 import matplotlib.pyplot as plt
@@ -17,6 +18,7 @@ import sys, os
 from .SourceInv import SourceInv
 from .geodeticplot import geodeticplot as geoplot
 from . import csiutils as utils
+from . import eulerPoleUtils as eu
 
 class surfaceslip(SourceInv):
     '''
@@ -58,6 +60,8 @@ class surfaceslip(SourceInv):
         self.lon = None
         self.lat = None
         self.Cd = None
+        self.dist = None
+        self.synth_err = None
 
         # This is in case surface slip is in the LOS of the satellite
         self.los = None
@@ -363,19 +367,19 @@ class surfaceslip(SourceInv):
         # All done
         return
 
-    def getTransformEstimator(self, trans, computeNormFact=True):
+    def getTransformEstimator(self, transformation, computeNormFact=True):
         '''
         Returns the Estimator for the transformation to estimate in the surfaceslip data.
         The estimator is only zeros
     
         Args:
-            * trans     : useless
+            * transformation     : useless here but kept for consistency
 
         Kwargs:
-            * computeNormFact   : useless
+            * computeNormFact   : useless here but kept for consistency
 
         Returns:
-            * None
+            * Estimator matrix (numpy array)
         '''
 
         # One case
@@ -384,14 +388,17 @@ class surfaceslip(SourceInv):
         # All done
         return T
 
-    def setGFsInFault(self, fault, G, vertical=True):
+    def setGFsInSource(self, source, G, vertical=True):
         '''
-        From a dictionary of Green's functions, sets these correctly into the fault
-        object fault for future computation.
+        From a dictionary of Green's functions, sets these correctly into the source 
+        object (fault, pressure, block or multiblock) for future computation.
 
         Args:
-            * fault     : Instance of Fault
-            * G         : Dictionary with 3 entries 'strikeslip', 'dipslip' and 'tensile'. These can be a matrix or None.
+            * source    : Instance of Fault, Pressure, Block or MultiBlock
+            * G         : Dictionary with entries 'strikeslip', 'dipslip' and 'tensile' for a fault,
+            'pressure', 'pressureDVx', 'pressureDVy', 'pressureDVz' for a pressure,
+            'rotation', 'intradef' for a block,
+            'rotation', 'intradef', 'boundary' for a multiblock. These can be a matrix or None.
 
         Kwargs:
             * vertical  : Set here for consistency with other data objects, but will always be set to True, whatever you do.
@@ -400,17 +407,18 @@ class surfaceslip(SourceInv):
             * None
         '''
 
-        if fault.type == 'Fault':
+        if source.type == 'Fault':
 
             # Get the values
             Gss = G['strikeslip']
             Gds = G['dipslip']
-
+            Gts = G['tensile']
+            
             # Here coupling and tensile make no sense
-            fault.setGFs(self, strikeslip=[Gss], dipslip=[Gds], tensile=[None],
-                        coupling=[None], vertical=True)
+            source.setGFs(self, strikeslip=[Gss], dipslip=[Gds], tensile=[Gts],
+                          coupling=[None], vertical=True)
 
-        elif fault.type == 'Pressure':
+        elif source.type == 'Pressure':
 
             try:
                 GpLOS = G['pressure']
@@ -429,9 +437,57 @@ class surfaceslip(SourceInv):
             except:
                 GdvzLOS = None
 
-            fault.setGFs(self, deltapressure=[GpLOS], 
-                               GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], 
-                               vertical=True)
+            source.setGFs(self, deltapressure=[GpLOS],
+                          GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS],
+                          vertical=True)
+        
+        elif source.type == 'Block':
+            
+            # Import
+            try:
+                Grot = G['rotation']
+            except:
+                Grot = None
+                
+            try:
+                Gint = G['intradef']
+            except:
+                Gint = None
+            
+            # Organize
+            source.setGFs(self,
+                          rotation=[Grot],
+                          intradef=[Gint],
+                          vertical=True)
+        
+        elif source.type == 'MultiBlock':
+            
+            # Import
+            try:
+                Grot = G['rotation']
+            except:
+                Grot = None
+                
+            try:
+                Gint = G['intradef']
+            except:
+                Gint = None
+            
+            try:
+                Gbound = G['boundary']
+            except:
+                Gbound = None
+            
+            # Organize
+            source.setGFs(self,
+                          rotation=[Grot],
+                          intradef=[Gint],
+                          boundary=[Gbound],
+                          vertical=True)
+        
+        else:
+            
+            raise NotImplementedError("Source type {} not supported".format(source.type))
 
         # All done
         return
@@ -455,15 +511,16 @@ class surfaceslip(SourceInv):
         # All done
         return
 
-    def removeSynth(self, faults, direction='sd', poly=None, vertical=True, custom=False, computeNormFact=True):
+    def removeSynth(self, sources, direction='sd', blockcomponent='rot+intra+bound', poly=None, vertical=True, custom=False, computeNormFact=True):
         '''
-        Removes the synthetics using the faults and the slip distributions that are in there.
+        Removes the synthetics from given deformation sources.
 
         Args:
-            * faults        : List of faults.
+            * sources        : list of deformation sources to include.
 
         Kwargs:
             * direction         : Direction of slip to use.
+            * blockcomponent   : for blocks and multiblocks, which components to use
             * poly              : if a polynomial function has been estimated, build and/or include
             * vertical          : always True - used here for consistency among data types
             * custom            : if True, uses the fault.custom and fault.G[data.name]['custom'] to correct
@@ -474,8 +531,8 @@ class surfaceslip(SourceInv):
         '''
 
         # Build synthetics
-        self.buildsynth(faults, direction=direction, poly=poly, 
-                                custom=custom, computeNormFact=computeNormFact)
+        self.buildsynth(sources, direction=direction, blockcomponent=blockcomponent,
+                        poly=poly, custom=custom, computeNormFact=computeNormFact)
 
         # Correct
         self.vel -= self.synth
@@ -483,15 +540,25 @@ class surfaceslip(SourceInv):
         # All done
         return
 
-    def buildsynth(self, faults, direction='sd', poly=None, vertical=True, custom=False, computeNormFact=True):
+    def buildsynth(self, sources, direction='sd', blockcomponent='rot+intra+bound', poly=None, vertical=True, custom=False, computeNormFact=True):
         '''
         Computes the synthetic data using either the faults and the associated slip distributions or the pressure sources.
 
         Args:
-            * faults        : List of faults or pressure sources.
+            * sources        : List of deformation sources to include.
 
         Kwargs:
             * direction         : Direction of slip to use or None for pressure sources.
+            * blockcomponent   : string or dictionary
+                Which block components to consider.
+                
+                - If blockcomponent is a string, all blocks will have the same components considered.
+                   Options are 'rotation', 'intradef', 'boundary' or any combination (e.g. 'rotation+intradef').
+                   
+                - If blockcomponent is a dictionary, each block can have different components considered (only valid for a multiblock)
+                  The dictonary should be of the form {csi.Block.name: 'rotation+intradef+boundary'}
+                  For example, if you want to consider only rotation for block A and rotation + intradef for block B, you can set
+                  blockcomponent = {'A': 'rotation', 'B': 'rotation+intradef'}.
             * poly              : if a polynomial function has been estimated, build and/or include
             * vertical          : always True. Used here for consistency among data types
             * custom            : if True, uses the fault.custom and fault.G[data.name]['custom'] to correct
@@ -502,8 +569,8 @@ class surfaceslip(SourceInv):
         '''
 
         # Check list
-        if type(faults) is not list:
-            faults = [faults]
+        if type(sources) is not list:
+            sources = [sources]
 
         # Number of data
         Nd = self.vel.shape[0]
@@ -511,25 +578,92 @@ class surfaceslip(SourceInv):
         # Clean synth
         self.synth = np.zeros((self.vel.shape))
 
-        # Loop on each fault
-        for fault in faults:
+        # Loop on each source
+        for source in sources:
+            
+            # Get the good part of G
+            G = source.G[self.name]
 
-            if fault.type=="Fault":
-
-                # Get the good part of G
-                G = fault.G[self.name]
+            # Fault
+            if source.type == "Fault":
 
                 if ('s' in direction) and ('strikeslip' in G.keys()):
                     Gs = G['strikeslip']
-                    Ss = fault.slip[:,0]
-                    synth = np.dot(Gs,Ss)
+                    Ss = source.slip[:, 0]
+                    synth = np.dot(Gs, Ss)
                     self.synth += synth
+                    
                 if ('d' in direction) and ('dipslip' in G.keys()):
                     Gd = G['dipslip']
-                    Sd = fault.slip[:,1]
+                    Sd = source.slip[:, 1]
                     synth = np.dot(Gd, Sd)
                     self.synth += synth
+                
+                if ('t' in direction) and ('tensile' in G.keys()):
+                    Gt = G['tensile']
+                    St = source.slip[:, 2]
+                    synth = np.dot(Gt, St)
+                    self.synth += synth
+            
+            # Block
+            elif source.type == "Block":
+                
+                # Block rotation
+                if ('rotation' in blockcomponent) and ('rotation' in G.keys()):
+                    
+                    Grot = G['rotation']
+                    rot = np.array([source.omega_x, source.omega_y, source.omega_z]) / eu.MAS2RAD if source.omega_x is not None else np.zeros(3)
+                    self.synth += Grot @ rot
+                
+                # Intra block deformation
+                if ('intradef' in blockcomponent) and ('intradef' in G.keys()):
+                
+                    Gint = G['intradef']
+                    eps = np.array([source.eps_lonlon, source.eps_lonlat, source.eps_latlat]) if source.eps_lonlon is not None else np.zeros(3)
+                    self.synth += Gint @ eps
+            
+            # Multiblock
+            elif source.type == "MultiBlock":
 
+                # Get the block components to consider
+                if type(blockcomponent) is str:
+                    source.blockcomponent = {block.name: blockcomponent for block in source.blocks}
+                else:
+                    source.blockcomponent = blockcomponent
+                
+                synth = np.zeros((self.vel.shape))
+                
+                for iblock, block in enumerate(source.blocks):
+                
+                    # Block rotation
+                    if ('rotation' in source.blockcomponent[block.name]) and ('rotation' in G.keys()):
+
+                        Grot = G['rotation'][:, iblock*3:(iblock+1)*3]
+                        rot = np.array([block.omega_x, block.omega_y, block.omega_z]) / eu.MAS2RAD if block.omega_x is not None else np.zeros(3)
+                        synth_rot = Grot @ rot
+                        
+                        synth += synth_rot
+                    
+                    # Block boundary deformation
+                    if ('boundary' in source.blockcomponent[block.name]) and ('boundary' in G.keys()):
+                    
+                        Gbound = G['boundary'][:, iblock*3:(iblock+1)*3]
+                        rot = np.array([block.omega_x, block.omega_y, block.omega_z]) / eu.MAS2RAD if block.omega_x is not None else np.zeros(3)
+                        synth_bound = Gbound @ rot
+                        
+                        synth += synth_bound
+                    
+                    # Intra block deformation
+                    if ('intradef' in source.blockcomponent[block.name]) and ('intradef' in G.keys()):
+                    
+                        Gint = G['intradef'][:, iblock*3:(iblock+1)*3]
+                        eps = np.array([block.eps_lonlon, block.eps_lonlat, block.eps_latlat]) if block.eps_lonlon is not None else np.zeros(3)
+                        synth_intra = Gint @ eps
+                        
+                        synth += synth_intra
+                
+                self.synth += synth
+                    
         # All done
         return
 
@@ -603,46 +737,125 @@ class surfaceslip(SourceInv):
             return dataMisfit, 0.
 
         # All done
+    
+    def GetDistanceAlongFault(self, fault, discretize=True, coord='ll'):
+        '''
+        Computes the distance along fault for each data point.
 
-    def plot(self, show=True, figsize=None, axis='lon'):
+        Args:
+            * fault     : instance of Fault
+            
+        Kwargs:
+            * discretize : bool. If True, use the discretized fault trace
+            * coord      : coordinate system of lon, lat ('ll' / 'lonlat' or 'xy'/ 'utm')
+
+        Returns:
+            * array of distances
+        '''
+        
+        # Check coordinates
+        if coord in ('ll', 'lonlat'):
+            x, y = self.lon, self.lat
+        elif coord in ('xy', 'utm'):
+            x, y = self.x, self.y
+
+        # Loop over points
+        Dalong = []
+        
+        for x_, y_ in zip(x, y):
+            dalong_, _ = fault.distance2trace(lon=x_, lat=y_, discretized=discretize, coord=coord)
+            Dalong.append(dalong_)
+        
+        self.dist = np.array(Dalong)
+
+        # All done
+        return 
+
+
+    def plot(self, data=['data'], show=True, figsize=None, axis='lon', error=True, color=['k']):
         '''
         Plot the data set, together with fault slip if asked. 
 
         Kwargs:
+            * data              : list of data to plot (can be 'data', 'synth', 'res' or 'transformation')
             * show              : bool. Show on screen?
             * figsize           : tuple of figure sizes
-            * axis              : which quantity to use as x-axis
+            * axis              : which quantity to use as x-axis, can be 'lon', 'lat', 'x', 'y' or 'distance'
+            * error             : bool. If True, plot error bars
+            * color             : list of colors to use for the different data types (data, synth, res)
 
         Returns:
             * None
         '''
+        
+        # Check data
+        if (type(data) is not list) and (type(data) is str):
+            data = [data]
 
         # X-xaxis
         if axis == 'lon':
             x = self.lon
+            xlabel = 'Longitude (deg)'
         elif axis == 'lat':
             x = self.lat
+            xlabel = 'Latitude (deg)'
+        elif axis == 'x':
+            x = self.x
+            xlabel = 'Easting (km)'
+        elif axis == 'y':
+            x = self.y
+            xlabel = 'Northing (km)'
+        elif axis == 'dist':
+            x = self.dist
+            xlabel = 'Distance along fault (km)'
         else:
             print('Unkown axis type: {}'.format(axis))
             return
+        
+        # Make the dictionary of things to plot
+        Data = {}
+        for dtype,col in zip(data, color):
+            Data[dtype] = {}
+            
+            # Add the values and colors
+            if dtype == 'data':
+                Data[dtype]['Values'] = self.vel
+                Data[dtype]['Color'] = col
+            elif dtype == 'synth':
+                if self.synth is not None:
+                    Data[dtype]['Values'] = self.synth
+                    Data[dtype]['Color'] = col
+            elif dtype == 'res':
+                if self.synth is not None:
+                    Data[dtype]['Values'] = self.vel - self.synth
+                    Data[dtype]['Color'] = col
+            
+            # Add the errors
+            if dtype == 'data' and np.isfinite(self.err).all():
+                Data[dtype]['Error'] = self.err
+            if dtype == 'synth' and self.synth_err is not None and np.isfinite(self.synth_err).all():
+                Data[dtype]['Error'] = self.synth_err
+            if dtype == 'res' and np.isfinite(self.err).all() and self.synth_err is not None and np.isfinite(self.synth_err).all():
+                Data[dtype]['Error'] = self.err + self.synth_err
 
         # Create a figure
         if figsize is None:
-            figsize=(10,3)
-        fig,ax = plt.subplots(1,1,figsize=figsize)
+            figsize = (10, 3)
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
+        ax.set_xlabel(xlabel)
 
         # Plot the data
         u = np.argsort(x)
-        if self.err is None:
-            ax.plot(x[u], self.vel[u], '.-', color='k', label='Data', markersize=5)
-        else:
-            ax.fill_between(x[u], self.vel[u]+self.err[u], self.vel[u]-self.err[u], 
-                            color='k', alpha=0.3, zorder=1)
-            ax.plot(x[u], self.vel[u], '.-', color='k', zorder=2, label='Data')
-
-        # Synthetics
-        if self.synth is not None:
-            ax.plot(x[u], self.synth[u], '.-', color='r', label='Synthetics', markersize=5, zorder=3)
+        
+        for dName in Data:
+            values = Data[dName]['Values']
+            c = Data[dName]['Color']
+            
+            ax.plot(x[u], values[u], '.-', color=c, label=dName, markersize=5)
+            
+            if 'Error' in Data[dName] and error:
+                ax.fill_between(x[u], values[u]+Data[dName]['Error'][u], values[u]-Data[dName]['Error'][u], 
+                                color=c, alpha=0.3, zorder=1)
 
         ax.legend()
 
@@ -650,7 +863,8 @@ class surfaceslip(SourceInv):
         ax.set_title('{}'.format(self.name))
 
         # Show
-        if show: plt.show()
+        if show:
+            plt.show()
         
         # Save the whole thing
         self.fig = fig
@@ -727,6 +941,122 @@ class surfaceslip(SourceInv):
 
         # Show it
         plt.show()
+
+        # All done
+        return
+
+    def getBlockList(self, blocks, faultboundary=None):
+        '''
+        For each point, get the blocks in which it is located, or if at a block boundary, get the two blocks at this boundary.
+        Otherwise, set the block to None.
+
+        Args:
+            * blocks    : list of block objects
+            
+        Kwargs:
+            * faultboundary  : if not None, must be a csi Fault object which is also a block boundary. -
+            You need to create a MultiBlock object first and use setBlockFaultBoundaries to set this properly.
+
+        Returns:
+            * None
+        '''
+
+        # Get the blocks
+        self.block_list = []
+        
+        # If the data are not at a block boundary
+        if faultboundary is None:
+            
+            # Iterate over the data points
+            for k, (lon, lat) in enumerate(zip(self.lon, self.lat)):
+
+                for block in blocks:
+                
+                    if block.PointInBlock(lon, lat):
+                        self.block_list.append(block.name)
+                        break
+            
+                # If no block found
+                if len(self.block_list) != k+1:
+                    self.block_list.append(None)
+                
+        # If the data are at a block boundary
+        else:
+            
+            if faultboundary.patchType in ('rectangle', 'triangle'):
+                
+                # We take the bounding blocks from the closest patch at the surface
+                
+                if not hasattr(faultboundary, 'patchblock'):
+                    raise ValueError('The faultboundary object must have the attribute patchblock, please use setBlockFaultBoundaries on your MultiBlock object.')
+        
+                # Get the indexes of the patches that are at the surface
+                zeroD = np.where([0 in p[:, 2] for p in faultboundary.patch])[0]
+                if len(zeroD) == 0:
+                    print('No surface patches.')
+
+                # Patch center geometry
+                patch_geometry = np.array([faultboundary.getpatchgeometry(p, center=True) for p in faultboundary.patch])
+                x = patch_geometry[zeroD, 0]
+                y = patch_geometry[zeroD, 1]
+                z = patch_geometry[zeroD, 2]
+                
+                # Iterate over the data points
+                for k, (lon, lat) in enumerate(zip(self.lon, self.lat)):
+                
+                    # Get the closest patch which is at the surface
+                    xd, yd = faultboundary.ll2xy(lon, lat)
+                    zd = 0.
+                    dist = np.sqrt((x-xd)**2 + (y-yd)**2 + (z-zd)**2)
+                    idx_patch = np.argmin(dist)
+                    
+                    self.block_list.append([faultboundary.patchblock[zeroD[idx_patch]][0].name,
+                                            faultboundary.patchblock[zeroD[idx_patch]][1].name])
+                
+                # If no block found
+                if len(self.block_list) != k+1:
+                    self.block_list.append([None, None])
+            
+            elif faultboundary.patchType in ('triangletent'):
+                
+                # We take the bounding block from the closest tent
+                
+                if not hasattr(faultboundary, 'tentblock'):
+                    raise ValueError('The faultboundary object must have the attribute tentblock, please use setBlockFaultBoundaries on your MultiBlock object.')
+                
+                # Get the indexes of the tents that are at the surface
+                zeroD = np.where([t[2] == 0 for t in faultboundary.tent])[0]
+                if len(zeroD) == 0:
+                    print('No surface tents.')
+
+                # Tent geometry
+                x = np.array(faultboundary.tent)[zeroD, 0]
+                y = np.array(faultboundary.tent)[zeroD, 1]
+                z = np.array(faultboundary.tent)[zeroD, 2]
+                
+                # Iterate over the data points
+                for k, (lon, lat) in enumerate(zip(self.lon, self.lat)):
+                
+                    # Get the closest tent which is at the surface
+                    xd, yd = faultboundary.ll2xy(lon, lat)
+                    zd = 0.
+                    dist = np.sqrt((x-xd)**2 + (y-yd)**2 + (z-zd)**2)
+                    idx_tent = np.argmin(dist)
+                    
+                    self.block_list.append([faultboundary.tentblock[zeroD[idx_tent]][0].name,
+                                            faultboundary.tentblock[zeroD[idx_tent]][1].name])
+                
+                # If no block found
+                if len(self.block_list) != k+1:
+                    self.block_list.append([None, None])
+            
+        # Save
+        self.block_list = np.array(self.block_list)
+        self.blockboundary = faultboundary
+        
+        # Check if there are points that are not in any block
+        if None in self.block_list:
+            print(f"Warning: {np.any(self.block_list == None, axis=1).sum()}/{len(self.lon)} points are not in any block.")
 
         # All done
         return

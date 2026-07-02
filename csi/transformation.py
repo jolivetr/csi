@@ -5,6 +5,8 @@ Written by R. Jolivet, Dec 2017
 '''
 
 # Externals
+import glob
+from re import A
 import numpy as np
 import pyproj as pp
 import matplotlib.pyplot as plt
@@ -14,6 +16,8 @@ import itertools
 import copy
 import sys
 import os
+
+from zmq import has
 
 # Personals
 from .SourceInv import SourceInv
@@ -44,6 +48,7 @@ class transformation(SourceInv):
             print ("---------------------------------")
             print ("---------------------------------")
             print ("Initializing transformation {}".format(self.name))
+        self.verbose = verbose
 
         # Create a dictionary for the Green's functions and the data vector
         self.G = {}
@@ -54,7 +59,7 @@ class transformation(SourceInv):
         self.Gassembled = None
         self.dassembled = None
 
-        # Something important
+        # Something important for consistency
         self.patchType = 'transformation'
         self.type = 'transformation'
         self.slipdir = ''
@@ -87,18 +92,18 @@ class transformation(SourceInv):
 
             Transformation types can be:
                     
-                 For InSAR, Optical, GPS:
-                       1 -> estimate a constant offset
-                       3 -> estimate z = ax + by + c
-                       4 -> estimate z = axy + bx + cy + d
-                       'strain'              -> Estimates a strain tensor 
+                For InSAR, Optical:
+                    'strain':Estimates a strain tensor
+                    string of polynomial components to include in the estimator. Possible values are: '1', 'x', 'y', 'xy', 'x2', 'y2'. Example: '1,x,y' 
+                
+                For optical correlation:
+                    string of polynomial components to include in the estimator. Possible values are: '1', 'x', 'y', 'xy', 'x2', 'y2'. Example: '1,x,y'
              
-                 For GPS only:
-                       'full'                -> Estimates a rotation, 
-                                                translation and scaling
-                                                (Helmert transform).
-                       'translation'         -> Estimates a translation
-                       'rotation'            -> Estimates a rotation
+                For GPS:
+                    'strain': Estimates a strain tensor
+                    'full': Estimates a full Helmert
+                    'translation': Estimates a translation
+                    'rotation': Estimates a rotation
 
         '''
 
@@ -120,6 +125,13 @@ class transformation(SourceInv):
             # Check something
             assert data.dtype in ('insar', 'gps', 'tsunami', 'multigps', 'opticorr', 'surfaceslip'), \
                     'Unknown data type {}'.format(data.dtype)
+            
+            # Print
+            if verbose:
+                print('---------------------------------')
+                print('---------------------------------')
+                print("Building transformation Green's functions")
+                print("for the data set {} of type {}".format(data.name, data.dtype))
 
             # Check the GFs
             if data.name not in self.G.keys(): self.G[data.name] = {}
@@ -132,11 +144,11 @@ class transformation(SourceInv):
                 transformation = [transformation]
 
             for trans in transformation:
-                T = data.getTransformEstimator(trans, computeNormFact=False)
+                G = data.getTransformEstimator(trans, computeNormFact=False)
                 # One case is tricky so we build strings
                 if type(trans) is list:
                     trans = ''.join(itertools.chain.from_iterable(trans))
-                self.G[data.name][trans] = T
+                self.G[data.name][trans] = G
 
             # Set data in the GFs
             if data.dtype in ('insar', 'surfaceslip'):
@@ -156,7 +168,7 @@ class transformation(SourceInv):
         # Consistency
         self.poly = self.transformations
 
-        # All done 
+        # All done
         return
     # ----------------------------------------------------------------------
 
@@ -260,7 +272,7 @@ class transformation(SourceInv):
             # print
             print ("---------------------------------")
             print ("---------------------------------")
-            print ("Assembling d vector")
+            print ("Assembling d for transformation {}".format(self.name))
 
         # Create a data vector
         d = []
@@ -268,15 +280,15 @@ class transformation(SourceInv):
         # Loop over the datasets
         for data in datas:
 
-                # print
-                if verbose:
-                    print("Dealing with data {}".format(data.name))
+            # print
+            if verbose:
+                print("Dealing with data {} of type {}".format(data.name, data.dtype))
 
-                # Get the local d
-                dlocal = self.d[data.name].tolist()
+            # Get the local d
+            dlocal = self.d[data.name].tolist()
 
-                # Store it in d
-                d += dlocal
+            # Store it in d
+            d += dlocal
 
         # Store d in self
         self.dassembled = np.array(d)
@@ -286,7 +298,7 @@ class transformation(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def assembleCd(self, datas, add_prediction=None, verbose=False):
+    def assembleCd(self, datas, add_prediction=None, verbose=True):
         '''
         Assembles the data covariance matrices that have been built for each 
         data structure.
@@ -308,6 +320,12 @@ class transformation(SourceInv):
         # Check if the Green's function are ready
         assert self.Gassembled is not None, \
                 "You should assemble the Green's function matrix first"
+        
+        if verbose:
+            # print
+            print ("---------------------------------")
+            print ("---------------------------------")
+            print ("Assembling Cd for transformation {}".format(self.name))
 
         # Check
         if type(datas) is not list:
@@ -321,9 +339,10 @@ class transformation(SourceInv):
         st = 0
         for data in datas:
             # Fill in Cd
+
             if verbose:
-                print("{0:s}: data vector shape {1:s}"\
-                        .format(data.name, self.d[data.name].shape))
+                print("Dealing with data {} of type {}".format(data.name, data.dtype))
+                
             se = st + self.d[data.name].shape[0]
             Cd[st:se, st:se] = data.Cd
             # Add some Cp if asked
@@ -420,6 +439,11 @@ class transformation(SourceInv):
 
         # Iterate over the data and transforms
         for data in datas:
+            
+            # print
+            if verbose:
+                print("Dealing with {} of type {}".format(data.name, data.dtype))
+            
             dname = data.name
             self.datanames.append(data.name)
             # Which transform do we care about
@@ -452,7 +476,7 @@ class transformation(SourceInv):
 
     # ----------------------------------------------------------------------
     # Build Cm
-    def buildCm(self, sigma):
+    def buildCm(self, sigma, verbose=True):
         '''
         Builds a model covariance matrix from std deviation values.
         The matrix is diagonal with sigma**2 values.
@@ -460,10 +484,20 @@ class transformation(SourceInv):
 
         Args:
             * sigma         : float, list or array
+        
+        Kwargs:
+            * verbose       : Talk to me
         '''
 
         # Check
         assert hasattr(self, 'Gassembled'), 'Assemble Greens functions first'
+        
+        # Talk to me
+        if verbose:
+            print ("---------------------------------")
+            print ("---------------------------------")
+            print (f"Assembling the Cm matrix for transformation {self.name}")
+            print (f"sigma = {sigma}")
 
         # Get numbers
         Np = self.Gassembled.shape[1]
@@ -477,6 +511,70 @@ class transformation(SourceInv):
         # Check
         assert self.Cm.shape[0]==Np, \
                 "Something's wrong with the shape of Cm: {}".format(self.Cm.shape)
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    # Save Cm to file
+    def writeCm2File(self, dtype='d', outputDir='.'):
+        '''
+        Write the model a priori covariance matrix to a binary file.
+
+        Args:
+            * filename      : Name of the file.
+        
+        Kwargs:
+            * dtype         : Data type to use. Default is double ('d'). Can be 'f' for float32.
+            * outputDir     : Directory to write the file in.
+
+        Returns:
+            * None
+        '''
+
+        # Check that Cm exists
+        assert hasattr(self, 'Cm'), "No Cm matrix to write"
+
+        # Write to file
+        filename = f"{self.name.replace(' ', '_')}.cm"
+        self.Cm.astype(dtype).tofile(os.path.join(outputDir, filename))
+        print('Writing Cm matrix to file {}'.format(filename))
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    # Read Cm from file
+    def setCmFromFile(self, filename=None, dtype='d', inDir='.'):
+        '''
+        Read the model a priori covariance matrix from a binary file.
+
+        Args:
+            * filename      : Name of the file.
+            
+        Kwargs:
+            * dtype         : Data type to use. Default is double ('d'). Can be 'f' for float32.
+            * inDir         : Directory to read the file from.
+        
+        Returns:
+            * None
+        '''
+        
+        # Check name conventions
+        if filename is None:
+            if os.path.isfile(os.path.join(inDir, f'{self.name.replace(" ","_")}.cm')):
+                filename = os.path.join(inDir, f'{self.name.replace(" ","_")}.cm')
+
+        # Read the files and reshape the Cm
+        Cm = np.fromfile(filename, dtype=dtype)
+        n = int(np.sqrt(Cm.size))
+        Cm = Cm.reshape((n, n))
+        
+        # Store Cm
+        self.Cm = Cm
+        print('Reading Cm matrix from file {}'.format(filename))
 
         # All done
         return
@@ -547,10 +645,10 @@ class transformation(SourceInv):
             dname, trans = datatrans.split(' --//-- ')
 
             # Convert to int if possible
-            try:
-                trans = int(trans)
-            except:
-                trans = trans
+            # try:
+            #     trans = int(trans)
+            # except:
+            #     trans = trans
 
             # Check
             if dname not in self.m:
@@ -565,6 +663,153 @@ class transformation(SourceInv):
         self.polysol = self.m
 
         # All done
+        return
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    def saveGFs(self, dtype='d', outputDir='.'):
+        '''
+        Saves the Green's functions in different files.
+
+        Kwargs:
+            * dtype       : Format of the binary data saved. 'd' for double. 'f' for np.float32
+            * outputDir   : Directory to save binary data.
+            * suffix      : suffix for GFs name (dictionary)
+
+        Returns:
+            * None
+        '''
+
+        # Print stuff
+        if self.verbose:
+            print('Writing Greens functions to file for transformation {}'.format(self.name))
+
+        # Loop over the keys in self.G
+        for data in self.G.keys():
+
+            # Get the Green's function
+            G = self.G[data]
+
+            # Create one file for each type of transformation
+            for t in G.keys():
+                if t is not None:
+                    g = G[t].flatten()
+                    n = self.name.replace(' ', '_')
+                    d = data.replace(' ', '_')
+                    filename = '{}_{}_trans_{}.gf'.format(n, d, str(t))
+                    g = g.astype(dtype)
+                    g.tofile(os.path.join(outputDir, filename))
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+    
+     # ----------------------------------------------------------------------
+    # Set the Green's functions from file
+    def setGFsFromFile(self, data, transformation=None, custom=None,
+                       vertical=False, dtype='d', inDir='.'):
+        '''
+        Sets the Green's functions reading binary files. Be carefull, these have to be in the
+        good format (i.e. if it is GPS, then GF are E, then N, then U, optional, and
+        if insar, GF are projected already). Basically, it will work better if
+        you have computed the GFs using csi...
+
+        Args:
+            * data          : Data object
+
+        kwargs:
+            * transformation : File or list of files containing the Green's functions for geometrical transformation(s).
+            * vertical       : Deal with the UP component (gps: default is false, insar: it will be true anyway).
+            * dtype          : Type of binary data. 'd' for double/float64. 'f' for np.float32
+
+        Returns:
+            * None
+        '''
+        
+        # Initialize the dictionaries of transformations
+        if not hasattr(self, 'transformations'):
+            self.transformations = {}
+        
+        # Initialize the dictionary for the data set
+        if not hasattr(self.G, data.name):
+            self.G[data.name] = {}
+            
+        # Set data in the GFs
+        if data.dtype in ('insar', 'surfaceslip'):
+            self.d[data.name] = data.vel
+        elif data.dtype == 'tsunami':
+            self.d[data.name] = data.d
+        elif data.dtype in ('gps', 'multigps'):
+            locdat = []
+            for i in range(3):
+                if not np.isnan(data.vel_enu[:,i]).any():
+                    locdat.append(data.vel_enu[:,i])
+                self.d[data.name] = np.array(locdat).flatten()
+        elif data.dtype == 'opticorr':
+            self.d[data.name] = np.hstack((data.east.T.flatten(),
+                                            data.north.T.flatten()))
+
+        # Check filenames
+        if transformation is None:
+            
+            list_fname_transfo = glob.glob(os.path.join(inDir, f"{self.name.replace(' ','_')}_{data.name.replace(' ','_')}_trans_*.gf"))
+            
+            if len(list_fname_transfo) == 0:
+                transformation = None
+            else:
+                transformation = list_fname_transfo
+        
+        # Load the transformation Green's functions
+        if transformation is not None:
+            
+            for trans_ in transformation:
+                
+                # Name of the transformation
+                trans_name = trans_.split('trans_')[1].split('.gf')[0]
+                try:
+                    trans_name = int(trans_name)
+                except:
+                    pass
+
+                # Talk to me
+                if self.verbose:
+                    print('---------------------------------')
+                    print('---------------------------------')
+                    print("Set up Green's functions for transformation {}".format(self.name))
+                    print("and data {} from files: ".format(data.name))
+                    print("     transformation {}: {}".format(trans_name, trans_))
+                
+                # Read
+                Gtrans = np.fromfile(trans_, dtype=dtype)
+                ndl = len(self.d[data.name])
+                Gtrans = Gtrans.reshape(ndl, int(len(Gtrans)/ndl))
+
+                # Create the dictionary
+                self.G[data.name][str(trans_name)] = Gtrans
+                
+        else:
+            
+            # Name of the transformation
+            trans_name = None
+            
+            # Talk to me
+            if self.verbose:
+                print('---------------------------------')
+                print('---------------------------------')
+                print("Set up Green's functions for transformation {}".format(self.name))
+                print("and data {} : ".format(data.name))
+                print("     transformation: {}".format(None))
+            
+                # Create the dictionary
+                self.G[data.name][trans_name] = None
+            
+        # Save
+        self.transformations[data.name] = trans_name
+
+        # Consistency
+        self.poly = self.transformations
+        
+        # all done
         return
     # ----------------------------------------------------------------------
 

@@ -212,7 +212,7 @@ def displacement(sx, sy, sz, vertices, ss, ds, ts, nu=0.25):
         lss = np.dot(slipVec, ssVec)
         lts = np.dot(slipVec, tsVec)
         lds = np.dot(slipVec, dsVec)
-    
+        
         if (abs(beta) > 1.0e-6) and (abs(beta - np.pi) > 1.0e-6):
             # First angular dislocation
             sx1, sy1 = RotateXyVec(sx - x1, sy - y1, -strike)

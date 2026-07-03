@@ -892,7 +892,7 @@ class strainfield(SourceInv):
 
         # open a figure
         fig = plt.figure()
-        carte = fig.add_subplot(121)
+        ax2D = fig.add_subplot(121)
         prof = fig.add_subplot(122)
         
         # Get the data we want to plot
@@ -929,7 +929,7 @@ class strainfield(SourceInv):
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
 
         # plot the StrainField Points on the Map
-        carte.scatter(x, y, s=20, c=dplot, cmap=cmap, vmin=-1.0*MM, vmax=MM, linewidths=0.0)
+        ax2D.scatter(x, y, s=20, c=dplot, cmap=cmap, vmin=-1.0*MM, vmax=MM, linewidths=0.0)
         scalarMap.set_array(dplot)
         plt.colorbar(scalarMap)
 
@@ -942,8 +942,8 @@ class strainfield(SourceInv):
             bb[i,1] = y
         bb[4,0] = bb[0,0]
         bb[4,1] = bb[0,1]
-        carte.plot(bb[:,0], bb[:,1], '.k')
-        carte.plot(bb[:,0], bb[:,1], '-k')
+        ax2D.plot(bb[:,0], bb[:,1], '.k')
+        ax2D.plot(bb[:,0], bb[:,1], '-k')
 
         # plot the profile
         x = self.profiles[name]['Distance']
@@ -957,7 +957,7 @@ class strainfield(SourceInv):
                 fault = [fault]
             # Loop on the faults
             for f in fault:
-                carte.plot(f.xf, f.yf, '-')
+                ax2D.plot(f.xf, f.yf, '-')
                 # Get the distance
                 d = self.intersectProfileFault(name, f)
                 if d is not None:
@@ -968,7 +968,7 @@ class strainfield(SourceInv):
         prof.legend()
 
         # axis of the map
-        carte.axis('equal')
+        ax2D.axis('equal')
 
         # Show to screen 
         plt.show()

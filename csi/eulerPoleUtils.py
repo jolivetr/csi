@@ -3,15 +3,19 @@ import numpy as np
 
 # Earth radius in m
 ERADIUS = 6378137.0
+# Conversion milli arc second to radian) 
+MAS2RAD = np.pi / 3600000 / 180
+# Conversion milli arc second per year to degree per million year
+MASYR2DEGMYR = 1e6 / 3600000
 
-def gps2euler(lat, lon, elev, ve, vn, se=None, sn=None):
+def gps2euler(lon, lat, elev, ve, vn, se=None, sn=None):
     """
     Solve for the Euler pole given station positions and velocitites.
 
     Arguments:
-    lat                     array of station latitudes (radians)
-    lon                     array of station longitudes (radians)
-    elev                    array of station elevations
+    lat                     array of station latitudes (degrees)
+    lon                     array of station longitudes (degrees)
+    elev                    array of station elevations (meters)
     ve                      array of station east velocities/displacements (meters)
     vn                      array of station north velocities/displacements (meters)
     se                      east velocitiy uncertainties (meters)
@@ -20,10 +24,11 @@ def gps2euler(lat, lon, elev, ve, vn, se=None, sn=None):
     Output:
     elat                    latitude of euler pole
     elon                    longitude of euler pole
-    omega                   pole rotation angle    
+    omega                   pole rotation angle
     """
     # Convert lat-lon to ECEF xyz
-    Pxyz = llh2xyz(lat, lon, elev).transpose()
+    x, y, z = llh2xyz(lon, lat, elev)
+    Pxyz = np.row_stack((x, y, z)).transpose()
     ndat = lat.size
 
     # Weighting matrix
@@ -34,7 +39,7 @@ def gps2euler(lat, lon, elev, ve, vn, se=None, sn=None):
         Wmat = np.ones((ndat,3), dtype=float)
 
     # Normalize input points
-    Pxyz_unit,Pxyz_norm = unit(Pxyz)
+    Pxyz_unit, Pxyz_norm = unit(Pxyz)
 
     # Convert velocities to ECEF reference frame
     Vune = np.vstack((np.zeros(ve.shape), -vn, ve))
@@ -44,25 +49,25 @@ def gps2euler(lat, lon, elev, ve, vn, se=None, sn=None):
     Qxyz = Pxyz + Vxyz
 
     # Normalize rotated point
-    Qxyz_unit,Qxyz_norm = unit(Qxyz)
+    Qxyz_unit, Qxyz_norm = unit(Qxyz)
 
     # Compute the rotation matrix
     X = np.dot((Wmat * Qxyz_unit).T, Wmat * Pxyz_unit)
-    u,s,v = np.linalg.svd(X)
+    u, s, v = np.linalg.svd(X)
     darr = np.array([1.0, 1.0, np.sign(np.linalg.det(u) * np.linalg.det(v))])
     R = np.dot(u, np.dot(np.diag(darr), v))
 
     # Rotation matrix -> euler vector
-    elat,elon,omega = rotmat2euler(R)
+    elat, elon, omega = rotmat2euler(R)
     
-    return elat, elon, omega
+    return np.rad2deg(elat), np.rad2deg(elon), omega
 
 
 def euler2gps(evec, Pxyz):
     """
     Compute linear velocity due to angular rotation about an Euler pole.
     """
-    ex,ey,ez = evec
+    ex, ey, ez = evec
     assert Pxyz.shape[1] == 3, 'Pxyz must be Nx3 dimensions'
     px = Pxyz[:,0]
     py = Pxyz[:,1]
@@ -102,47 +107,73 @@ def rotmat2euler(R):
     if omega < 0.0:
         omega += np.pi
 
-    return elat,elon,omega
+    return elat, elon, omega
 
 
-def llh2xyz(lat, lon, h):
+
+def llh2xyz(lon, lat, height, earth_radius=ERADIUS):
     """
-    Convert lat-lon-h to XYZ assuming a spherical Earth with radius equal to
-    the local ellipsoid radius.
-    """
-    if isinstance(lat, np.ndarray):
-        n = len(lat)
-        x = np.zeros((3,n), dtype=float)
-    else:
-        x = np.zeros((3,), dtype=float)
+    Convert spherical coordinates (lat/lon/height) to ECEF cartesian coordinates (x/y/z)
+    assuming a spherical Earth.
     
-    # Compute position vector
-    x[0,...] = (ERADIUS + h) * np.cos(lat) * np.cos(lon) 
-    x[1,...] = (ERADIUS + h) * np.cos(lat) * np.sin(lon)
-    x[2,...] = (ERADIUS + h) * np.sin(lat)
+    Args:
+        * lon           : float/np.ndarray, longitude (degrees)
+        * lat           : float/np.ndarray, latitude (degrees)
+        * height        : float/np.ndarray, height above the ellipsoid (meters)
+    
+    Kwargs:
+        * earth_radius  : float, Earth radius (meters), default is 6378137.0 meters
 
-    return x.squeeze()
-
-
-def xyz2llh(X):
+    Returns:
+        * x             : float/np.ndarray, cartesian x-coordinate (meters)
+        * y             : float/np.ndarray, cartesian y-coordinate (meters)
+        * z             : float/np.ndarray, cartesian z-coordinate (meters)
     """
-    Convert XYZ coordinates to latitude, longitude, height, assuming a spherical Earth.
-    """
-    x = X[0,...]
-    y = X[1,...]
-    z = X[2,...]
+    lon = np.deg2rad(lon)
+    lat = np.deg2rad(lat)
+    
+    # x-coordinate
+    x = (earth_radius + height) * np.cos(lat) * np.cos(lon)
+    
+    # y-coordinate
+    y = (earth_radius + height) * np.cos(lat) * np.sin(lon)
+    
+    # z-coordinate
+    z = (earth_radius + height) * np.sin(lat)
 
+    return x, y, z
+
+
+def xyz2llh(x, y, z, earth_radius=ERADIUS):
+    """
+    Convert ECEF cartesian coordinates (x/y/z) to spherical coordinates (lat/lon/height)
+    assuming a spherical Earth.
+    
+    Args:
+        * x            : float/np.ndarray, x-coordinate (meters)
+        * y            : float/np.ndarray, y-coordinate (meters)
+        * z            : float/np.ndarray, z-coordinate (meters)
+    
+    Kwargs:
+        * earth_radius  : float, Earth radius (meters), default is 6378137.0 meters
+    
+    Returns:
+        * lon          : float/np.ndarray, longitude (degrees)
+        * lat          : float/np.ndarray, latitude (degrees)
+        * height       : float/np.ndarray, height above the ellipsoid (meters)
+    """
     # Longitude
     lon = np.arctan2(y, x)
+    lon = np.rad2deg(lon)
 
     # Latitude
-    p = np.sqrt(x*x + y*y)
-    lat = np.arctan(z / p)
+    lat = np.arctan(z / np.sqrt(x**2 + y**2))
+    lat = np.rad2deg(lat)
 
     # Height
-    h = np.sqrt(x*x + y*y + z*z) - ERADIUS
+    height = np.sqrt(x**2 + y**2 + z**2) - earth_radius
 
-    return lat, lon, h
+    return lon, lat, height
 
 
 def geo2topo(dR, Rr, indat=()):
@@ -152,14 +183,18 @@ def geo2topo(dR, Rr, indat=()):
     """
     # First compute the geodetic latitude/longitude of station
     if len(indat) == 3:
-        lat, lon, h = indat
+        lon, lat, h = indat
     else:
-        lat, lon, h = xyz2llh(Rr)
+        lon, lat, h = xyz2llh(Rr[0, :], Rr[1, :], Rr[2, :])
     if isinstance(lat, np.ndarray):
         n = lat.size
         T = np.zeros((3,3,n), dtype=float)
     else:
         T = np.zeros((3,3,1), dtype=float)
+    
+    # Convert to radians
+    lon = np.deg2rad(lon)
+    lat = np.deg2rad(lat)
 
     # Compute rotation matrix from geo -> topo
     T[0,0,...] = -np.sin(lon);                T[0,1,...] =  np.cos(lon);                T[0,2,...] = 0.0
@@ -177,14 +212,18 @@ def topo2geo(rt, Rr, indat=()):
     """
     # First compute the geodetic latitude/longitude of station
     if len(indat) == 3:
-        lat, lon, h = indat
+        lon, lat, h = indat
     else:
-        lat, lon, h = xyz2llh(Rr)
+        lon, lat, h = xyz2llh(Rr[0, :], Rr[1, :], Rr[2, :])
     if isinstance(lat, np.ndarray):
         n = lat.size
         T = np.zeros((3,3,n), dtype=float)
     else:
         T = np.zeros((3,3,1), dtype=float)
+    
+    # Convert to radians
+    lon = np.deg2rad(lon)
+    lat = np.deg2rad(lat)
 
     # Compute rotation matrix from topo -> geo
     T[0,0,...] = np.cos(lat)*np.cos(lon); T[0,1,...] = np.sin(lat)*np.cos(lon); T[0,2,...] = -np.sin(lon)
@@ -194,18 +233,18 @@ def topo2geo(rt, Rr, indat=()):
     # Apply rotation
     return matvecseq(T, rt.T)
 
-      
+
 def unit(A):
     """
     Reads in an input Nx3 matrix of XYZ points and outputs the unit vectors and norms.
     """
-    m,n = A.shape
+    m, n = A.shape
     assert n == 3, 'Input must be Nx3 dimension'
     Anorm = np.sqrt(A[:,0]**2 + A[:,1]**2 + A[:,2]**2)
     Aunit = A / np.tile(Anorm, (n,1)).T
     return Aunit, Anorm
-    
- 
+
+
 def matvecseq(mat, vec):
     """
     Multiplies matrix stacked along the depth dimension by a row vector stacked along the

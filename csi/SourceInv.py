@@ -19,7 +19,7 @@ class SourceInv(object):
 
     '''
     Class implementing the geographical transform. This class will
-    be parent to almost all the classes in csi. 
+    be parent to almost all the classes in csi.
 
     You can specify either an official utm zone number or provide
     longitude and latitude for a custom zone.

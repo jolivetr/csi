@@ -10,7 +10,6 @@ from .SourceInv import SourceInv
 # Parent class(es)
 from .Fault import Fault
 from .Pressure import Pressure
-#from .SurfaceMotion import SurfaceMotion
 from .RectangularPatches    import RectangularPatches
 from .TriangularPatches     import TriangularPatches
 from .TriangularTents       import TriangularTents
@@ -30,20 +29,26 @@ from .planarfault import planarfault
 from .RectangularPatchesKin import RectangularPatchesKin
 from .planarfaultkinematic import planarfaultkinematic
 
-##Pressure sources 
+## Pressure sources
 from .Mogi import Mogi
 from .Yang import Yang
 from .pCDM import pCDM
 from .CDM import CDM
 
-##Transformation
+## Blocks
+from .Block import Block
+from .MultiBlock import MultiBlock
+
+## SurfaceMotion
+from .SurfaceMotion import SurfaceMotion
+
+## Transformation between data
 from .transformation import transformation
 
 ## Data
 from .gps import gps
 from .multigps import multigps
 from .insar import insar
-from .multifaultsolve import multifaultsolve
 from .opticorr import opticorr
 from .creepmeters import creepmeters
 from .seismic import seismic
@@ -52,6 +57,7 @@ from .insartimeseries import insartimeseries
 from .gpstimeseries import gpstimeseries
 from .timeseries import timeseries
 from .surfaceslip import surfaceslip
+from .multisourcesolve import multisourcesolve
 
 ## Green's functions
 from . import okadafull
@@ -90,8 +96,6 @@ from .functionfit import functionfit
 from . import csiutils as utils
 from . import eulerPoleUtils 
 from . import timefnutils
-
-#from timefnutils import *
 
 ## Slip time series stuff 
 from .slipHistory import slipHistory

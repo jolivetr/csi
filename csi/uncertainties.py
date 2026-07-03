@@ -10,7 +10,7 @@ import os
 from scipy.stats import linregress
 
 # Personals
-from .multifaultsolve import multifaultsolve as multiflt
+from .multisourcesolve import multisourcesolve as multisrc
 
 class uncertainties(object):
        
@@ -333,7 +333,7 @@ class uncertainties(object):
                         Fg.assembleCd(self.datasets)
                     
                     Faults_cp[f] = Fg
-                    slv = multiflt('Multi-seg fault', Faults_cp)
+                    slv = multisrc('Multi-seg fault', Faults_cp)
                     slv.assembleGFs()
                     gfs.append(slv.G)
                 
@@ -679,7 +679,7 @@ class uncertainties(object):
                         Fg.assembleCd(self.datasets)
                     
                     Faults_cp[f] = Fg
-                    slv = multiflt('Multi-seg fault', Faults_cp)
+                    slv = multisrc('Multi-seg fault', Faults_cp)
                     slv.assembleGFs()
                     gfs.append(slv.G)
                 
@@ -844,7 +844,7 @@ class uncertainties(object):
                         Fg.assembleCd(self.datasets)
                     
                     Faults_cp[f] = Fg
-                    slv = multiflt('Multi-seg fault', Faults_cp)
+                    slv = multisrc('Multi-seg fault', Faults_cp)
                     slv.assembleGFs()
                     gfs.append(slv.G)
                 
@@ -1173,7 +1173,7 @@ class uncertainties(object):
                         Fg.assembleCd(self.datasets)
                     
                     Faults_cp[f] = Fg
-                    slv = multiflt('Multi-seg fault', Faults_cp)
+                    slv = multisrc('Multi-seg fault', Faults_cp)
                     slv.assembleGFs()
                     gfs.append(slv.G)
                 
@@ -1342,7 +1342,7 @@ class uncertainties(object):
                         Fg.assembleCd(self.datasets)
                     
                     Faults_cp[f] = Fg
-                    slv = multiflt('Multi-seg fault', Faults_cp)
+                    slv = multisrc('Multi-seg fault', Faults_cp)
                     slv.assembleGFs()
                     gfs.append(slv.G)
                 
@@ -1557,7 +1557,7 @@ class uncertainties(object):
                     
                 Faults.append(Fg)
                 
-            slv = multiflt('Multi-seg fault', Faults)
+            slv = multisrc('Multi-seg fault', Faults)
             slv.assembleGFs()
             gfs_ini = slv.G
             K = []
@@ -1588,7 +1588,7 @@ class uncertainties(object):
                         
                     Faults.append(Fg)
                     
-                slv = multiflt('Multi-seg fault', Faults)
+                slv = multisrc('Multi-seg fault', Faults)
                 slv.assembleGFs()
                 gfs = slv.G
                 

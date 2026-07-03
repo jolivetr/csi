@@ -13,73 +13,13 @@ import sys
 import numpy as np
 import copy
 import multiprocessing as mp
+mp.set_start_method("fork", force=True)
 
 # Scipy
 from scipy.io import FortranFile
 import scipy.interpolate as sciint
 
-# Initialize a class to allow multiprocessing for EDKS interpolation in Python
-class interpolator(mp.Process):
-    '''
-    Multiprocessing class runing the edks interpolation.
-    This class requires one to build the interpolator in advance.
-
-    Args:
-        * interpolators     : List of interpolators
-        * queue             : Instance of mp.Queue
-        * depths            : depths (first dimnesion of the interpolators) 
-        * distas            : distances (second dimension of the interpolators)
-        * istart            : starting point
-        * iend              : ending point
-
-    Returns:
-        * None
-    '''
-
-    # ----------------------------------------------------------------------
-    # Initialize
-    def __init__(self, interpolators, queue, depths, distas, istart, iend):
-
-        # Save things
-        self.interpolators = interpolators
-        self.depths = depths
-        self.distas = distas
-        self.istart = istart
-        self.iend = iend
-
-        # Save the queue
-        self.queue = queue 
-
-        # Initialize the process
-        super(interpolator, self).__init__()
-
-        # All done
-        return
-    # ----------------------------------------------------------------------
-
-    # ----------------------------------------------------------------------
-    # Run method
-    def run(self):
-        '''
-        Run the interpolation
-        '''
-        
-        # Interpolate
-        values = []
-        for inter in self.interpolators:
-            values.append(inter(np.vstack((self.depths[self.istart:self.iend],
-                                           self.distas[self.istart:self.iend])).T))
-        
-        # Save start/end
-        values.append((self.istart, self.iend))
-
-        # Store output
-        self.queue.put(values)
-        
-        # All done
-        return
-    # ----------------------------------------------------------------------
-
+# ----------------------------------------------------------------------
 # Initialize a class to allow multiprocessing to drop points
 class pointdropper(mp.Process):
     '''
@@ -205,10 +145,11 @@ class pointdropper(mp.Process):
         # all done
         return
     # ----------------------------------------------------------------------
-# end of pointdropper
+# ----------------------------------------------------------------------
 
 # ----------------------------------------------------------------------
-def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
+# A routine to drop point sources in the patches of a fault object.
+def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False, Nworkers=None):
     '''
     From a fault object, returns sources to be given to sum_layered_sub.
     The number of sources is determined by the spacing provided in fault.
@@ -218,6 +159,7 @@ def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
         * verbose                 : Talk to me
         * returnSplittedPactches  : Returns a triangularPatches object with the splitted 
                                   patches.
+        * Nworkers                 : Number of workers to use for multiprocessing. If None, it will be set to the number of cores.
 
     Return:
         * Ids                   : Id of the subpatches
@@ -268,10 +210,13 @@ def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
     output = mp.Queue()
 
     # how many workers
-    try:
-        nworkers = int(os.environ['OMP_NUM_THREADS'])
-    except:
-        nworkers = mp.cpu_count()
+    if Nworkers is not None:
+        nworkers = Nworkers
+    else:
+        try:
+            nworkers = int(os.environ['OMP_NUM_THREADS'])
+        except:
+            nworkers = mp.cpu_count()
 
     # how many patches
     npatches = len(fault.patch)
@@ -283,7 +228,8 @@ def dropSourcesInPatches(fault, verbose=False, returnSplittedPatches=False):
     workers[-1].iend = npatches
 
     # Start them
-    for w in range(nworkers): workers[w].start()
+    for w in range(nworkers):
+        workers[w].start()
     # I don't understand why this guy does not work...
     #for w in range(nworkers): workers[w].join()
 
@@ -393,7 +339,7 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
     dZ = (width/2.0) * sind
     dD = (width/2.0) * cosd
 
-    # rotation to global coordinates 
+    # rotation to global coordinates
     xs = xs - dD * coss
     ys = ys + dD * sins
     zs = zs - dZ
@@ -407,7 +353,7 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
 
     # Clean the file if they exist
     cmd = 'rm -f {} {} {} {} {}'.format(file_rec, file_pat, file_dux, file_duy, file_duz)
-    os.system(cmd) 
+    os.system(cmd)
     
     # write receiver location file (observation points)
     temp = [xr, yr]
@@ -415,7 +361,7 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
         for k in range(0, nrec):
             for i in range(0, len(temp)):
                 file.write(struct.pack(BIN_FILE_FMT, temp[i][k]))
-  
+
     # write point sources information
     temp = [xs, ys, zs, strike, dip, rake, width, length, slip]
     with open(file_pat, 'wb') as file:
@@ -424,23 +370,41 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
                 file.write(struct.pack(BIN_FILE_FMT, temp[i][k]))
   
     # call sum_layered
-    if not os.path.exists(os.path.basename(edks)):
-        os.symlink(edks, os.path.basename(edks))
-        os.symlink(os.path.join(os.path.dirname(edks), 'hdr.'+os.path.basename(edks)), 'hdr.'+os.path.basename(edks))
-        removeSymLink = True
-    else:
-        removeSymLink = False
+    
+    edks_link = os.path.basename(edks)
+    hdr_link = 'hdr.' + edks_link
+    hdr_target = os.path.join(os.path.dirname(edks), hdr_link)
+ 
+    if not os.path.islink(edks_link) and not os.path.exists(edks_link):
+        try:
+            os.symlink(edks, edks_link)
+        except FileExistsError:
+            pass  # another worker created it first -- fine, just use it
+ 
+    if not os.path.islink(hdr_link) and not os.path.exists(hdr_link):
+        try:
+            os.symlink(hdr_target, hdr_link)
+        except FileExistsError:
+            pass
+    
+    # if not os.path.exists(os.path.basename(edks)):
+    #     os.symlink(edks, os.path.basename(edks))
+    #     os.symlink(os.path.join(os.path.dirname(edks), 'hdr.'+os.path.basename(edks)), 'hdr.'+os.path.basename(edks))
+    #     removeSymLink = True
+    # else:
+    #     removeSymLink = False
     
     tensile_flag = int(tensile)
     
-    cmd = '{}/sum_layered {} {} {} {} {} {} {}'.format(BIN_EDKS, os.path.basename(edks), prefix, nrec, Np, npw, npy, tensile_flag)
+    cmd = '{}/sum_layered {} {} {} {} {} {} {}'.format(BIN_EDKS, edks_link, prefix, nrec, Np, npw, npy, tensile_flag)
     
     if verbose:
         print(cmd)
     os.system(cmd)
-    if removeSymLink: 
-        os.unlink(os.path.basename(edks))
-        os.unlink('hdr.'+os.path.basename(edks))
+    
+    # if removeSymLink: 
+    #     os.unlink(os.path.basename(edks))
+    #     os.unlink('hdr.'+os.path.basename(edks))
 
     # read sum_layered output Greens Function files
     ux = np.fromfile(file_dux, 'f').reshape((nrec, Np), order='F')
@@ -457,9 +421,72 @@ def sum_layered(xs, ys, zs, strike, dip, rake, slip, width, length,\
 # ----------------------------------------------------------------------
 
 # ----------------------------------------------------------------------
+# Initialize a class to allow multiprocessing for EDKS interpolation in Python
+class interpolator(mp.Process):
+    '''
+    Multiprocessing class runing the edks interpolation.
+    This class requires one to build the interpolator in advance.
+
+    Args:
+        * interpolators     : List of interpolators
+        * queue             : Instance of mp.Queue
+        * depths            : depths (first dimnesion of the interpolators) 
+        * distas            : distances (second dimension of the interpolators)
+        * istart            : starting point
+        * iend              : ending point
+
+    Returns:
+        * None
+    '''
+
+    # ----------------------------------------------------------------------
+    # Initialize
+    def __init__(self, interpolators, queue, depths, distas, istart, iend):
+
+        # Save things
+        self.interpolators = interpolators
+        self.depths = depths
+        self.distas = distas
+        self.istart = istart
+        self.iend = iend
+
+        # Save the queue
+        self.queue = queue 
+
+        # Initialize the process
+        super(interpolator, self).__init__()
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    # Run method
+    def run(self):
+        '''
+        Run the interpolation
+        '''
+        
+        # Interpolate
+        values = []
+        for inter in self.interpolators:
+            values.append(inter(np.vstack((self.depths[self.istart:self.iend],
+                                           self.distas[self.istart:self.iend])).T))
+        
+        # Save start/end
+        values.append((self.istart, self.iend))
+
+        # Store output
+        self.queue.put(values)
+        
+        # All done
+        return
+    # ----------------------------------------------------------------------
+# ----------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
 # A class that interpolates edks Kernels (same as fortran's sum_layered, 
 # but with more flexibility for the interpolation part)
-
 class interpolateEDKS(object):
     
     '''
@@ -500,17 +527,17 @@ class interpolateEDKS(object):
 
         # Show me
         if self.verbose:
-            print('Read Kernel Header file hdr.{}'.format(self.kernel))
+            print('Read Kernel Header file {}'.format(('/'.join(self.kernel.split('/')[:-1]) + '/' if self.kernel.split('/')[:-1] else '') + 'hdr.' + self.kernel.split('/')[-1]))
 
         # Open the header file
-        fhd = open('hdr.{}'.format(self.kernel), 'r')
+        fhd = open('{}'.format(('/'.join(self.kernel.split('/')[:-1]) + '/' if self.kernel.split('/')[:-1] else '') + 'hdr.' + self.kernel.split('/')[-1]), 'r')
 
         # Read things
         self.prefix = fhd.readline().split()[0]
         self.nlayer = int(fhd.readline().split()[0])
 
         # Layer characteristics
-        rho = [] 
+        rho = []
         alpha = []
         beta = []
         thickness = []
@@ -570,7 +597,7 @@ class interpolateEDKS(object):
         # CLose file
         fedks.close()
 
-    def interpolate(self, xs, ys, zs, strike, dip, rake, area, slip, xr, yr, method='linear'):
+    def interpolate(self, xs, ys, zs, strike, dip, rake, area, slip, xr, yr, method='linear', tensile=False, Nworkers=None):
         '''
         Interpolate the Green's functions for a given source in (xs, ys, zs) with
         a strike, dip and rake and slip parameters and a given receiver (xr, yr)
@@ -586,6 +613,8 @@ class interpolateEDKS(object):
 
         Kwargs:
             * method        : Interpolation scheme. Can be linear, nearest or CloughTocher.
+            * tensile       : Whether to include tensile component.
+            * Nworkers      : Number of workers for parallel processing.
 
         Returns:
             * G             : np.array
@@ -606,10 +635,10 @@ class interpolateEDKS(object):
             yr = np.array([yr])
 
         # convert sources from center to top edge of fault patch 
-        sind = np.sin( dip )
-        cosd = np.cos( dip )
-        sins = np.sin( strike )
-        coss = np.cos( strike )
+        sind = np.sin(dip)
+        cosd = np.cos(dip)
+        sins = np.sin(strike)
+        coss = np.cos(strike)
 
         # displacement in local coordinates (phi, delta)
         dZ = (np.sqrt(area)/2.0) * sind
@@ -625,7 +654,7 @@ class interpolateEDKS(object):
             print('Interpolate GFs for {} sources and {} receivers'.format(len(xs), len(xr)))
 
         # Get moment (here potency)
-        M = self.src2mom(slip, area, strike, dip, rake)
+        M = self.src2mom(slip, area, strike, dip, rake, tensile=tensile)
 
         # Create an interpolator
         self.createInterpolator(method=method)
@@ -645,10 +674,14 @@ class interpolateEDKS(object):
             self.interpKernels = np.zeros((len(xs)*len(xr), 10))
             
             # Multiprocessing
-            try:
-                nworkers = int(os.environ['OMP_NUM_THREADS'])
-            except:
-                nworkers = mp.cpu_count()
+            # how many workers
+            if Nworkers is not None:
+                nworkers = Nworkers
+            else:
+                try:
+                    nworkers = int(os.environ['OMP_NUM_THREADS'])
+                except:
+                    nworkers = mp.cpu_count()
 
             # Create a queue 
             output = mp.Queue()
@@ -680,6 +713,12 @@ class interpolateEDKS(object):
             self.interpKernels[:,:,1] *= -1.
             self.interpKernels[:,:,4] *= -1.
             self.interpKernels[:,:,7] *= -1.
+            
+            # To add for tensile component.
+            # This is only a "temporary" solution to avoid having to recompute the existing kernels.
+            # It should be fixed in the future by changing the tab5R code.
+            self.interpKernels [:,:,8] *= -1/3
+            self.interpKernels [:,:,9] *= -1/3
 
             # Set it to True
             self.interpolationDone = True
@@ -688,7 +727,7 @@ class interpolateEDKS(object):
             if self.verbose:
                 print('Use interpolated kernels')
 
-        # Get what's done 
+        # Get what's done
         kernels = self.interpKernels
 
         # Vertical component  (positive down)
@@ -748,7 +787,7 @@ class interpolateEDKS(object):
         # All done
         return
 
-    def src2mom(self, slip, area, strike, dip, rake):
+    def src2mom(self, slip, area, strike, dip, rake, tensile=False, nu=0.25):
         '''
         Convert slip and point source geometry to moment.
 
@@ -758,10 +797,21 @@ class interpolateEDKS(object):
             * strike        : Strike angle (rad)
             * dip           : Dip angle (rad)
             * rake          : Rake angle (rad, 0 left-lateral strike slip, 2pi pure thrust)
+            * tensile       : Whether to include tensile component
 
         Returns:
             * M             : Moment tensor
         '''
+        
+        # Get the parameters
+        la_mu		= 2.*nu/(1.-2.*nu)
+        
+        if tensile:
+            Sp = slip
+            St = 0.
+        else:
+            Sp = 0.
+            St = slip
 
         # Nor
         nor = []
@@ -771,13 +821,18 @@ class interpolateEDKS(object):
 
         # Sli
         s = []
-        s.append((np.cos(rake)*np.cos(strike)+np.cos(dip)*np.sin(rake)*np.sin(strike))*slip)
-        s.append((np.cos(rake)*np.sin(strike)-np.cos(dip)*np.sin(rake)*np.cos(strike))*slip)
-        s.append((-1.*np.sin(rake)*np.sin(dip))*slip)
+        s.append(np.cos(rake)*np.cos(strike)+np.cos(dip)*np.sin(rake)*np.sin(strike))
+        s.append(np.cos(rake)*np.sin(strike)-np.cos(dip)*np.sin(rake)*np.cos(strike))
+        s.append(-1.*np.sin(rake)*np.sin(dip))
+        
+        for ix in range(3):
+            s[ix] = s[ix]*St+nor[ix]*Sp
 
         # Iterate
         Maki = np.zeros((3,3,len(dip)))
+        
         for ix in range(3):
+            Maki[ix,ix,:] += la_mu*Sp
             for iy in range(3):
                 Maki[iy,ix,:] += nor[ix]*s[iy] + nor[iy]*s[ix]
 
@@ -821,5 +876,6 @@ class interpolateEDKS(object):
         s2az = 2.*saz*caz
 
         return distance, depth, caz, saz, c2az, s2az
+# ----------------------------------------------------------------------
 
 #EOF

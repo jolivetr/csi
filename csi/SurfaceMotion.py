@@ -19,6 +19,8 @@ import ndsplines
 
 # Personals
 from .SourceInv import SourceInv
+from .geodeticplot import geodeticplot as geoplot
+
 
 #class SurfaceMotion
 class SurfaceMotion(SourceInv):
@@ -174,7 +176,7 @@ class SurfaceMotion(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def dropNodes(self, llbox, nx, ny, k=3):
+    def dropNodes(self, llbox, nx=None, ny=None, dx=None, dy=None, k=3, verbose=True):
         '''
         This will drop nodes into a region. In parallel, it will construct a
         ndspline object able to make predictions.
@@ -183,23 +185,31 @@ class SurfaceMotion(SourceInv):
             * llbox         : [lonmin, lonmax, latmin, latmax]
             * nx            : Number of nodes along longitude
             * ny            : Number of nodes along latitude
+            * dx            : Spacing along east (in km)
+            * dy            : Spacing along north (in km)
+            
 
         Kwargs:
             * k             : Order of the splines (default is 3)
-        
+            * verbose       : Whether to print verbose output (default is True)
+
         Returns:
             * None.
         '''
-
+        
         # Transfer into utm coordinates
         xmin, ymin = self.ll2xy(llbox[0], llbox[2])
         xmax, ymax = self.ll2xy(llbox[1], llbox[3])
-
+        
         # Make a X and Y vectors for the position of the knots. 
-        # I need a knot from lonmin to lonmax with nx knots and k extra knots on each side
+        if dx is not None and dy is not None:
+            # Find the number of knots in each direction corresponding to the closest spacing dx and dy
+            nx = int(np.ceil((xmax-xmin)/dx))
+            ny = int(np.ceil((ymax-ymin)/dy))
         x = np.linspace(xmin, xmax, nx)
         y = np.linspace(ymin, ymax, ny)
-        meshx, meshy = np.meshgrid(x,y, indexing='ij')
+
+        meshx, meshy = np.meshgrid(x, y, indexing='ij')
         xknots = np.r_[(x[0],)*(k+1), x, (x[-1],)*(k+1)]
         yknots = np.r_[(y[0],)*(k+1), y, (y[-1],)*(k+1)]
 
@@ -212,7 +222,7 @@ class SurfaceMotion(SourceInv):
         # Save the coefficient positions (coefficients are not the same size as the xt, yt nodes)
         x = xknots[(k+1)//2:-(k+1)//2]
         y = yknots[(k+1)//2:-(k+1)//2]
-        meshx,meshy = np.meshgrid(x,y)
+        meshx, meshy = np.meshgrid(x,y)
 
         # Save what needs to be saved
         self.x = meshx.flatten()
@@ -223,6 +233,9 @@ class SurfaceMotion(SourceInv):
         # All nodes are active
         self.motion = np.zeros((self.coefficients[:,:,0].flatten().shape[0], 3))
         self.activeNodes = np.ones(self.coefficients[:,:,0].shape)
+        
+        if verbose:
+            print(f"Dropping {self.nx} x {self.ny} = {self.nx*self.ny} nodes for surface motion {self.name}")
 
         # All done
         return
@@ -252,6 +265,90 @@ class SurfaceMotion(SourceInv):
 
         # Save it
         self.activeNodes = activeNodes
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+    
+        # ----------------------------------------------------------------------
+    # Show the block boundary
+    def plot(self, show=True, figsize=(10, 10),
+             box=None, shadedtopo=None, drawCoastlines=True, expand=0.2, savefig=False,
+             faults=None, blocks=None):
+        '''
+        Plot the nodes of the surface motion object.
+
+        Kwargs:
+            * figure        : Number of the figure.
+            * equiv         : useless. For consitency between fault objects
+            * show          : Show me
+            * drawCoastline : Self-explanatory argument...
+            * expand        : Expand the map by {expand} degree around the edges
+                              of the blockboundary.
+            * savefig       : Save figures as eps.
+            * box           : [lonmin, lonmax, latmin, latmax] to override the default box defined by the nodes.
+            * faults         : List of fault objects to be plotted on top of the surface motion nodes.
+            * blocks         : List of block objects to be plotted on top of the surface motion nodes
+
+        Returns:
+            * None
+        '''
+
+        # Get extent of the plot
+        lonmin = np.min(self.lon)-expand
+        lonmax = np.max(self.lon)+expand
+        latmin = np.min(self.lat)-expand
+        latmax = np.max(self.lat)+expand
+
+        # Override
+        if box is not None:
+            assert len(box)==4, 'box must be 4 floats: box = {}'.format(tuple(box))
+            lonmin, lonmax, latmin, latmax = box
+
+        # Create a figure
+        fig = geoplot(figure=None,
+                      lonmin=lonmin, lonmax=lonmax, latmin=latmin, latmax=latmax,
+                      figsize=(None, figsize), Map=True, Fault=False)
+
+        # Shaded topo
+        if shadedtopo is not None:
+            fig.shadedTopography(**shadedtopo)
+        
+        # Draw the coastlines
+        if drawCoastlines:
+            fig.drawCoastlines(parallels=None, meridians=None, drawOnFault=True)
+        
+        # Plot the fault trace if asked
+        if faults is not None:
+            if type(faults) is not list:
+                faults = [faults]
+            for fault in faults:
+                if fault.type=="Fault":
+                    fig.faulttrace(fault)
+
+        # Plot the blocks if asked
+        if blocks is not None:
+            if type(blocks) is not list:
+                blocks = [blocks]
+            for block in blocks:
+                fig.blockboundary(block)
+
+        # Nodes of the splines
+        color = self.color if hasattr(self, 'color') else 'k'
+        markersize = self.markersize if hasattr(self, 'markersize') else 10
+        fig.SurfaceMotionNodes(self, color=color, markersize=markersize)
+
+        # Savefigs?
+        if savefig:
+            prefix = self.name.replace(' ','_')
+            fig.savefig(prefix, ftype='eps')
+
+        # show
+        if show:
+            fig.show(showFig=['map'])
+
+        # Save the figure
+        self.fig = fig
 
         # All done
         return
@@ -379,7 +476,7 @@ class SurfaceMotion(SourceInv):
         # The difference with the Fault and Pressure object is that the GFs building tool includes the 
         # handling of different data (maybe that should change for the other objects as well)
         if method in ('bsplines', 'BSplines'):
-            Gin = self.bsplinesGFs(data, vertical=vertical, direction=direction, verbose=verbose)
+            Gin = self.bsplinesGFs(data, verbose=verbose)
         else:
             print('Error: Selected method is not implemented ({})'.format(method))
             raise NotImplementedError
@@ -389,9 +486,9 @@ class SurfaceMotion(SourceInv):
             self.d[data.name] = data.vel
         elif data.dtype in ('gps', 'multigps'):
             if vertical:
-                self.d[data.name] = data.vel_enu.flatten()
+                self.d[data.name] = data.vel_enu.T.flatten()
             else:
-                self.d[data.name] = data.vel_enu[:,0:2].flatten()
+                self.d[data.name] = data.vel_enu[:, 0:2].T.flatten()
 
         # Check
         if not hasattr(self, 'G'): self.G = {}
@@ -402,8 +499,12 @@ class SurfaceMotion(SourceInv):
         if 'e' in direction: Gs.append(Gin['east'])
         if 'n' in direction: Gs.append(Gin['north'])
         if 'u' in direction: Gs.append(Gin['up'])
+        
         if data.dtype in ('gps', 'multigps'):
             self.G[data.name] = scipy.linalg.block_diag(*Gs)
+            if 'u' in direction and not vertical:
+                self.G[data.name] = self.G[data.name][:-Gin['up'].shape[0], :]
+        
         elif data.dtype == 'insar':
             self.G[data.name] = np.hstack(Gs)
 
@@ -417,7 +518,7 @@ class SurfaceMotion(SourceInv):
     # --------------------------------------------------------------------
 
     # --------------------------------------------------------------------
-    def bsplinesGFs(self, data, vertical=True, direction='enu', verbose=True):
+    def bsplinesGFs(self, data, verbose=True):
         '''
         Builds the Green's functions for surface motion parameterized with b-splines.
         The splines are 2D and can be of any order. They are defined by the node position, which 
@@ -431,8 +532,6 @@ class SurfaceMotion(SourceInv):
             * data          : data object (gps, insar)
 
         Kwargs:
-            * vertical      : Do we include vertical motion?
-            * direction     : Any combination of 'e', 'n' and 'u'
             * verbose       : deafult is True
 
         returns:
@@ -579,7 +678,7 @@ class SurfaceMotion(SourceInv):
              'coupling': Gcp}
 
         # The dataset sets the Green's functions itself
-        data.setGFsInFault(self, G, vertical=vertical)
+        data.setGFsInSource(self, G, vertical=vertical)
 
         # If custom
         if custom is not None:
@@ -610,7 +709,7 @@ class SurfaceMotion(SourceInv):
             # print
             print ("---------------------------------")
             print ("---------------------------------")
-            print ("Assembling d vector")
+            print ("Assembling d for surface motion {}".format(self.name))
 
         # Get the number of data
         Nd = 0
@@ -626,7 +725,7 @@ class SurfaceMotion(SourceInv):
 
                 # print
                 if verbose:
-                    print("Dealing with data {}".format(data.name))
+                    print("Dealing with data {} of type {}".format(data.name, data.dtype))
 
                 # Get the local d
                 dlocal = self.d[data.name]
@@ -661,6 +760,7 @@ class SurfaceMotion(SourceInv):
 
         Kwargs:
             * verbose   : Talk to me (overwrites self.verbose)
+            * direction : Direction of motion (default: 'enu')
 
         Returns:
             * None
@@ -683,7 +783,7 @@ class SurfaceMotion(SourceInv):
 
         # Get the number of parameters
         if self.Nmotion == None: self.Nmotion = self.motion.shape[0]
-        Np = self.Nmotion*len(self.direction[datas[0].name])
+        Np = self.Nmotion * len(self.direction[datas[0].name])
 
         # Get the number of data
         Nd = np.sum([len(self.d[data.name]) for data in datas])
@@ -708,7 +808,7 @@ class SurfaceMotion(SourceInv):
             # Get the corresponding G
             Ndlocal = self.d[data.name].shape[0]
             Glocal = self.G[data.name]
-
+            
             # Put Glocal into the big G
             G[el:el+Ndlocal,0:Np] = Glocal
 
@@ -723,7 +823,7 @@ class SurfaceMotion(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def assembleCd(self, datas, add_prediction=None, verbose=False):
+    def assembleCd(self, datas, add_prediction=None, verbose=True):
         '''
         Assembles the data covariance matrices that have been built for each
         data structure.
@@ -743,6 +843,12 @@ class SurfaceMotion(SourceInv):
         assert self.Gassembled is not None, \
                 "You should assemble the Green's function matrix first"
 
+        # Print
+        if verbose:
+            print("---------------------------------")
+            print("---------------------------------")
+            print("Assembling Cd for surface motion {}".format(self.name))
+        
         # Check
         if type(datas) is not list:
             datas = [datas]
@@ -755,9 +861,13 @@ class SurfaceMotion(SourceInv):
         st = 0
         for data in datas:
             # Fill in Cd
+            
+            # print
             if verbose:
-                print("{0:s}: data vector shape {1:s}".format(data.name, self.d[data.name].shape))
+                print("Dealing with data {} of type {}".format(data.name, data.dtype))
+
             se = st + self.d[data.name].shape[0]
+            
             Cd[st:se, st:se] = data.Cd
             # Add some Cp if asked
             if add_prediction is not None:
@@ -772,7 +882,7 @@ class SurfaceMotion(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def buildCmGaussian(self, sigma):
+    def buildCmGaussian(self, sigma, verbose=True):
         '''
         Builds a diagonal Cm with sigma values on the diagonal.
         Sigma is a list of numbers, as long as you have components of motion (1, 2 or 3).
@@ -785,7 +895,14 @@ class SurfaceMotion(SourceInv):
         Returns:
             * None
         '''
-
+        
+        # Talk to me
+        if verbose:
+            print ("---------------------------------")
+            print ("---------------------------------")
+            print (f"Assembling the Cm matrix for surface motion {self.name}")
+            print (f"sigma = {sigma}")
+        
         # Make sure directions are all the same
         directions = [self.direction[data] for data in self.direction]
         assert all(item == directions[0] for item in directions), 'Data sets have different directions of motion'
@@ -839,7 +956,7 @@ class SurfaceMotion(SourceInv):
         if verbose:
             print ("---------------------------------")
             print ("---------------------------------")
-            print ("Assembling the Cm matrix ")
+            print ("Assembling the Cm matrix for surface motion {}".format(self.name))
             print ("Sigma = {}".format(sigma))
             print ("Lambda = {}".format(lam))
 

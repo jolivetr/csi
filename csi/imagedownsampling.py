@@ -235,6 +235,7 @@ class mpdownsampler(mp.Process):
         # All done
         return
 
+# Main class
 class imagedownsampling(object):
     '''
     A class to downsample images
@@ -331,8 +332,33 @@ class imagedownsampling(object):
 
         # All done
         return
+    
+    def setFaults(self, faults=None):
+        '''
+        Sets the faults to be used in the downsampling (only for distance-based method).
 
-    def initialstate(self, startingsize, minimumsize, tolerance=0.5, plot=False):
+        Args:
+            * faults    : List of faults.
+
+        Returns:
+            * None
+        '''
+
+        self.faults = []
+        if faults is None:
+            return
+        if type(faults) is not list:
+            faults = [faults]
+        for fault in faults:
+            assert (fault.utmzone==self.utmzone), 'Fault {} not in utm zone #{}'.format(fault.name, self.utmzone)
+            assert (fault.lon0==self.lon0), 'Fault {} does not have same origin Lon {}'.format(fault.name, self.lon0)
+            assert (fault.lat0==self.lat0), 'Fault {} does not have same origin Lat {}'.format(fault.name, self.lat0)
+            self.faults.append(fault)
+
+        # All done
+        return
+
+    def initialstate(self, startingsize, minimumsize, tolerance=0.5, plot=False, Nworkers=1):
         '''
         Does the first cut onto the data.
 
@@ -343,6 +369,7 @@ class imagedownsampling(object):
         Kwargs:
             * tolerance     : Between 0 and 1. If 1, all the pixels must have a value so that the box is kept. If 0, no pixels are needed... Default is 0.5
             * plot          : True/False
+            * Nworkers      : Number of workers for parallel processing
 
         Returns:
             * None
@@ -369,7 +396,7 @@ class imagedownsampling(object):
         self.setBlocks(blocks)
 
         # Generate the sampling to test
-        self.downsample(plot=plot)
+        self.downsample(plot=plot, Nworkers=Nworkers)
 
         # All done
         return
@@ -402,13 +429,14 @@ class imagedownsampling(object):
         # All done
         return
 
-    def downsample(self, plot=False, norm=None):
+    def downsample(self, plot=False, norm=None, Nworkers=1):
         '''
         From the saved list of blocks, computes the downsampled data set and the informations that come along.
 
         Kwargs:
             * plot      : True/False
             * Norm      : colorlimits for plotting
+            * Nworkers  : Number of workers for parallel processing
 
         Returns:
             * None
@@ -451,26 +479,20 @@ class imagedownsampling(object):
         # Create a queue to hold the results
         output = mp.Queue()
 
-        # Check how many workers
-        try:
-            nworkers = int(os.environ['OMP_NUM_THREADS'])
-        except:
-            nworkers = mp.cpu_count()
-
         # Create the workers
-        seqblocks = _split_seq(blocks, nworkers)
-        seqblocksll = _split_seq(blocksll, nworkers)
+        seqblocks = _split_seq(blocks, Nworkers)
+        seqblocksll = _split_seq(blocksll, Nworkers)
         workers = [mpdownsampler(self, seqblocks[i], seqblocksll[i], output)\
-                                 for i in range(nworkers)]
+                                 for i in range(Nworkers)]
 
         # Start
-        for w in range(nworkers): workers[w].start()
+        for w in range(Nworkers): workers[w].start()
 
         # Initialize blocks
         blocks, blocksll = [], []
 
         # Collect
-        for w in range(nworkers):
+        for w in range(Nworkers):
             if self.datatype=='insar':
                 x, y, lon, lat, wgt, vel, err, los, block, blockll  = output.get()
                 newimage.vel.extend(vel)
@@ -524,7 +546,7 @@ class imagedownsampling(object):
         # All done
         return
 
-    def downsampleFromSampler(self, sampler, plot=False):
+    def downsampleFromSampler(self, sampler, plot=False, Nworkers=1):
         '''
         From the downsampling scheme in a previous sampler, downsamples the image.
 
@@ -533,6 +555,7 @@ class imagedownsampling(object):
 
         Kwargs:
             * plot          : Plot the downsampled data (True/False)
+            * Nworkers      : Number of workers for parallel processing
 
         Returns:
             * None
@@ -542,12 +565,12 @@ class imagedownsampling(object):
         self.setDownsamplingScheme(sampler)
 
         # Downsample
-        self.downsample(plot=plot)
+        self.downsample(plot=plot, Nworkers=Nworkers)
 
         # All done
         return
 
-    def downsampleFromRspFile(self, prefix, tolerance=0.5, plot=False):
+    def downsampleFromRspFile(self, prefix, tolerance=0.5, plot=False, Nworkers=1):
         '''
         From the downsampling scheme saved in a .rsp file, downsamples the image.
 
@@ -557,6 +580,7 @@ class imagedownsampling(object):
         Kwargs:
             * tolerance     : Minimum surface covered in a patch to be kept.
             * plot          : Plot the downsampled data (True/False)
+            * Nworkers      : Number of workers for parallel processing
 
         Returns:    
             * None
@@ -569,7 +593,7 @@ class imagedownsampling(object):
         self.readDownsamplingScheme(prefix)
 
         # Downsample
-        self.downsample(plot=plot)
+        self.downsample(plot=plot, Nworkers=Nworkers)
 
         # All done
         return
@@ -724,16 +748,17 @@ class imagedownsampling(object):
         # all done
         return bs1, bs2, bs3
 
-
-    def distanceBased(self, chardist=15, expodist=1, plot=False, norm=None):
+    def distanceBased(self, chardist=15, expodist=1, plot=False, norm=None, discretized=False, Nworkers=1):
         '''
         Downsamples the dataset depending on the distance from the fault R.Grandin, April 2015
 
         Kwargs:
-            * chardist      : Characteristic distance of downsampling.
-            * expodist      : Exponent of the distance-based downsampling criterion.
+            * chardist      : Characteristic distance of downsampling. Can be a float (same for all faults) or a list of distances (one per fault).
+            * expodist      : Exponent of the distance-based downsampling criterion. Can be a float (same for all faults) or a list of exponents (one per fault).
             * plot          : True/False
             * Norm          : colorlimits for plotting
+            * discretized   : If True, uses the discretized fault
+            * Nworkers      : Number of workers for parallel processing
 
         Returns:
             * None
@@ -743,7 +768,17 @@ class imagedownsampling(object):
             print ("---------------------------------")
             print ("---------------------------------")
             print ("Distance-based downsampling ")
-
+        
+        # Check inputs
+        if type(chardist) is not list:
+            chardist = [chardist]*len(self.faults)
+        else:
+            assert (len(chardist)==len(self.faults)), 'chardist should be a list of size {}'.format(len(self.faults))
+        if type(expodist) is not list:
+            expodist = [expodist]*len(self.faults)
+        else:
+            assert (len(expodist)==len(self.faults)), 'expodist should be a list of size {}'.format(len(self.faults))
+        
         # by default, try to do at least one pass
         do_downsamp=True
 
@@ -757,7 +792,7 @@ class imagedownsampling(object):
             do_downsamp=False
 
             # Check if block size is minimum
-            Bsize = self._is_minimum_size(self.blocks)
+            Bsize = self._is_minimum_size(discretized=discretized)
 
             # Iteration #
             it += 1
@@ -766,26 +801,33 @@ class imagedownsampling(object):
 
             # New list of blocks
             newblocks = []
+            
             # Iterate over blocks
             for j in range(len(self.blocks)):
                 block = self.blocks[j]
-                # downsample if the block is too large, given its distance to the fault
-                # ( except if the block already has minimum size )
-                if ((self.distToFault(block)-chardist)<self.blockSize(block) ** expodist) and not Bsize[j]:
+                
+                dist = [self.distToFault(block=block, fault=fault, discretized=discretized) for fault in self.faults]
+                ifault = np.argmin(dist)
+
+                # downsample if the block is too large, given its distance to the faults (except if the block already has minimum size)
+                if (dist[ifault] - chardist[ifault]) < self.blockSize(block) ** expodist[ifault] and not Bsize[j]:
+                    
                     b1, b2, b3, b4 = self.cutblockinfour(block)
                     newblocks.append(b1)
                     newblocks.append(b2)
                     newblocks.append(b3)
                     newblocks.append(b4)
-                    do_downsamp=True
+                    do_downsamp = True
+                    
                 # otherwise, leave the block unchanged
                 else:
                     newblocks.append(block)
 
             # Set the blocks
             self.setBlocks(newblocks)
+            
             # Do the downsampling
-            self.downsample(plot=plot, norm=norm)
+            self.downsample(plot=plot, norm=norm, Nworkers=Nworkers)
 
         # All done
         return
@@ -805,7 +847,7 @@ class imagedownsampling(object):
         self.PIXXY = np.vstack((self.image.x, self.image.y)).T
 
         # Get minimum size
-        Bsize = self._is_minimum_size(self.blocks)
+        Bsize = self._is_minimum_size()
 
         # Gradient (if we cannot compute the gradient, the value is zero, so the algo stops)
         self.Gradient = np.ones(len(self.blocks,))*1e7
@@ -844,7 +886,7 @@ class imagedownsampling(object):
         # All done
         return
 
-    def dataBased(self, threshold, plot=False, verboseLevel='minimum', quantity='curvature', smooth=None, itmax=100):
+    def dataBased(self, threshold, plot=False, verboseLevel='minimum', quantity='curvature', smooth=None, itmax=100, Nworkers=1):
         '''
         Iteratively downsamples the dataset until value compute inside each block is lower than the threshold.
         Threshold is based on the gradient or curvature of the phase field inside the block.
@@ -859,6 +901,7 @@ class imagedownsampling(object):
             * quantity      : curvature or gradient
             * smooth        : Smooth the {quantity} spatial with a filter of kernel size of {smooth} km
             * itmax         : Maximum number of iterations
+            * Nworkers      : Number of workers for parallel processing
 
         Returns:
             * None
@@ -885,7 +928,7 @@ class imagedownsampling(object):
             testable = self.Gradient
 
         # Check if block size is minimum
-        Bsize = self._is_minimum_size(self.blocks)
+        Bsize = self._is_minimum_size()
 
         # Loops until done
         while not (testable<threshold).all() and it<itmax:
@@ -911,7 +954,7 @@ class imagedownsampling(object):
                 # Set the blocks
                 self.setBlocks(newblocks)
                 # Do the downsampling
-                self.downsample(plot=False)
+                self.downsample(plot=False, Nworkers=Nworkers)
             else:
                 do_cut = True
 
@@ -928,7 +971,7 @@ class imagedownsampling(object):
                 testable = self.Gradient
 
             # initialize
-            Bsize = self._is_minimum_size(self.blocks)
+            Bsize = self._is_minimum_size()
 
             if self.verbose and verboseLevel!='minimum':
                 sys.stdout.write(' ===> Resolution from {} to {}, Mean = {} +- {} \n'.format(testable.min(),
@@ -942,7 +985,7 @@ class imagedownsampling(object):
         # All done
         return
 
-    def resolutionBased(self, threshold, damping, slipdirection='s', plot=False, verboseLevel='minimum', vertical=False):
+    def resolutionBased(self, threshold, damping, slipdirection='s', plot=False, verboseLevel='minimum', vertical=False, Nworkers=1):
         '''
         Iteratively downsamples the dataset until value compute inside each block is lower than the threshold.
 
@@ -955,6 +998,7 @@ class imagedownsampling(object):
             * plot          : False/True
             * verboseLevel  : talk to me
             * vertical      : Use vertical green's functions.
+            * Nworkers      : Number of workers for parallel processing
 
         Returns:
             * None
@@ -984,7 +1028,7 @@ class imagedownsampling(object):
         it = 0
 
         # Check if block size is minimum
-        Bsize = self._is_minimum_size(self.blocks)
+        Bsize = self._is_minimum_size()
 
         # Loops until done
         while not (self.Rd<threshold).all():
@@ -1010,7 +1054,7 @@ class imagedownsampling(object):
                 # Set the blocks
                 self.setBlocks(newblocks)
                 # Do the downsampling
-                self.downsample(plot=False)
+                self.downsample(plot=False, Nworkers=Nworkers)
             else:
                 do_cut = True
 
@@ -1023,7 +1067,7 @@ class imagedownsampling(object):
             self.computeResolution(slipdirection, damping, vertical=vertical)
 
             # Blocks that have a minimum size, don't check these
-            Bsize = self._is_minimum_size(self.blocks)
+            Bsize = self._is_minimum_size()
             self.Rd[np.where(Bsize)] = 0.0
 
             if self.verbose and verboseLevel!='minimum':
@@ -1231,30 +1275,67 @@ class imagedownsampling(object):
 
         return
 
-    def reject_pixels_fault(self, distance, fault):
+    def reject_pixels_closefault(self, fault, dist, discretized=False, newimage=True):
         '''
         Removes pixels that are too close to the fault in the downsampled image.
 
         Args:
-            * distance      : Distance between pixels and fault (scalar)
-            * fault         : fault object
+            * fault    : fault instance
+            * dist      : Distance between pixels and fault (scalar)
+        
+        Kwargs:
+            * discretized   : If True, uses the discretized fault to compute distances.
+            * newimage      : If True, applies the rejection to self.newimage. If False, applies it to self.image.
 
         Returns:
             * None
         '''
 
-        # Get image
-        image = self.newimage
+        list_pixels2trash = []
+        
+        if newimage:
+        
+            for iblock, block in enumerate(self.blocks):
 
-        # Clean it
-        u = image.reject_pixels_fault(distance, fault)
+                # Get distance to fault
+                dist2fault = self.distToFault(block=block, fault=fault, discretized=discretized)
 
-        # Clean blocks
-        j = 0
-        for i in u.tolist():
-            self.blocks.pop(i-j)
-            self.blocksll.pop(i-j)
-            j += 1
+                # If too close, trash it
+                if dist2fault < dist:
+                    list_pixels2trash.append(iblock)
+
+            # Clean it
+            j = 0
+            for i in list_pixels2trash:
+                self.blocks.pop(i-j)
+                self.blocksll.pop(i-j)
+                j += 1
+            
+            self.newimage.reject_pixel(list_pixels2trash)
+        
+        else:
+            
+            for ipixel, (x, y) in enumerate(zip(self.image.x, self.image.y)):
+
+                # Get distance to fault
+                dist2fault = np.inf
+                
+                # Get fault points
+                if discretized:
+                    xf = fault.xi
+                    yf = fault.yi
+                else:
+                    xf = fault.xf
+                    yf = fault.yf
+                
+                dist2fault = np.min([dist2fault, np.min(np.hypot(xf-x, yf-y))])
+
+                # If too close, trash it
+                if dist2fault < dist:
+                    list_pixels2trash.append(ipixel)
+            
+            # Clean it
+            self.image.reject_pixel(list_pixels2trash)
 
         # All done
         return
@@ -1405,7 +1486,7 @@ class imagedownsampling(object):
             * None
         '''
 
-        # Check 
+        # Check
         if self.datatype=='opticorr':
             raise NotImplementedError
 
@@ -1477,9 +1558,12 @@ class imagedownsampling(object):
         # All done
         return
 
-    def _is_minimum_size(self, blocks):
+    def _is_minimum_size(self, discretized=False):
         '''
         Returns a Boolean array. True if block is minimum size, False either.
+        
+        Kwargs:
+            * discretized   : If True, uses the discretized fault to compute distances if self.minsize is a list.
         '''
 
         # Initialize
@@ -1487,8 +1571,19 @@ class imagedownsampling(object):
 
         # loop
         for block in self.blocks:
+            
+            # Get block size
             w = block[1][0] - block[0][0]
-            if w<=self.minsize:
+            
+            # Check 
+            if type(self.minsize) is list:
+                dist = [self.distToFault(block=block, fault=fault, discretized=discretized) for fault in self.faults]
+                ifault = np.argmin(dist)
+                minsize_ = self.minsize[ifault]
+            else:
+                minsize_ = self.minsize
+
+            if w <= minsize_:
                 Bsize.append(True)
             else:
                 Bsize.append(False)
@@ -1496,12 +1591,17 @@ class imagedownsampling(object):
         # All done
         return Bsize
 
-    def distToFault(self,block):
+    def distToFault(self, block, fault, discretized=False):
         '''
-        Returns distance from block to fault. The distance is here defined as the minimum distance from any of the four block corners to the fault. (R.Grandin, April 2015)
+        Returns distance from block to faults.
+        The distance is here defined as the minimum distance from any of the four block corners to the fault. (R.Grandin, April 2015)
 
         Args:
             * block     : Block instance of the imagedownsampling class.
+            * fault     : Fault instance to compute distance to.
+        
+        Kwargs:
+            * discretized : Boolean, if True, use the discretized fault points to compute distance
 
         Returns:
             * None
@@ -1514,18 +1614,23 @@ class imagedownsampling(object):
         x3, y3 = c3
         x4, y4 = c4
 
-        # Compute the position of the center
-        xc = x1 + (x2 - x1)/2.
-        yc = y1 + (y4 - y1)/2.
-
         # Faults
-        distMin=99999999.
-        for fault in self.faults:
-            distCorner1=np.min(np.hypot(fault.xf-x1,fault.yf-y1))
-            distCorner2=np.min(np.hypot(fault.xf-x2,fault.yf-y2))
-            distCorner3=np.min(np.hypot(fault.xf-x3,fault.yf-y3))
-            distCorner4=np.min(np.hypot(fault.xf-x4,fault.yf-y4))
-            distMin=np.min([distMin,distCorner1,distCorner2,distCorner3,distCorner4])
+        distMin = np.inf
+            
+        # Get fault points
+        if discretized:
+            xf = fault.xi
+            yf = fault.yi
+        else:
+            xf = fault.xf
+            yf = fault.yf
+            
+        distCorner1 = np.min(np.hypot(xf-x1, yf-y1))
+        distCorner2 = np.min(np.hypot(xf-x2, yf-y2))
+        distCorner3 = np.min(np.hypot(xf-x3, yf-y3))
+        distCorner4 = np.min(np.hypot(xf-x4, yf-y4))
+            
+        distMin = np.min([distMin, distCorner1, distCorner2, distCorner3, distCorner4])
 
         # all done
         return distMin

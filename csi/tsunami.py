@@ -1,5 +1,5 @@
 '''
-A class that deals with seismic or high-rate GPS data (not finished)
+A class that deals with tsunami.
 
 Written by Z. Duputel, April 2013.
 '''
@@ -110,10 +110,10 @@ class tsunami(SourceInv):
         #  All done
         return GF_SS, GF_DS
 
-    def setGFsInFault(self, fault, G, vertical=False):
+    def setGFsInSource(self, source, G, vertical=False):
         '''
-        From a dictionary of Green's functions, sets these correctly into the fault 
-        object fault for future computation.
+        From a dictionary of Green's functions, sets these correctly into the source 
+        object (fault) for future computation.
 
         Args:
             * fault     : Instance of Fault
@@ -125,28 +125,34 @@ class tsunami(SourceInv):
         Returns:
             * None
         '''
+        
+        if source.type == 'Fault':
 
-        # Get the values
-        try: 
-            GssLOS = G['strikeslip']
-        except:
-            GssLOS = None
-        try:
-            GdsLOS = G['dipslip']
-        except:
-            GdsLOS = None
-        try: 
-            GtsLOS = G['tensile']
-        except:
-            GtsLOS = None
-        try:
-            GcpLOS = G['coupling']
-        except:
-            GcpLOS = None
+            # Get the values
+            try: 
+                GssLOS = G['strikeslip']
+            except:
+                GssLOS = None
+            try:
+                GdsLOS = G['dipslip']
+            except:
+                GdsLOS = None
+            try: 
+                GtsLOS = G['tensile']
+            except:
+                GtsLOS = None
+            try:
+                GcpLOS = G['coupling']
+            except:
+                GcpLOS = None
 
-        # set the GFs
-        fault.setGFs(self, strikeslip=[GssLOS], dipslip=[GdsLOS], tensile=[GtsLOS],
-                    coupling=[GcpLOS], vertical=False)
+            # set the GFs
+            source.setGFs(self, strikeslip=[GssLOS], dipslip=[GdsLOS], tensile=[GtsLOS],
+                        coupling=[GcpLOS], vertical=False)
+        
+        else:
+            
+            raise NotImplementedError('Only Fault objects are supported.')
 
         # All done
         return

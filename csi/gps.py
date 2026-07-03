@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import os
 import copy
 import sys
-
+import scipy.spatial.distance as scidis
 import shapely.geometry as geom
 
 # Personals
@@ -19,6 +19,7 @@ from .SourceInv import SourceInv
 from .gpstimeseries import gpstimeseries
 from .geodeticplot import geodeticplot as geoplot
 from . import csiutils as utils
+from . import eulerPoleUtils as eu
 
 class gps(SourceInv):
 
@@ -63,6 +64,7 @@ class gps(SourceInv):
         self.err_enu = None
         self.rot_enu = None
         self.synth = None
+        self.synth_err = None
 
         # All done
         return
@@ -216,7 +218,6 @@ class gps(SourceInv):
         # All done
         return
                 
-
     def combineNetworks(self, gpsdata, newNetworkName='Combined Network', mergeType=None):
         '''
         Combine networks into a new network.
@@ -553,15 +554,15 @@ class gps(SourceInv):
         st = 0
         if 'e' in direction:
             se = st + Nd
-            Cd[st:se, st:se] = np.diag(self.err_enu[:,0]*self.err_enu[:,0])
+            Cd[st:se, st:se] = np.diag(self.err_enu[:, 0]**2)
             st += Nd
         if 'n' in direction:
             se = st + Nd
-            Cd[st:se, st:se] = np.diag(self.err_enu[:,1]*self.err_enu[:,1])
+            Cd[st:se, st:se] = np.diag(self.err_enu[:, 1]**2)
             st += Nd
         if 'u' in direction:
             se = st + Nd
-            Cd[st:se, st:se] = np.diag(self.err_enu[:,2]*self.err_enu[:,2])
+            Cd[st:se, st:se] = np.diag(self.err_enu[:, 2]**2)
 
         # Store Cd
         self.Cd = Cd
@@ -642,6 +643,8 @@ class gps(SourceInv):
         names = self.station[Bol]
         if hasattr(self, 'vel_los'):
             vel_los = self.vel_los[Bol]
+        if hasattr(self, 'err_los'):
+            err_los = self.err_los[Bol]
 
         # Create the lists that will hold these values
         Vacros = []; Valong = []; Vup = []; Eacros = []; Ealong = []; Eup = []
@@ -702,6 +705,8 @@ class gps(SourceInv):
         dic['Vectors'] = [vec1, vec2]
         if hasattr(self, 'vel_los'):
             dic['LOS Velocity'] = vel_los
+        if hasattr(self, 'err_los'):
+            dic['LOS Error'] = err_los
     
         # all done
         return
@@ -808,8 +813,8 @@ class gps(SourceInv):
             bb[i,1] = y
         bb[4,0] = bb[0,0]
         bb[4,1] = bb[0,1]
-        self.fig.carte.plot(bb[:,0], bb[:,1], '.k', zorder=0)
-        self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=0)
+        self.fig.ax2D.plot(bb[:,0], bb[:,1], '.k', zorder=0)
+        self.fig.ax2D.plot(bb[:,0], bb[:,1], '-k', zorder=0)
 
         # open a figure
         fig = plt.figure(figsize=figsize)
@@ -820,7 +825,7 @@ class gps(SourceInv):
             x = self.profiles[name]['Distance']
             y = self.profiles[name]['Parallel Velocity']
             ey = self.profiles[name]['Parallel Error']
-            p = prof.errorbar(x, y, yerr=ey, 
+            p = prof.errorbar(x, y, yerr=ey,
                               label='Profile Parallel', marker='.', linestyle='')
         if 'normal' in data:
             x = self.profiles[name]['Distance']
@@ -858,7 +863,7 @@ class gps(SourceInv):
         # All done
         return
 
-    def intersectProfileFault(self, name, fault):
+    def intersectProfileFault(self, name, fault, discretized=False):
         '''
         Gets the distance between the fault/profile intersection and the profile center.
 
@@ -871,8 +876,12 @@ class gps(SourceInv):
         '''
 
         # Grab the fault trace
-        xf = fault.xf
-        yf = fault.yf
+        if discretized:
+            xf = fault.xi
+            yf = fault.yi
+        else:
+            xf = fault.xf
+            yf = fault.yf
 
         # Grab the profile
         prof = self.profiles[name]
@@ -908,6 +917,109 @@ class gps(SourceInv):
 
         # All done
         return d
+
+    def read_from_binary(self, station, vel_enu, err_enu, x, y, utm=False, dtype=np.float32, factor=1., minerr=1., checkNaNs=True):
+        '''
+        Read from binary file or from array.
+
+        Args:
+            * station   : binary array (or binary file) containing the station names (type str)
+            * vel_enu   : binary array (or binary file) containing the ENU velocities (shape (Nsta, 3) formatted as [e_vel, n_vel, u_vel]
+                            or shape (Nsta, 2) formatted as [e_vel, n_vel])
+            * err_enu   : binary array (or binary file) containing the ENU velocity errors (shape (Nsta, 3) formatted as [e_err, n_err, u_err]
+                            or shape (Nsta, 2) formatted as [e_err, n_err])
+            * x       : binary array (or binary file) containing the longitude of the stations or utm coordinates if utm=True (in km)
+            * y       : binary array (or binary file) containing the latitude of the stations or utm coordinates if utm=True (in km)
+            * utm     : If True, x and y are UTM coordinates, otherwise they are longitude and latitude
+
+        Kwargs:
+            * factor    : multiplication factor for velocities
+            * dtype     : data type (default is np.float32 if data is a file)
+            * minerr    : if err=0, then err=minerr.
+            * checkNaNs : If True, kicks out stations with NaNs
+
+        Return:
+            * None
+        '''
+        
+        # Get the station codes
+        if type(station) is str:
+            station = np.fromfile(station, dtype=str)
+        else:
+            station = np.array(station)
+        
+        # Get the velocities
+        if type(vel_enu) is str:
+            vel_enu = np.fromfile(vel_enu, dtype=dtype) * factor
+        else:
+            vel_enu = np.array(vel_enu) * factor
+        
+        # Get the uncertainties
+        if type(err_enu) is str:
+            err_enu = np.fromfile(err_enu, dtype=dtype) * factor
+        else:
+            err_enu = np.array(err_enu) * factor
+        
+        # Get the longitude or x
+        if type(x) is str:
+            x = np.fromfile(x, dtype=dtype)
+        else:
+            x = np.array(x)
+        
+        # Get the latitude or y
+        if type(y) is str:
+            y = np.fromfile(y, dtype=dtype)
+        else:
+            y = np.array(y)
+        
+        # Check sizes
+        assert station.shape==x.shape, 'Something wrong with the sizes: station {} lon/x {}'.format(station.shape, x.shape)
+        assert station.shape==y.shape, 'Something wrong with the sizes: station {} lat/y {}'.format(station.shape, y.shape)
+        assert station.shape[0]==vel_enu.shape[0], 'Something wrong with the sizes: station {} vel {}'.format(station.shape, vel_enu.shape[0])
+        assert vel_enu.shape[1] in [2, 3], 'Something wrong with the sizes: vel {} (shoudl be 2 or 3)'.format(vel_enu.shape[1])
+        assert vel_enu.shape==err_enu.shape, 'Something wrong with the sizes: vel {} err {}'.format(vel_enu.shape, err_enu.shape)
+        
+        # If only EN velocities, add a column of NaNs
+        if vel_enu.shape[1]==2:
+            vel_enu = np.hstack((vel_enu, np.full(vel_enu.shape[0], np.nan)[..., np.newaxis]))
+            err_enu = np.hstack((err_enu, np.full(err_enu.shape[0], np.nan)[..., np.newaxis]))
+        
+        # Check for NaNs
+        if checkNaNs:
+            idx_drop = np.argwhere(np.isnan(vel_enu).all(axis=1))
+        
+            station = np.delete(station, idx_drop)
+            x = np.delete(x, idx_drop)
+            y = np.delete(y, idx_drop)
+            vel_enu = np.delete(vel_enu, idx_drop, axis=1)
+            err_enu = np.delete(err_enu, idx_drop, axis=1)
+        
+        # Set minimum error
+        err_enu[err_enu==0.] = minerr
+        
+        # Set things in self
+        
+        if utm:
+            lon, lat = self.xy2ll(x, y)
+        else:
+            lon = x
+            lat = y
+
+        self.lon = lon
+        self.lat = lat
+        self.vel_enu = vel_enu
+        self.err_enu = err_enu
+        self.station = station
+        self.factor = factor
+        
+        # set lon to (0, 360.)
+        self._checkLongitude()
+
+        # Pass to xy 
+        self.lonlat2xy()
+
+        # All done
+        return
 
     def read_from_en(self, velfile, factor=1., minerr=1., header=0, error='std'):
         '''
@@ -1584,6 +1696,56 @@ class gps(SourceInv):
         # All done
         return
 
+    def checkNaNs(self):
+        '''
+        Checks and remove data points that have NaNs in vel_enu, err_enu, lon, lat, los, vel_los, err_los.
+        '''
+        # Check
+        if self.vel_enu is not None:
+            uVel = np.flatnonzero(np.isnan(self.vel_enu).all(axis=1))
+        else:
+            uVel = np.array([])
+        
+        if self.err_enu is not None:
+            uErr = np.flatnonzero(np.isnan(self.err_enu).all(axis=1))
+        else:
+            uErr = np.array([])
+            
+        if self.lon is not None:
+            uLon = np.flatnonzero(np.isnan(self.lon))
+        else:
+            uLon = np.array([])
+        
+        if self.lat is not None:
+            uLat = np.flatnonzero(np.isnan(self.lat))
+        else:
+            uLat = np.array([])
+        
+        if self.los is not None:
+            uLos = np.flatnonzero(np.isnan(self.los).all(axis=1))
+        else:
+            uLos = np.array([])
+        
+        if self.vel_los is not None:
+            uVelLos = np.flatnonzero(np.isnan(self.vel_los))
+        else:
+            uVelLos = np.array([])
+        
+        if self.err_los is not None:
+            uErrLos = np.flatnonzero(np.isnan(self.err_los))
+        else:
+            uErrLos = np.array([])
+
+        # Concatenate all these guys
+        uRemove = np.concatenate((uVel, uErr, uLon, uLat, uLos, uVelLos, uErrLos)).astype(int)
+        uRemove = np.unique(uRemove)
+
+        # Reject stations
+        self.reject_stations(self.station[uRemove].tolist())
+
+        # All done
+        return
+    
     def project2InSAR(self, los=None, incidence=None, heading=None):
         '''
         Projects the GPS data into the InSAR Line-Of-Sight provided.
@@ -1630,34 +1792,6 @@ class gps(SourceInv):
                 self.vel_los[i] = None
 
         # All done 
-        return
-
-    def keep_stations(self, stations):
-        '''
-        Keeps only the stations on the arg list.
-
-        Args:
-            * stations  : list of stations to keep.
-
-        Returns:
-            * None
-        '''
-
-        # Get the total list of stations
-        allsta = self.station
-
-        # remove the stations from that list
-        for sta in stations:
-            u = np.flatnonzero(allsta==sta)
-            allsta = np.delete(allsta,u)
-
-        # Rejection list
-        rejsta = allsta.tolist()
-
-        # Reject 
-        self.reject_stations(rejsta)
-
-        # All done
         return
 
     def addstation(self, station, lon, lat, vel, err, synth=None, los=None):
@@ -1715,55 +1849,61 @@ class gps(SourceInv):
         # All done
         return
 
-    def reject_stations_awayfault(self, dis, faults):
-        ''' 
-        Rejects the pixels that are {dis} km away from the faults
+    def reject_stations_awayfault(self, dist, faults, discretized=False):
+        '''
+        Rejects the pixels that are {dist} km away from the faults.
 
         Args:
             * dis       : Threshold distance.
             * faults    : list of fault objects.
+            * discretized: If True, use the discretized fault trace for distance calculation.
 
         Returns:
             * None
         '''
 
         # Compute the distance to the fault or faults
-        d = self.distance2fault(faults)
+        dist2fault = self.distance2fault(faults, discretized=discretized)
 
         # Find the close ones
-        u = np.where(d>=dis)[0].tolist()
+        u = np.logical_not(np.any(dist2fault <= dist, axis=1))
         
-        # reject them
+        # Reject them
         self.reject_stations(self.station[u].tolist())
+        
+        del dist2fault
 
         # All done
         return
 
-    def reject_stations_fault(self, dis, faults):
+    def reject_stations_closefault(self, dist, faults, discretized=False):
         ''' 
-        Rejects the pixels that are dis km close to the fault.
+        Rejects the pixels that are dist km close to the fault.
 
         Args:
-            * dis       : Threshold distance.
+            * dist       : Threshold distance.
             * faults    : list of fault objects.
+            * discretized: If True, use the discretized fault trace for distance calculation.
 
         Returns:
             * None
         '''
 
         # Compute the distance to the fault or faults
-        d = self.distance2fault(faults)
+        dist2fault = self.distance2fault(faults, discretized=discretized)
 
         # Find the close ones
-        u = np.where(d<=dis)[0].tolist()
+        u = np.any(dist2fault <= dist, axis=1)
         
-        # reject them
+        # Reject them
         self.reject_stations(self.station[u].tolist())
+        
+        del dist2fault
 
         # All done
         return
 
-    def distance2fault(self, faults):
+    def distance2fault(self, faults, discretized=False):
         ''' 
         Computes the distance between the GPS stations and a list of faults.
 
@@ -1778,43 +1918,117 @@ class gps(SourceInv):
         if faults.__class__ is not list:
             faults = [faults]
 
-        # Build a line object with the fault
-        mll = []
-        for f in faults:
-            xf = f.xf
-            yf = f.yf
-            mll.append(np.vstack((xf,yf)).T.tolist())
-        Ml = geom.MultiLineString(mll)
+        # Get all the positions
+        pp = [[x, y] for x,y in zip(self.x, self.y)]
 
-        # Build the distance map
+        # Build a line object with the faults
         d = []
-        for i in range(len(self.x)):
-            p = [self.x[i], self.y[i]]
-            PP = geom.Point(p)
-            d.append(Ml.distance(PP))
+        
+        for flt in faults:
+            
+            # Get the fault points
+            if discretized:
+                xf = flt.xi
+                yf = flt.yi
+            else:
+                xf = flt.xf
+                yf = flt.yf
+            
+            f = [[x, y] for x, y in np.vstack((xf, yf)).T.tolist()]
+            
+            # Get distances
+            D = scidis.cdist(pp, f)
+            
+            d.append(np.min(D, axis=1))
+            
+        del D
+        d = np.array(d).T
 
-        return np.array(d)
+        # All done
+        return d
 
-    def reject_stations(self, station):
+    
+    def reject_stations(self, stations):
         '''
         Reject the stations named in stations.
 
         Args:
-            * station   : name or list of names of station.
+            * stations   : name or list of names of station.
+        
+        Returns:
+            * None
+        '''
+        
+        # Check something
+        if stations.__class__ is str:
+            stations = [stations]
+        elif stations.__class__ is list:
+            stations = np.array(stations)
+        
+        # Get the index of the stations to delete
+        u = np.flatnonzero(np.isin(self.station, stations))
+        Ndata = len(self.station)
+        
+        # If they are there
+        if u.size > 0:
+
+            self.station = np.delete(self.station, u, axis=0)
+            self.lon = np.delete(self.lon, u, axis=0)
+            self.lat = np.delete(self.lat, u, axis=0)
+            self.x = np.delete(self.x, u, axis=0)
+            self.y = np.delete(self.y, u, axis=0)
+            self.vel_enu = np.delete(self.vel_enu, u, axis=0)
+            self.err_enu = np.delete(self.err_enu, u, axis=0)
+            
+            if hasattr(self, 'Cd') and self.Cd is not None:
+                # Check component
+                Ncomp = np.logical_not(np.isnan(self.vel_enu).any(axis=0)).sum()
+
+                self.Cd = np.delete(self.Cd, [u_+k*Ndata for k in range(Ncomp) for u_ in u], axis=0)
+                self.Cd = np.delete(self.Cd, [u_+k*Ndata for k in range(Ncomp) for u_ in u], axis=1)
+            
+            if self.rot_enu is not None:
+                self.rot_enu = np.delete(self.rot_enu, u, axis=0)
+            if self.synth is not None:
+                self.synth = np.delete(self.synth, u, axis=0)
+                
+            if hasattr(self, 'vel_los'):
+                self.vel_los = np.delete(self.vel_los, u, axis=0)
+            if hasattr(self, 'los'):
+                self.los = np.delete(self.los, u, axis=0)
+            if hasattr(self, 'err_los'):
+                self.err_los = np.delete(self.err_los, u, axis=0)    
+                
+            if hasattr(self, 'block_list'):
+                self.block_list = np.delete(self.block_list, u, axis=0)
+            if hasattr(self, 'block_distance'):
+                self.block_distance = np.delete(self.block_distance, u, axis=0)
+
+        # All done
+        return
+    
+    def keep_stations(self, stations):
+        '''
+        Keeps the stations named in stations.
+
+        Args:
+            * stations  : name or list of names of station.
 
         Returns:
             * None
         '''
-
-        # This method is kind of studid and should be removed
-        if station.__class__ is str:
-            self.deletestation(station)
-        elif station.__class__ is list:
-            for sta in station:
-                self.deletestation(sta)
-
-        # Update x and y
-        self.lonlat2xy()
+        
+        # Check something
+        if stations.__class__ is str:
+            stations = [stations]
+        elif stations.__class__ is list:
+            stations = np.array(stations)
+        
+        # Get the stations to reject
+        rejsta = np.setdiff1d(np.array(self.station), stations)
+        
+        # Reject
+        self.reject_stations(rejsta)
 
         # All done
         return
@@ -1832,6 +2046,7 @@ class gps(SourceInv):
         
         # get the index
         u = np.flatnonzero(self.station == station)
+        Ndata = len(self.station)
 
         # If it is there
         if u.size > 0:
@@ -1843,14 +2058,26 @@ class gps(SourceInv):
             self.y = np.delete(self.y, u, axis=0)
             self.vel_enu = np.delete(self.vel_enu, u, axis=0)
             self.err_enu = np.delete(self.err_enu, u, axis=0)
+            
+            if hasattr(self, 'Cd') and self.Cd is not None:
+                # Check component
+                Ncomp = np.logical_not(np.isnan(self.vel_enu).any(axis=0)).sum()
+
+                self.Cd = np.delete(self.Cd, [u_+k*Ndata for k in range(Ncomp) for u_ in u], axis=0)
+                self.Cd = np.delete(self.Cd, [u_+k*Ndata for k in range(Ncomp) for u_ in u], axis=1)
+            
             if self.rot_enu is not None:
                 self.rot_enu = np.delete(self.rot_enu, u, axis=0)
             if self.synth is not None:
                 self.synth = np.delete(self.synth, u, axis=0)
             if hasattr(self, 'vel_los'):
                 self.vel_los = np.delete(self.vel_los, u, axis=0)
+            if hasattr(self, 'block_list'):
+                self.block_list = np.delete(self.block_list, u, axis=0)
+            if hasattr(self, 'block_distance'):
+                self.block_distance = np.delete(self.block_distance, u, axis=0)
 
-        # All done 
+        # All done
         return
 
     def reference2network(self, network, components=2):
@@ -1944,14 +2171,17 @@ class gps(SourceInv):
         # All done
         return
     
-    def setGFsInFault(self, fault, G, vertical=True):
+    def setGFsInSource(self, source, G, vertical=True):
         '''
-        From a dictionary of Green's functions, sets these correctly into the fault 
-        object fault for future computation.
+        From a dictionary of Green's functions, sets these correctly into the source 
+        object (fault, pressure, block or multiblock) for future computation.
 
         Args:
-            * fault     : Instance of Fault
-            * G         : Dictionary with 3 entries 'strikeslip', 'dipslip' and 'tensile'. These can be a matrix or None.
+            * source    : Instance of Fault, Pressure, Block or MultiBlock
+            * G         : Dictionary with entries 'strikeslip', 'dipslip' and 'tensile' for a fault,
+            'pressure', 'pressureDVx', 'pressureDVy', 'pressureDVz' for a pressure,
+            'rotation', 'intradef' for a block,
+            'rotation', 'intradef', 'boundary' for a multiblock. These can be a matrix or None.
 
         Kwargs:
             * vertical  : Do we set the vertical GFs? default is True
@@ -1961,18 +2191,18 @@ class gps(SourceInv):
         '''
 
         # Check components
-        east  = False
+        east = False
         north = False
-        if not np.isnan(self.vel_enu[:,0]).any():
+        if not np.isnan(self.vel_enu[:, 0]).any():
             east = True
-        if not np.isnan(self.vel_enu[:,1]).any():
+        if not np.isnan(self.vel_enu[:, 1]).any():
             north = True
         if vertical and np.isnan(self.vel_enu[:,2]).any():
             raise ValueError('vertical can only be true if all stations have vertical components')
 
         nd = self.vel_enu.shape[0]
 
-        if fault.type=="Fault":
+        if source.type == "Fault":
 
             # Initialize the variables
             GssE = None; GdsE = None; GtsE = None; GcpE = None
@@ -2040,10 +2270,10 @@ class gps(SourceInv):
                     GcpU = Gcp[range(N,N+nd),:]
 
             # set the GFs
-            fault.setGFs(self, strikeslip=[GssE, GssN, GssU], dipslip=[GdsE, GdsN, GdsU],
-                        tensile=[GtsE, GtsN, GtsU], coupling=[GcpE, GcpN, GcpU], vertical=vertical)
+            source.setGFs(self, strikeslip=[GssE, GssN, GssU], dipslip=[GdsE, GdsN, GdsU],
+                          tensile=[GtsE, GtsN, GtsU], coupling=[GcpE, GcpN, GcpU], vertical=vertical)
 
-        elif fault.type=='Pressure':
+        elif source.type == 'Pressure':
 
             # Initialize
             GpE = None; GpN = None; GpU = None
@@ -2112,10 +2342,106 @@ class gps(SourceInv):
                     GdvzU = Gdvz[N:N+nd,:]
 
             # Organize
-            fault.setGFs(self, deltapressure=[GpE, GpN, GpU], 
-                               GDVx=[GdvxE, GdvxN, GdvxU] , GDVy=[GdvyE, GdvyN, GdvyU], 
-                               GDVz =[GdvzE, GdvzN, GdvzU], 
-                               vertical=vertical)
+            source.setGFs(self, deltapressure=[GpE, GpN, GpU],
+                          GDVx=[GdvxE, GdvxN, GdvxU] , GDVy=[GdvyE, GdvyN, GdvyU],
+                          GDVz =[GdvzE, GdvzN, GdvzU],
+                          vertical=vertical)
+
+        elif source.type == 'Block':
+            
+            # Initialize
+            GrotE, GrotN, GrotU = None, None, None
+            GintE, GintN, GintU = None, None, None
+            
+            # Import
+            Grot = G['rotation']
+            Gint = G['intradef']
+            
+            # Order
+            if Grot is not None:
+                N = 0
+                if east:
+                    GrotE = Grot[:nd, :]
+                    N += nd
+                if north:
+                    GrotN = Grot[N:N+nd, :]
+                    N += nd
+                if vertical:
+                    GrotU = Grot[N:N+nd, :]
+                
+            if Gint is not None:
+                N = 0
+                if east:
+                    GintE = Gint[:nd, :]
+                    N += nd
+                if north:
+                    GintN = Gint[N:N+nd, :]
+                    N += nd
+                if vertical:
+                    GintU = Gint[N:N+nd, :]
+
+            # Organize
+            source.setGFs(self,
+                          rotation=[GrotE, GrotN, GrotU],
+                          intradef=[GintE, GintN, GintU],
+                          vertical=vertical)
+        
+        elif source.type == 'MultiBlock':
+            
+            # Initialize
+            GrotE, GrotN, GrotU = None, None, None
+            GintE, GintN, GintU = None, None, None
+            GboundE, GboundN, GboundU = None, None, None
+            
+            # Import
+            Grot = G['rotation']
+            Gint = G['intradef']
+            Gbound = G['boundary']
+            
+            # Order
+            if Grot is not None:
+                N = 0
+                if east:
+                    GrotE = Grot[:nd, :]
+                    N += nd
+                if north:
+                    GrotN = Grot[N:N+nd, :]
+                    N += nd
+                if vertical:
+                    GrotU = Grot[N:N+nd, :]
+                    
+            if Gbound is not None:
+                N = 0
+                if east:
+                    GboundE = Gbound[:nd, :]
+                    N += nd
+                if north:
+                    GboundN = Gbound[N:N+nd, :]
+                    N += nd
+                if vertical:
+                    GboundU = Gbound[N:N+nd, :]
+                
+            if Gint is not None:
+                N = 0
+                if east:
+                    GintE = Gint[:nd, :]
+                    N += nd
+                if north:
+                    GintN = Gint[N:N+nd, :]
+                    N += nd
+                if vertical:
+                    GintU = Gint[N:N+nd, :]
+            
+            # Organize
+            source.setGFs(self,
+                          rotation=[GrotE, GrotN, GrotU],
+                          intradef=[GintE, GintN, GintU],
+                          boundary=[GboundE, GboundN, GboundU],
+                          vertical=vertical)
+        
+        else:
+            
+            raise NotImplementedError("Source type {} not supported".format(source.type))
 
         # All done
         return
@@ -2127,7 +2453,11 @@ class gps(SourceInv):
         a vertical translation for the network.
 
         Args:
-            * transformation : String. Can be 'strain', 'full', 'strainnorotation', 'strainnotranslation', 'strainonly'
+            * transformation : String. It can be:
+                - 'full': full Helmert transform
+                - 'strain': strain only
+                - 'translation': translation only
+                - 'translationrotation': translation and rotation only
 
         Returns:
             * Integer
@@ -2165,37 +2495,57 @@ class gps(SourceInv):
 
     def getTransformEstimator(self, transformation, computeNormFact=True):
         '''
-        Returns the estimator for the transform.
+        Returns the estimator for the transformation to estimate in the GNSS data.
 
         Args:
-            * transformation : String. Can be 'strain', 'full', 'strainnorotation', 'strainnotranslation', 'strainonly', 'translation' or 'translationrotation'
+            * transformation : Transformation type. It can be:
+                - 'full': full Helmert transform
+                - 'strain': strain only
+                - 'translation': translation only
+                - 'translationrotation': translation and rotation only
+                - 'rotation': rotation only
 
         Kwargs:
-            * computeNormFact: compute and store the normalizing factor
+            * computeNormFact : compute and store the normalizing factor
 
         Returns:
-            * 2d array
+            * Estimator matrix (numpy array)
         '''
         
         # Helmert Transform
         if transformation == 'full':
-            orb = self.getHelmertMatrix(components=self.obs_per_station)
-        # Strain + Rotation + Translation
+            T = self.getHelmertMatrix(components=self.obs_per_station)
+        
+        # Strain
         elif transformation == 'strain':
-            orb = self.get2DstrainEst(translation=False, rotation=False, computeNormFact=computeNormFact)
+            T = self.get2DstrainEst(translation=False, rotation=False, strain=True,
+                                    computeNormFact=computeNormFact)
+        
         # Translation
         elif transformation == 'translation':
-            orb = self.get2DstrainEst(strain=False, rotation=False, computeNormFact=computeNormFact)
+            T = self.get2DstrainEst(translation=True, rotation=False, strain=False,
+                                    computeNormFact=computeNormFact)
+        
         # Translation and Rotation
         elif transformation == 'translationrotation': 
-            orb = self.get2DstrainEst(strain=False, computeNormFact=computeNormFact)
+            T = self.get2DstrainEst(translation=True, rotation=True, strain=False,
+                                    computeNormFact=computeNormFact)
+        
+        # Rotation only
+        elif transformation == 'rotation':
+            T = self.get2DstrainEst(translation=False, rotation=True, strain=False,
+                                    computeNormFact=computeNormFact)
+        
+        # No transformation
+        elif transformation is None:
+            T = None
+        
         # Unknown case
         else:
-            print('No Transformation asked for object {}'.format(self.name))
-            return None
+            raise NotImplementedError('Transformation type {} not supported'.format(transformation))
         
         # All done
-        return orb
+        return T
 
     def computeTransformation(self, fault, verbose=False, custom=False):
         '''
@@ -2291,6 +2641,128 @@ class gps(SourceInv):
 
         # Do the correction
         self.vel_enu -= self.transformation
+
+        # All done
+        return
+    
+    def getBlockList(self, blocks):
+        '''
+        For each point in the network, get the blocks in which it is located.
+        Otherwise, set the block to None.
+
+        Args:
+            * blocks    : list of block objects
+
+        Returns:
+            * None
+        '''
+
+        # Get the blocks
+        self.block_list = []
+        
+        for k in range(len(self.vel_enu)):
+        
+            for block in blocks:
+                
+                if block.PointInBlock(self.lon[k], self.lat[k]):
+                
+                    self.block_list.append(block.name)
+                
+                    break
+    
+            if len(self.block_list) != k+1:
+                self.block_list.append(None)
+
+        # Check if there are points that are not in any block
+        if None in self.block_list:
+            print('Warning: {} points are not in any block.'.format(self.block_list.count(None)))
+
+        # Save
+        self.block_list = np.array(self.block_list)
+        
+        # All done
+        return
+    
+    def distance2block(self, blocks, discretized=False):
+        ''' 
+        Computes the distance between the GPS stations and block boundaries.
+
+        Args:
+            * blocks    : list of blocks objects.
+        
+        Kwargs:
+            * discretized : Use discretized boundaries (default False).
+
+        Return:
+            * d         : distance
+        '''
+
+        # Check something 
+        if blocks.__class__ is not list:
+            blocks = [blocks]
+
+        # Compute the distance to the block or blocks
+        d = []
+        for i in range(len(self.lon)):
+            d.append([block.distance2boundary(self.lon[i], self.lat[i], discretized=discretized) for block in blocks])
+        
+        # All done
+        return np.array(d)
+    
+    def reject_stations_closeblock(self, dist, blocks, discretized=False):
+        '''
+        Rejects the stations that are {dist} km close to the blocks boundaries.
+
+        Args:
+            * dist      : Threshold distance.
+            * blocks    : list of Blocks objects.
+        
+        Kwargs:
+            * discretized : Use discretized boundaries (default False).
+
+        Returns:
+            * None
+        '''
+        
+        # Compute the distance to the boundaries of the blocks
+        dist2block = self.distance2block(blocks, discretized=discretized)
+        
+        # Find the nearest stations
+        u = np.any(dist2block <= dist, axis=1)
+        
+        # reject them
+        self.reject_stations(self.station[u].tolist())
+        
+        del dist2block
+
+        # All done
+        return
+
+    def reject_stations_awayblock(self, dist, blocks, discretized=False):
+        '''
+        Rejects the stations that are {dist} km away from the blocks boundaries.
+
+        Args:
+            * dist      : Threshold distance.
+            * blocks    : list of Blocks objects.
+        
+        Kwargs:
+            * discretized : Use discretized boundaries (default False).
+
+        Returns:
+            * None
+        '''
+
+        # Compute the distance to the boundaries of the blocks
+        dist2block = self.distance2block(blocks, discretized=discretized)
+
+        # Find the stations
+        u = np.logical_not(np.any(dist2block <= dist, axis=1))
+        
+        # reject them
+        self.reject_stations(self.station[u].tolist())
+
+        del dist2block
 
         # All done
         return
@@ -2697,27 +3169,22 @@ class gps(SourceInv):
             for station in stations:
                 u = np.flatnonzero(self.station==station)
                 if len(u)>0:
-                    lon.append(self.lon[u[0]]*np.pi/180.)
-                    lat.append(self.lat[u[0]]*np.pi/180.)
-                    vel.append(self.vel_enu[u[0],:2]/self.factor)
+                    lon.append(self.lon[u[0]])
+                    lat.append(self.lat[u[0]])
+                    vel.append(self.vel_enu[u[0], :2] / self.factor)
             lon = np.array(lon)
             lat = np.array(lat)
             vel = np.array(vel)
         else:
-            lon = self.lon*np.pi/180.
-            lat = self.lat*np.pi/180.
-            vel = self.vel_enu[:,:2]/self.factor
+            lon = self.lon
+            lat = self.lat
+            vel = self.vel_enu[:, :2] / self.factor
 
         # Estimate the roation pole coordinates and the velocity
-        self.elat,self.elon,self.omega = eu.gps2euler(lat, lon, np.zeros(lon.shape), vel[:,0], vel[:,1])
+        self.elat, self.elon, self.omega = eu.gps2euler(lon, lat, np.zeros(lon.shape), vel[:, 0], vel[:, 1])
         
-        # In degrees
-        self.elat *= 180./np.pi
-        self.elon *= 180./np.pi
-        self.omega *= 180./np.pi
-
         # Remove the rotation
-        self.compute_rotation(self.elon*np.pi/180., self.elat*np.pi/180., self.omega*np.pi/180.)
+        self.compute_rotation(self.elon, self.elat, self.omega)
 
         # Correct station velocity
         self.vel_enu -= self.rot_enu
@@ -2730,8 +3197,8 @@ class gps(SourceInv):
         Removes a rotation from the lon, lat and velocity of a rotation pole.
 
         Args:
-            * elon   : Longitude of the rotation pole 
-            * elat   : Latitude of the rotation pole 
+            * elon   : Longitude of the rotation pole (in degrees)
+            * elat   : Latitude of the rotation pole (in degrees)
             * omega  : Amplitude of the rotation (in rad/yr).
 
         Returns:
@@ -2741,14 +3208,15 @@ class gps(SourceInv):
         from . import eulerPoleUtils as eu
 
         # Convert pole parameters to Cartesian
-        evec_xyz = eu.llh2xyz(elat, elon, 0.0)
+        x, y, z = eu.llh2xyz(elon, elat, 0.0)
+        evec_xyz = np.array([x, y, z])
         self.epole = omega * evec_xyz / np.linalg.norm(evec_xyz)
         
         # Predicted station velocities
-        Pxyz = eu.llh2xyz(self.lat*np.pi/180., self.lon*np.pi/180., 
-                          np.zeros(self.lon.shape))
+        x, y, z = eu.llh2xyz(self.lon, self.lat, np.zeros(self.lon.shape))
+        Pxyz = np.row_stack((x, y, z))
         self.Pxyz = Pxyz
-        self.rot_enu = eu.euler2gps(self.epole, Pxyz.T)*self.factor
+        self.rot_enu = eu.euler2gps(self.epole, Pxyz.T) * self.factor
 
         # All done
         return 
@@ -2783,7 +3251,7 @@ class gps(SourceInv):
         self.Helmert, res, rank, s = np.linalg.lstsq(Hf, d)
 
         # All done
-        return
+        return 
 
     def removeBestHelmert(self, components=2, data='data'):
         '''
@@ -2831,10 +3299,10 @@ class gps(SourceInv):
         '''
 
         # import needed matplotlib
-        import matplotlib.delaunay as triangle
+        import matplotlib.tri as triangle
 
         # Do the triangulation
-        Cense, Edges, Triangles, Neighbors = triangle.delaunay(self.x, self.y)
+        Cense, Edges, Triangles, Neighbors = triangle.Triangulation(self.x, self.y)
 
         # plot
         if plot:
@@ -2854,15 +3322,16 @@ class gps(SourceInv):
         # All done
         return
 
-    def removeSynth(self, faults, direction='sd', poly=None, custom=False):
+    def removeSynth(self, sources, direction='sd', blockcomponent='rot+intra+bound', poly=None, custom=False):
         '''
-        Removes the synthetics from a slip model.
+        Removes the synthetics from given deformation sources.
 
         Args:
-            * faults        : list of faults to include.
+            * sources       : list of deformation sources to include.
 
         Kwargs:
             * direction     : list of directions to use. Can be any combination of 's', 'd' and 't'.
+            * blockcomponent: for blocks and multiblocks, which components to use. Can be any combination of 'rot', 'intra' and 'bound'.
             * poly          : if a polynomial function has been estimated, include it.
             * custom        : if some custom green's function was used, include it.
 
@@ -2871,7 +3340,8 @@ class gps(SourceInv):
         '''
 
         # build the synthetics
-        self.buildsynth(faults, direction=direction, poly=poly, custom=custom)
+        self.buildsynth(sources, direction=direction, blockcomponent=blockcomponent,
+                        poly=poly, custom=custom)
 
         # Correct the data from the synthetics
         self.vel_enu -= self.synth
@@ -2879,17 +3349,27 @@ class gps(SourceInv):
         # All done
         return
 
-    def buildsynth(self, sources, direction='sd', poly=None, vertical=True, custom=False):
+    def buildsynth(self, sources, direction='sd', blockcomponent='rotation+intradef+boundary',
+                   vertical=True, custom=False):
         '''
-        Takes the slip model in each of the sources and builds the synthetic displacement using the Green's functions.
+        Computes the synthetic data associated with deformation sources (Fault, Pressure, Block, ...) or geometrical transformations.
 
         Args:
-            * sources        : list of sources to include.
+            * sources       : list of sources to include.
 
         Kwargs:
             * direction     : list of directions to use. Can be any combination of 's', 'd' and 't'.
+            * blockcomponent   : string or dictionary
+                Which block components to consider.
+                
+                - If blockcomponent is a string, all blocks will have the same components considered.
+                   Options are 'rotation', 'intradef', 'boundary' or any combination (e.g. 'rotation+intradef').
+                   
+                - If blockcomponent is a dictionary, each block can have different components considered (only valid for a multiblock)
+                  The dictonary should be of the form {csi.Block.name: 'rotation+intradef+boundary'}
+                  For example, if you want to consider only rotation for block A and rotation + intradef for block B, you can set
+                  blockcomponent = {'A': 'rotation', 'B': 'rotation+intradef'}.
             * vertical      : True/False
-            * include_poly  : if a polynomial function has been estimated, include it.
             * custom        : if some custom green's function was used, include it.
 
         Returns:
@@ -2904,8 +3384,8 @@ class gps(SourceInv):
         Nd = self.x.shape[0]
 
         # Check components
-        east     = False
-        north    = False
+        east = False
+        north = False
         if not np.isnan(self.vel_enu[:,0]).any():
             east = True
         if not np.isnan(self.vel_enu[:,1]).any():
@@ -2915,8 +3395,8 @@ class gps(SourceInv):
         if np.isnan(self.vel_enu[:,2]).any():
             vertical = False
 
-        # Clean synth
-        self.synth = np.zeros((Nd,3))
+        # Reset synthetic to zero
+        self.synth = np.zeros((Nd, 3))
 
         # Loop on each source
         for source in sources:
@@ -2924,7 +3404,7 @@ class gps(SourceInv):
             # Get the good part of G
             G = source.G[self.name]
 
-            # Surface motion 
+            # Surface motion
             if source.type == 'Surface':
 
                 # Get the prediction
@@ -2949,7 +3429,8 @@ class gps(SourceInv):
                     ne = nd+self.lon.size
                     self.synth[:,2] += disp[nd:ne]
 
-            if source.type=="Fault":
+            # Fault
+            elif source.type=="Fault":
 
                 if ('s' in direction) and ('strikeslip' in G.keys()):
                     Gs = G['strikeslip']
@@ -3008,6 +3489,7 @@ class gps(SourceInv):
                         #if dc_synth.size > 2*Nd and east and north:
                         self.synth[:,2] += dc_synth[N:N+Nd]
 
+            # Pressure
             elif source.type == "Pressure":
 
                 if source.source in {"Mogi", "Yang"}:
@@ -3059,7 +3541,117 @@ class gps(SourceInv):
                         N += Nd
                     if vertical:
                         self.synth[:,2] += synth[N:N+Nd].squeeze()
+            
+            # Block
+            elif source.type == "Block":
+                
+                # Block rotation
+                if ('rotation' in blockcomponent) and ('rotation' in G.keys()):
+                    
+                    Grot = G['rotation']
 
+                    rot = np.array([source.omega_x, source.omega_y, source.omega_z]) / eu.MAS2RAD if source.omega_x is not None else np.zeros(3)
+                    synth_rot = Grot @ rot
+                    
+                    synth = synth_rot
+                
+                # Intra block deformation
+                if ('intradef' in blockcomponent) and ('intradef' in G.keys()):
+                
+                    Gint = G['intradef']
+
+                    eps = np.array([source.eps_lonlon, source.eps_lonlat, source.eps_latlat]) if source.eps_lonlon is not None else np.zeros(3)
+                    synth_intra = Gint @ eps
+                    
+                    if ('rotation' in blockcomponent) and ('rotation' in G.keys()):
+                        synth += synth_intra
+                    else:
+                        synth = synth_intra
+                    
+                N = 0
+                if east:
+                    self.synth[:, 0] += synth[N:Nd].squeeze()
+                    N += Nd
+                if north:
+                    self.synth[:, 1] += synth[N:N+Nd].squeeze()
+                    N += Nd
+                if vertical:
+                    self.synth[:, 2] += synth[N:N+Nd].squeeze()
+            
+            # Multiblock
+            elif source.type == "MultiBlock":
+                
+                # Get the block components to consider
+                if type(blockcomponent) is str:
+                    source.blockcomponent = {block.name: blockcomponent for block in source.blocks}
+                else:
+                    source.blockcomponent = blockcomponent
+                
+                synth = np.zeros((Nd*sum([east, north, vertical]),))
+                
+                for iblock, block in enumerate(source.blocks):
+                
+                    # Block rotation
+                    if ('rotation' in source.blockcomponent[block.name]) and ('rotation' in G.keys()):
+
+                        Grot = G['rotation'][:, iblock*3:(iblock+1)*3]
+                        rot = np.array([block.omega_x, block.omega_y, block.omega_z]) / eu.MAS2RAD if block.omega_x is not None else np.zeros(3)
+                        synth_rot = Grot @ rot
+                        
+                        synth += synth_rot
+                    
+                    # Block boundary deformation
+                    if ('boundary' in source.blockcomponent[block.name]) and ('boundary' in G.keys()):
+                    
+                        Gbound = G['boundary'][:, iblock*3:(iblock+1)*3]
+                        rot = np.array([block.omega_x, block.omega_y, block.omega_z]) / eu.MAS2RAD if block.omega_x is not None else np.zeros(3)
+                        synth_bound = Gbound @ rot
+                        
+                        synth += synth_bound
+                    
+                    # Intra block deformation
+                    if ('intradef' in source.blockcomponent[block.name]) and ('intradef' in G.keys()):
+                    
+                        Gint = G['intradef'][:, iblock*3:(iblock+1)*3]
+                        eps = np.array([block.eps_lonlon, block.eps_lonlat, block.eps_latlat]) if block.eps_lonlon is not None else np.zeros(3)
+                        synth_intra = Gint @ eps
+                        
+                        synth += synth_intra
+
+                N = 0
+                if east:
+                    self.synth[:, 0] += synth[N:Nd].squeeze()
+                    N += Nd
+                if north:
+                    self.synth[:, 1] += synth[N:N+Nd].squeeze()
+                    N += Nd
+                if vertical:
+                    self.synth[:, 2] += synth[N:N+Nd].squeeze()
+            
+            # Transformation
+            elif source.type == 'transformation':
+                
+                # Compute the transformation
+                self.computeTransformation(source)
+                
+                self.synth += self.transformation
+                
+                # if (self.name in source.poly.keys()):
+                #     gpsref = source.poly[self.name]
+                #     if type(gpsref) is str:
+                #         if gpsref in ('strain', 'strainonly', 'strainnorotation', 'strainnotranslation'):
+                #             self.compute2Dstrain(source)
+                #             self.synth += self.Strain
+                #         elif gpsref == 'full':
+                #             self.computeHelmertTransform(source)
+                #             self.synth += self.HelmTransform
+                #     elif type(gpsref) is float:
+                #         self.synth[:,0] += gpsref[0]
+                #         self.synth[:,1] += gpsref[1]
+                #         if len(gpsref)==3:
+                #             self.synth += gpsref[2]
+            
+            # Custom GFs
             if custom:
                 Gc = G['custom']
                 Sc = source.custom[self.name]
@@ -3074,25 +3666,8 @@ class gps(SourceInv):
                 if vertical:
                     self.synth[:,2] += cu_synth[N:N+Nd]
 
-            if poly == 'build' or poly == 'include':
-                if (self.name in source.poly.keys()):
-                    gpsref = source.poly[self.name]
-                    if type(gpsref) is str:
-                        if gpsref in ('strain', 'strainonly', 'strainnorotation', 'strainnotranslation'):
-                            self.compute2Dstrain(source)
-                            self.synth = self.synth + self.Strain
-                        elif gpsref == 'full':
-                            self.computeHelmertTransform(source)
-                            self.synth = self.synth + self.HelmTransform
-                    elif type(gpsref) is float:
-                        self.synth[:,0] += gpsref[0]
-                        self.synth[:,1] += gpsref[1]
-                        if len(gpsref)==3:
-                            self.synth += gpsref[2]
-
     # All done
         return
-
 
     def writeEDKSdata(self):
         '''
@@ -3248,7 +3823,6 @@ class gps(SourceInv):
 
         # All done 
         return
-
 
     def getRMS(self, vertical=False):
         '''
@@ -3784,13 +4358,13 @@ class gps(SourceInv):
         # All done
         return
 
-    def plot(self, faults=None, figure=135, name=False, figsize=None,
+    def plot(self, faults=None, blocks=None, surfacemotions=None, figure=135, name=False, figsize=None,
              legendscale=10., scale=None, legendunit='', 
              plot_los=False, drawCoastlines=True, expand=0.2, show=True, error=True, title=True,
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
              landcolor='lightgrey', seacolor=None, shadedtopo=None,
              Map=True, Fault=True, zorder=None,
-             vertical=False, verticalsize=[30], verticalnorm=None, box=None,
+             vertical=False, verticalsize=[30], verticalnorm=None, verticalcmap='jet', box=None,
              width=0.005, headwidth=3, headlength=5, headaxislength=4.5, minshaft=1, minlength=1,
              data=['data'], color=['k'], titleyoffset=1.1, alpha=1.):
         '''
@@ -3798,9 +4372,12 @@ class gps(SourceInv):
 
         Kwargs:
             * faults        : list of instances of faults
+            * blocks        : list of instances of blocks
+            * surfacemotions : list of instances of surfacemotion
             * data          : list of data to plot (can be 'data', 'synth', 'res' or 'transformation')
             * vertical      : plot verticals (True/False)
             * verticalsize  : size of the dots for vertical plots (list as long as data)
+            * verticalcmap  : colormap for verticals (default is 'jet')
             * color         : lits of color specifications as long as data
             * name          : plot the name of the stations
             * legendscale   : size of the legend (default is 10)
@@ -3819,11 +4396,19 @@ class gps(SourceInv):
         '''
 
         # Get lons lats
-        lonmin = self.lon.min()-expand
-        lonmax = self.lon.max()+expand
-        latmin = self.lat.min()-expand
-        latmax = self.lat.max()+expand
+        # Check crossing of the meridian
+        if self.lon.max() - self.lon.min() > 180.:
+            lons = np.where(self.lon > 180., self.lon - 360., self.lon)
+            lonmin = lons.min() - expand
+            lonmax = lons.max() + expand
 
+        else:
+            lonmin = self.lon.min() - expand
+            lonmax = self.lon.max() + expand
+        
+        latmin = self.lat.min() - expand
+        latmax = self.lat.max() + expand
+        
         # A dirty Hack
         if len(data)>1 and scale is None:
             figtmp, ax = plt.subplots(1,1,figsize=figsize)
@@ -3859,6 +4444,22 @@ class gps(SourceInv):
                 faults = [faults]
             for fault in faults:
                 fig.faulttrace(fault)
+        
+        # Plot the blocks if asked
+        if blocks is not None:
+            if type(blocks) is not list:
+                blocks = [blocks]
+            for block in blocks:
+                fig.blockboundary(block)
+        
+        # Plot the surface motion nodes if asked
+        if surfacemotions is not None:
+            if type(surfacemotions) is not list:
+                surfacemotions = [surfacemotions]
+            for smotion in surfacemotions:
+                color_ = smotion.color if hasattr(smotion, 'color') else 'k'
+                markersize_ = smotion.markersize if hasattr(smotion, 'markersize') else 10
+                fig.SurfaceMotionNodes(smotion, color=color_, markersize=markersize_)
 
         # plot GPS along the LOS
         if plot_los:
@@ -3867,7 +4468,8 @@ class gps(SourceInv):
         # Plot verticals?
         if vertical:
             fig.gpsverticals(self, colorbar=True, data=data, norm=verticalnorm,
-                             markersize=verticalsize, cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, alpha=alpha)
+                             markersize=verticalsize, cbaxis=cbaxis, cborientation=cborientation,
+                             cblabel=cblabel, alpha=alpha, cmap=verticalcmap)
 
         # Plot GPS velocities
         fig.gps(self, data=data, name=name, error=error,

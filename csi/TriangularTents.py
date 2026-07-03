@@ -143,7 +143,7 @@ class TriangularTents(TriangularPatches):
             * x, y, z, strike, dip  : Tent Informations
         '''
 
-        # Get the patch
+        # Get the tent
         u = None
         if type(tent) in (int, np.int64, np.int32):
             u = tent
@@ -163,7 +163,10 @@ class TriangularTents(TriangularPatches):
         # Compute the mean (beware of angle stuff), and we count from 0 to 2pi
         j = complex(0., 1.)
         strike = np.angle(np.sum([np.exp(j*s) for s in strike])/len(strike))
-        if strike<0.: strike += 2*np.pi
+        if strike<0.:
+            strike += 2*np.pi
+        
+        # Vertical
         dip = np.mean(dip)
 
         # All done
@@ -204,6 +207,55 @@ class TriangularTents(TriangularPatches):
         # All done
         return
     # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    # Get tent dip
+    def gettentdip(self, tent, checkindex=True):
+        ''' 
+        Get the dip of one tent.
+
+        Args:
+            * tent  : Tent geometry.
+        
+        Kwargs:
+            * checkindex    : Checks the index of the tent
+
+        Returns:
+            * dip    : Dip of the tent (in radians)
+        '''
+        
+        return self.getTentInfo(tent)[4]
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    # Get tent strike
+    def gettentstrike(self, tent, checkindex=True, method='xy'):
+        ''' 
+        Get the strike of one tent.
+
+        Args:
+            * tent  : Tent geometry.
+        
+        Kwargs:
+            * checkindex    : Checks the index of the tent
+            * method        : 'xy' or 'sphere'. 
+
+        Returns:
+            * strike    : Strike of the tent (in radians)
+        '''
+        
+        # Compute the strike
+        if method=='sphere':
+            
+            raise NotImplementedError('Does not work well yet.')
+        
+        else:
+            
+            strike = self.getTentInfo(tent)[3]
+
+        # All done
+        return np.mod(strike, np.pi)
+    # -----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
     def deleteTents(self, tents):
@@ -371,6 +423,66 @@ class TriangularTents(TriangularPatches):
         for i in range(len(tents)):
             self.addTent(tents[i], list(slip[i,:]))
 
+        # All done
+        return
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    def gettent2Dgeometry(self, discretized=False, coord='ll', recompute=True):
+        '''
+        Convert the 3D geometry of the tents into a 2D geometry (distance along strike and distance along dip).
+        It is most useful for vertical faults, but can be used for any fault. The coordinates are stored in self.tent2D.
+        
+        Kwargs:
+            * discretized       : Uses the discretized trace.
+            * recompute         : recompute the cumulative distance
+            * coord             : if 'll' or 'lonlat', use geographical coordinates. If 'xy' or 'utm', input in km
+
+        Returns:
+            * None
+        '''
+        
+        if coord in ('ll', 'lonlat'):
+            tent = self.tentll
+        elif coord in ('xy', 'utm'):
+            tent = self.tent
+        else:
+            raise ValueError('coord should be in (ll, lonlat, xy, utm)')
+        
+        tent2D = []
+
+        for it, t in enumerate(tent):
+            
+            dist_ = self.distance2trace(lon=t[0], lat=t[1],
+                                        discretized=discretized, coord=coord, recompute=recompute)
+            
+            tent2D.append([dist_[0], t[2]])
+        
+        # Save
+        self.tent2D = np.array(tent2D)
+        
+        # All done
+        return
+    # ----------------------------------------------------------------------  
+    
+    # ----------------------------------------------------------------------
+    def VerticalizePatch(self, list_patches=None):
+        """
+        Project each triangular patch onto a vertical plane to force the fault to be vertical.
+        
+        Kwargs:
+            * list_patches : List of the indexes of the triangular patches to verticalize. If None, verticalizes all patches.
+            
+        Returns:
+            * None
+        """
+        
+        # Run the method from the parent class
+        super(TriangularTents, self).VerticalizePatch(list_patches=list_patches)
+        
+        # Set up tent
+        self.vertices2tents()
+        
         # All done
         return
     # ----------------------------------------------------------------------
@@ -849,7 +961,7 @@ class TriangularTents(TriangularPatches):
     def vertices2tents(self):
         '''
         Takes the list of vertices and builds the tents.
-
+        
         Returns:
             * None
         '''
@@ -862,15 +974,16 @@ class TriangularTents(TriangularPatches):
         # Get vertices
         vertices = self.Vertices
         verticesll = self.Vertices_ll
-        vx, vy, vz = vertices[:,0], vertices[:,1], vertices[:,2]
 
-        # Loop over vetices and create a node-based tent consisting of coordinate tuples
+        # Loop over vertices and create a node-based tent consisting of coordinate tuples
         self.numtent = vertices.shape[0]
         for i in range(self.numtent):
             # Get the coordinates
-            x, y, lon, lat, z = vx[i], vy[i], verticesll[i,0], verticesll[i,1], vz[i]
+            x, y, z = vertices[i, 0], vertices[i, 1], vertices[i, 2]
+            lon, lat = verticesll[i, 0], verticesll[i, 1]
             # Make the coordinate tuples
-            p = [x, y, z]; pll = [lon, lat, z]
+            p = [x, y, z]
+            pll = [lon, lat, z]
             # Store the patch
             self.tent.append(p)
             self.tentll.append(pll)
@@ -1365,7 +1478,8 @@ class TriangularTents(TriangularPatches):
              show=True, norm=None, linewidth=1.0, plot_on_2d=True, alpha=1.0, box=None,
              method='scatter', npoints=10, cmap='jet', shadedtopo=None, view=None, shape=(1., 1., 1.),
              colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
-             drawCoastlines=False, expand=0.2, vertIndex=False, savefig=False):
+             drawCoastlines=False, expand=0.2, vertIndex=False, savefig=False,
+             elinewidth=1., edgecolor='k', markersize=5):
         '''
         Plot the available elements of the fault.
         
@@ -1385,6 +1499,9 @@ class TriangularTents(TriangularPatches):
             * drawCoastlines: Self-explanatory argument
             * expand        : Expand the map by {expand} degrees
             * vertIndex     : ?????
+            * elinewidth    : Width of the edges of the fault patches
+            * edgecolor     : Color of the edges of the fault patches
+            * markersize    : Size of the markers in the scatter plot
         '''
 
         # Get lons lats
@@ -1436,7 +1553,8 @@ class TriangularTents(TriangularPatches):
             x, y, z, slipval = fig.faultTents(self, slip=slip, norm=norm, colorbar=colorbar, alpha=alpha,
                                               cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
                                               plot_on_2d=plot_on_2d, npoints=npoints, cmap=cmap,
-                                              method=method, vertIndex=vertIndex)
+                                              method=method, vertIndex=vertIndex,
+                                              linewidth=elinewidth, edgecolor=edgecolor, markersize=markersize)
 
         # Savefigs?
         if savefig:
@@ -1445,20 +1563,22 @@ class TriangularTents(TriangularPatches):
 
         # View?
         if view is not None:
-            fig.set_view(*view, shape=shape)
-            
+            fig.set_view(**view, shape=shape)
+
         # show
         if show:
-            showFig = ['fault']
-            if plot_on_2d:
+            showFig = []
+            if Map:
                 showFig.append('map')
+            if Fault:
+                showFig.append('fault')
             fig.show(showFig=showFig)
 
-        # Keep that in mind
+        # Save the figure
         self.fig = fig
 
         # All done
-        return x, y, z, slip
+        return
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------

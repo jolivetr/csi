@@ -24,7 +24,7 @@ from .SourceInv import SourceInv
 class seismic(SourceInv):
     
     '''
-    A class that handles optical correlation results
+    A class that deals with seismic or high-rate GPS data (not finished).
 
     Args:
        * name      : Name of the dataset.
@@ -620,8 +620,8 @@ class seismic(SourceInv):
 
         # Make basemap object first to save time
         if basemap==True and fault is not None and globalbasemap==False:
-            carte = plt.figure()
-            m = carte.add_subplot(111, projection=ccrs.PlateCarree())
+            ax2D = plt.figure()
+            m = ax2D.add_subplot(111, projection=ccrs.PlateCarree())
             m.set_extent([fault.hypo_lon-basemap_dlon, fault.hypo_lon+basemap_dlon, fault.hypo_lat-basemap_dlat, fault.hypo_lat+basemap_dlat],
                          projection=ccrs.PlateCarree())
             m.add_feature(cfeature.COASTLINE)

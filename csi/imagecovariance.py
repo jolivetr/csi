@@ -684,12 +684,12 @@ class imagecovariance(object):
             #    for zone in self.selectedZones:
             #        x = [zone[0], zone[0], zone[1], zone[1], zone[0]]
             #        y = [zone[2], zone[3], zone[3], zone[2], zone[2]]
-            #        self.image.fig.carte.plot(x, y, '-b', zorder=20)
+            #        self.image.fig.ax2D.plot(x, y, '-b', zorder=20)
             #if hasattr(self, 'maskedZones'):
             #    for zone in self.maskedZones:
             #        x = [zone[0], zone[0], zone[1], zone[1], zone[0]]
             #        y = [zone[2], zone[3], zone[3], zone[2], zone[2]]
-            #        self.image.fig.carte.plot(x, y, '-r', zorder=20)
+            #        self.image.fig.ax2D.plot(x, y, '-r', zorder=20)
             if savefig:
                 figname = 'Data_{}.png'.format(self.name.replace(' ','_'))
                 figname = os.path.join(savedir, figname)

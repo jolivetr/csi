@@ -1,0 +1,26 @@
+\chapter*{Preface}
+
+\section{Why CSI?}
+
+	The idea for CSI came up when I was trying to explain to some undergrad students what ``inverting for the slip distribution of an earthquake" meant. I realized that the tools available would not allow for a step-by-step simple description of the entire process, with simple function names, a consistent way of handling faults and geodetic data and the ability to interact with existing softwares. To do so, we needed a set of tools that could do all the things we now do following some standard procedure, such as computing ground displacements due to a dislocation in an elastic half-space following Okada's routine or collapsing GPS-derived surface displacements onto a profile for instance. These procedures are simple, extremely useful, and, most of all, absolutely boring to implement. Therefore, nobody should have to go through the pain of deciding wether corners of fault patches should be ordered clockwise or counter-clockwise, nobody should have to slam their head against the wall to project elastic Green's functions into the Line-Of-Sight of InSAR data, and so on. 
+	
+	As all these simple routines are somehow painful, very much time-consuming and certainly boring to implement, here is CSI! CSI stood at first for Classic Slip Inversion, since it was not intended to do anything fancier than your own old fortran codes. However, now it has become some kind of a Community Slip Inversion code as several colleagues/friends tamed it and helped me raising it to do some state-of-the-art slip inversions. No one can write routines that can read all the data formats available out there and no one should, so this librairie is intended to be modified by users, with the possibility of sharing these new tools with the rest of the community. 
+	
+	This is version 0.1 and it all started from my little knowledge of Python. There is certainly smarter ways of implementing this whole set of tools, but the way things are now makes it simple for geophysicists like me (i.e. not professional computer programmers) to add, modify and upgrade classes and methods used in CSI. We will try to keep a safe, fixed version between each major upgrade but anyone who wants to contribute is more than welcome.
+
+\section{About This Document}
+This document is a description of the CSI package. It is organized describing the tools available in the librairie, with some examples throughout the way and some tutorial based on real data at the end. We first describe how to install the software, with extensive details for Linux (Ubuntu) and Apple users. This software has never been tested for Windows computers, but feel free to try it. We then describe, step by step, the different classes implemented in CSI. We finally show an example of a slip inversion for an earthquake that hit northern Chile in 2014: the Pisagua, $\text{M}_w$8.1 2014 earthquake.
+
+\section{Who Will Use This Documentation}
+This documentation is aimed at scientists who want to have a simple use of CSI, such as data exploration, simple slip inversions and simple plotting. All the classes and methods are described, but more expert users should, after reading this manuscript, head straight to the core of the librairy. 
+
+\section{Citation}
+The \'Ecole Normale Sup\'erieure de Paris and Caltech's Seismological Laboratory are making this source code available to you at no cost in hopes that the software will enhance your research in geophysics. A number of individuals have contributed significant time and effort towards the development of this software. It is essential that you recognize these individuals in the normal scientific practice by citing the appropriate peer-reviewed papers and making appropriate acknowledgements in talks and publications. 
+
+[[[Include citations when ready.]]]
+
+\section{Support}
+Some authors of this software were supported by the Tectonics Observatory, California Institute of Technology, during their tenure at Caltech. The Authors thank the Gordon and Betty Moore foundation for financial support via the Caltech Tectonic Observatory. Some authors were supported by the Marie Curie FP7 Initial Training Network iTECC (investigating Tectonic Erosion Climate Couplings).  
+
+\section{Request for feedback}
+Your suggestions and corrections can only improve this documentation and CSI. Please report any errors, inaccuracies, or typos to the CSI development team at csi@blabla.fr .

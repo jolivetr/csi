@@ -82,6 +82,9 @@ class RectangularPatches(Fault):
 
         # Allocate depth and number of patches
         self.numz = None            # Number of patches along dip
+        
+        # We leave this option here for consistency with triangular patches
+        self.vertical = False
 
         # All done
         return
@@ -225,6 +228,39 @@ class RectangularPatches(Fault):
 
         # all done in one line
         return np.array([self.getpatchgeometry(p)[5] for p in self.patch])
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    def homogeneizeStrike(self, direction=1, sign=1.):
+        '''
+        Rotates the vertices in {Faces} so that the normals are all pointing in
+        a common direction. The {direction} is checked by the axis (0=x, 1=y, 2=z).
+
+        Kwargs:
+            * direction : Direction of the normal to check.
+            * sign      : +1 or -1
+        '''
+
+        # Check
+        assert type(sign) in (float, int), 'sign must be a float or int: {}'.format(sign)
+        assert float(sign)!=0., 'sign must be different from 0'
+
+        # Compute normals
+        normals = np.array([self.getpatchgeometry(p, retNormal=True)[-1] for p in self.patch])
+
+        # Find the normals that are not following the rule
+        inormals = np.flatnonzero(np.sign(normals[:,direction])==np.sign(sign))
+
+        # For these patches, get the patch, flip 2 summits
+        for ip in inormals:
+            p1, p2, p3, p4 = self.patch[ip]
+            self.patch[ip] = np.array([p1, p4, p3, p2])
+
+        # Recompute patches 2 lonlat
+        self.patch2ll()
+
+        # All done
+        return
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -941,6 +977,10 @@ class RectangularPatches(Fault):
         D = np.unique(np.array(D))
         self.z_patches = D
         self.depth = D.max()
+        
+        # Patches 2 vertices
+        self.setVerticesFromPatches()
+        self.numpatch = self.Faces.shape[0]
 
         # Create a trace
         dmin = D.min()
@@ -1087,6 +1127,10 @@ class RectangularPatches(Fault):
         # depth
         self.depth = D
         self.z_patches = np.linspace(0,D,5)
+        
+        # Patches 2 vertices
+        self.setVerticesFromPatches()
+        self.numpatch = self.Faces.shape[0]
 
         # Translate slip to np.array
         if not donotreadslip:
@@ -1114,7 +1158,7 @@ class RectangularPatches(Fault):
             * filename      : Name of the file.
 
         Kwargs:
-            * add_slip      : Put the slip as a value for the color. Can be None, strikeslip, dipslip, total, coupling.
+            * add_slip      : Put the slip as a value for the color. Can be None, strikeslip, dipslip, opening, total, coupling.
             * scale         : Multiply the slip value by a factor.
             * patch         : Can be 'normal' or 'equiv'
             * stdh5         : Get standard deviation from an h5 file
@@ -1899,7 +1943,7 @@ class RectangularPatches(Fault):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def getpatchgeometry(self, patch, center=False, checkindex=True):
+    def getpatchgeometry(self, patch, center=False, checkindex=True, retNormal=False):
         '''
         Returns the patch geometry as needed for okada92.
 
@@ -1909,9 +1953,10 @@ class RectangularPatches(Fault):
         Kwargs:
             * center        : if true, returns the coordinates of the center of the patch. if False, returns the UL corner.
             * checkindex    : Checks the index of the patch
+            * retNormal     : If True gives, also the normal vector to the patch
 
         Returns:
-            * x, y, depth, width, length, strike, dip
+            * x, y, depth, width, length, strike, dip, (normal)
 
         When we build the fault, the patches are not exactly rectangular. Therefore, 
         this routine will return the rectangle that matches with the two shallowest 
@@ -1957,20 +2002,134 @@ class RectangularPatches(Fault):
         
         # Find vector normal to the fault plane
         vnz = vs[1]*vd[0]-vs[0]*vd[1]
+        
+        # Normal vector to the patch
+        normal = np.cross(vs, vd)
+        # If fault is vertical, force normal to be horizontal
+        if self.vertical:
+            normal[2] = 0.
+        normal /= np.linalg.norm(normal)
 
         if vnz<0.: # Patch is numbered counter-clockwise
             vs *= -1
 
         # Get the strike assuming dipping to the east
-        strike = np.arctan2( vs[0],vs[1] )
-        if strike<0.:
-            strike+= 2*np.pi
+        strike = np.arctan2(vs[0], vs[1]) - np.pi
+        # strike = np.arctan2(-normal[0], normal[1]) - np.pi
+        if strike < 0.:
+            strike += 2*np.pi
 
         # Set the dip
-        dip = np.arcsin(vd[2]/width )
+        dip = np.arcsin(vd[2]/width)
 
         # All done
-        return x1, x2, x3, width, length, strike, dip
+        if retNormal:
+            return x1, x2, x3, width, length, strike, dip, normal
+        else:
+            return x1, x2, x3, width, length, strike, dip
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    def getpatchdip(self, patch, checkindex=True):
+        ''' 
+        Get the dip of one rectangular patch.
+
+        Args:
+            * patch  : Patch geometry.
+        
+        Kwargs:
+            * checkindex    : Checks the index of the patch
+
+        Returns:
+            * dip    : Dip of the patch (in radians)
+        '''
+        
+        # Get the patch
+        u = None
+        if patch.__class__ in (int,  np.int64, np.int32):
+            u = patch
+        else:
+            if checkindex:
+                u = self.getindex(patch)
+        if u is not None:
+            if hasattr(self, 'equivpatch'):
+                patch = self.equivpatch[u]
+            else:
+                patch = self.patch[u]
+    
+        # Get the four corners of the rectangle
+        p1, p2, p3, p4 = patch
+
+        # Get the patch width
+        width = np.sqrt( (p4[0] - p1[0])**2 + (p4[1] - p1[1])**2 + (p4[2] - p1[2])**2)
+        
+        # Set the dip
+        dip = np.arcsin((p4[2]-p1[2])/width)
+
+        # All done
+        return dip
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    def getpatchstrike(self, patch, checkindex=True, method='xy'):
+        ''' 
+        Get the strike of one rectangular patch.
+
+        Args:
+            * patch  : Patch geometry.
+        
+        Kwargs:
+            * checkindex    : Checks the index of the patch
+            * method        : 'xy' or 'sphere'. 
+
+        Returns:
+            * dip    : Strike of the patch (in radians)
+        '''
+        
+       # Get the patch
+        u = None
+        if patch.__class__ in (int,  np.int64, np.int32):
+            u = patch
+        else:
+            if checkindex:
+                u = self.getindex(patch)
+        if u is not None:
+            if method == 'sphere':
+                if hasattr(self, 'equivpatchll'):
+                    patch = self.equivpatchll[u]
+                else:
+                    patch = self.patchll[u]
+            else:
+                if hasattr(self, 'equivpatch'):
+                    patch = self.patch[u]
+                else:
+                    patch = self.patch[u]
+        
+        # Compute the strike
+        if method=='sphere':
+            
+            # The method is from:
+            # Block Modeling with Connected Fault-Network Geometries and a
+            # Linear  Elastic Coupling Estimator in Spherical Coordinates
+            # Meade and Loveless, 2009
+            
+            # Get the four corners of the rectangle
+            p1, p2, p3, p4 = patch
+            
+            lon0_ = np.deg2rad(p1[0])
+            lat0_ = np.deg2rad(p1[1])
+            lon1_ = np.deg2rad(p2[0])
+            lat1_ = np.deg2rad(p2[1])
+            
+            strike = np.arctan2(np.cos(lat0_) * np.sin(lon0_ - lon1_),
+                                np.cos(lat1_) * np.sin(lat0_) - np.sin(lat1_) * np.cos(lat0_) * np.cos(lon0_ - lon1_))
+        
+        else:
+            
+            strike = self.getpatchgeometry(patch, checkindex=checkindex)[5]
+
+        # All done
+        return np.mod(strike, np.pi)
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -2156,7 +2315,7 @@ class RectangularPatches(Fault):
         # All done
         return ss_dis, ds_dis, ts_dis
     # ----------------------------------------------------------------------
-
+    
     # ----------------------------------------------------------------------
     def read3DrectangularGrid(self, filename, aggregatePatchNodes=None, square=False):
         '''
@@ -2283,6 +2442,10 @@ class RectangularPatches(Fault):
         # Equiv patches
         self.equivpatch   = self.patch
         self.equivpatchll = self.patchll
+        
+        # Patches 2 vertices
+        self.setVerticesFromPatches()
+        self.numpatch = self.Faces.shape[0]
 
         # All done
         return
@@ -2294,14 +2457,17 @@ class RectangularPatches(Fault):
         Get the center of one rectangular patch.
 
         Args:
-            * p     : Patch geometry.
+            * p     : Patch geometry or index of the patch.
 
         Returns:
             * x,y,z  : Coordinates of the center
         '''
     
         # Get center
-        p1, p2, p3, p4 = p
+        if type(p) is int:
+            p1, p2, p3, p4 = self.patch[p]
+        else:
+            p1, p2, p3, p4 = p
 
         # Compute the center
         x = p1[0] + (p3[0] - p1[0])/2.
@@ -2335,24 +2501,25 @@ class RectangularPatches(Fault):
     def getcenters(self, coordinates='xy'):
         '''
         Get the center of the patches.
+        
+        Kwargs:
+            * coordinates   : 'xy' (utm) or 'll' (lon, lat)
 
         Returns:
-            * centers       : list of centers [x,y,z]
+            * centers       : list of centers [x, y, z]
         '''
+        
+        # Check coordinates
+        assert coordinates in ('xy', 'll'), 'coordinates must either be xy or ll: currently set to {}'.format(coordinates)
 
-        # Get the patches
-        patch = self.equivpatch
-
-        # Initialize a list
-        center = []
-
-        # loop over the patches
-        for p in patch:
+        # Loop over the patches
+        centers = []
+        for p in self.equivpatch:
             x, y, z = self.getcenter(p, coordinates=coordinates)
-            center.append([x, y, z])
+            centers.append([x, y, z])
 
         # All done
-        return center
+        return centers
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
@@ -3193,9 +3360,9 @@ class RectangularPatches(Fault):
     # ----------------------------------------------------------------------
     def plot(self, figure=134, slip='total', Fault=True, Map=True,
                  show=True, shadedtopo=None, box=None,
-                 norm=None, linewidth=1.0, plot_on_2d=True, view=None, cmap='jet', shape=(1., 1., 1.),
+                 norm=None, linewidth=1.0, elinewidth=1., plot_on_2d=True, view=None, cmap='jet', shape=(1., 1., 1.),
                  colorbar=True, cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
-                 drawCoastlines=True, expand=0.2, figsize=(None, None)):
+                 drawCoastlines=True, expand=0.2, figsize=(None, None), edgecolor='slip'):
             '''
             Plot the available elements of the fault.
             
@@ -3210,6 +3377,7 @@ class RectangularPatches(Fault):
                 * shadedtopo    : True to plot shaded topography, False otherwise
                 * norm          : Colorbar limits for slip
                 * linewidth     : width of the lines
+                * elinewidth    : width of the edges of the patches
                 * plot_on_2d    : True to make a map plot of the fault, False otherwise
                 * colorbar      : True to show colorbar, False otherwise
                 * cbaxis        : Colorbar axis position [left, bottom, width, height]
@@ -3242,9 +3410,9 @@ class RectangularPatches(Fault):
                 fig.drawCoastlines(parallels=None, meridians=None, drawOnFault=True)
 
             # Draw the fault
-            fig.faultpatches(self, slip=slip, norm=norm, colorbar=colorbar, linewidth=linewidth,
+            fig.faultpatches(self, slip=slip, norm=norm, colorbar=colorbar, linewidth=elinewidth,
                              cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel, cmap=cmap,
-                             plot_on_2d=plot_on_2d)
+                             plot_on_2d=plot_on_2d, edgecolor=edgecolor)
 
             # Plot the trace of there is one
             if self.lon is not None:
@@ -3252,13 +3420,15 @@ class RectangularPatches(Fault):
 
             # View?
             if view is not None:
-                fig.set_view(*view, shape=shape)
+                fig.set_view(**view, shape=shape)
             
             # show
             if show:
-                showFig = ['fault']
-                if plot_on_2d:
+                showFig = []
+                if Map:
                     showFig.append('map')
+                if Fault:
+                    showFig.append('fault')
                 fig.show(showFig=showFig)
 
             # Save fig
@@ -3687,6 +3857,136 @@ class RectangularPatches(Fault):
             return n1.reshape((3,1)), n2.reshape((3,1)), n3.reshape((3,1))
         else:
             return n1, n2, n3
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    def setVerticesFromPatches(self):
+        '''
+        Takes the patches and constructs a list of Vertices and Faces
+
+        Returns:
+            * None
+        '''
+
+        # Get patches
+        patches = self.patch
+
+        # Create lists
+        vertices = []
+        faces = []
+
+        # Iterate to build vertices
+        for patch in patches:
+            for vertex in patch.tolist():
+                if vertex not in vertices:
+                    vertices.append(vertex)
+
+        # Iterate to build Faces
+        for patch in patches:
+            face = []
+            for vertex in patch.tolist():
+                uu = np.flatnonzero(np.array([vertex==v for v in vertices]))[0]
+                face.append(uu)
+            faces.append(face)
+
+        # Set them
+        self.Vertices = np.array(vertices)
+        self.Faces = np.array(faces)
+
+        # 2 lon lat
+        self.vertices2ll()
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    def vertices2ll(self):
+        '''
+        Converts all the vertices into lonlat coordinates.
+
+        Returns:
+            * None
+        '''
+
+        # Create a list
+        vertices_ll = []
+
+        # iterate
+        for vertex in self.Vertices:
+            lon, lat = self.xy2ll(vertex[0], vertex[1])
+            vertices_ll.append([lon, lat, vertex[2]])
+
+        # Save
+        self.Vertices_ll = np.array(vertices_ll)
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    def buildAdjacencyMap(self, verbose=True, method='edge'):
+        '''
+        For each rectangle, find the indices of the adjacent rectangles, edge or vertice-wise.
+
+        Kwargs:
+            * verbose : Speak to me
+            * method  : 'edge' (default) or 'vertex'. If edge, only rectangles sharing an edge are considered adjacent.
+            If vertex, rectangles sharing a vertex are considered adjacent.
+            
+        Returns:
+            * None
+        '''
+        if verbose:
+            print("------------------------------------------")
+            print("------------------------------------------")
+            print("Building the adjacency map for all patches")
+
+        self.adjacencyMap = []
+
+        # Cache the vertices and faces arrays
+        vertices, faces = self.Vertices, self.Faces
+
+        # Loop through all triangles
+        npatch = len(self.patch)
+        
+        for i in range(npatch):
+
+            if verbose:
+                sys.stdout.write('%i / %i\r' % (i, npatch))
+                sys.stdout.flush()
+
+            # Indices of Vertices of current patch
+            refVertInds = faces[i, :]
+
+            # Find triangles that share an edge
+            adjacents = []
+            for j in range(npatch):
+                
+                if j == i:
+                    continue
+                
+                sharedVertices = np.intersect1d(refVertInds, faces[j, :])
+                numSharedVertices = sharedVertices.size
+                
+                if method == 'edge':
+                
+                    if numSharedVertices < 2:
+                        continue
+                    adjacents.append(j)
+                    if len(adjacents) == 3:
+                        break
+                
+                elif method == 'vertex':
+                    
+                    if numSharedVertices > 0:
+                        adjacents.append(j)
+
+            self.adjacencyMap.append(adjacents)
+
+        if verbose:
+            print('')
+        return
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------

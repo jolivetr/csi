@@ -137,7 +137,11 @@ class multigps(gps):
         Returns the number of transform parameters for the given transformation.
 
         Args:
-            * transformation: List [main_transformation, [transfo_subnet1, transfo_subnet2, ....] ]. Each can be 'strain', 'full', 'strainnorotation', 'strainnotranslation', 'strainonly'
+            * transformation: List [main_transformation, [transfo_subnet1, transfo_subnet2, ....] ]. Each item can be can be:
+                - 'full': full Helmert transform
+                - 'strain': strain only
+                - 'translation': translation only
+                - 'translationrotation': translation and rotation only
         
         Returns:
             * int
@@ -170,7 +174,11 @@ class multigps(gps):
         Returns the estimator for the transform.
 
         Args:
-            * transformation : List [main_transformation, [transfo_subnet1, transfo_subnet2, ....] ]. Each item can be 'strain', 'full', 'strainnorotation', 'strainnotranslation', 'strainonly'
+            * transformation : List [main_transformation, [transfo_subnet1, transfo_subnet2, ....] ]. Each item can be can be:
+                - 'full': full Helmert transform
+                - 'strain': strain only
+                - 'translation': translation only
+                - 'translationrotation': translation and rotation only
 
         Kwargs:
             * computeNormFact: compute and store the normalizing factor

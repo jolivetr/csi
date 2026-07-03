@@ -534,7 +534,7 @@ class Pressure(SourceInv):
             G = {'pressure': Gdp}
 
         # The dataset sets the Green's functions itself
-        data.setGFsInFault(self, G, vertical=vertical)
+        data.setGFsInSource(self, G, vertical=vertical)
 
         # If custom
         if custom is not None:
@@ -633,7 +633,7 @@ class Pressure(SourceInv):
             assert False, 'Not implemented: method must be volume'
 
         # Separate the Green's functions for each type of data set
-        data.setGFsInFault(self, G, vertical=vertical)
+        data.setGFsInSource(self, G, vertical=vertical)
 
         # All done
         return
@@ -966,7 +966,7 @@ class Pressure(SourceInv):
             # print
             print ("---------------------------------")
             print ("---------------------------------")
-            print ("Assembling d vector")
+            print ("Assembling d for pressure source {}".format(self.name))
 
         # Get the number of data
         Nd = 0
@@ -982,7 +982,7 @@ class Pressure(SourceInv):
 
                 # print
                 if verbose:
-                    print("Dealing with data {}".format(data.name))
+                    print("Dealing with data {} of type {}".format(data.name, data.dtype))
 
                 # Get the local d
                 dlocal = self.d[data.name]
@@ -1165,7 +1165,6 @@ class Pressure(SourceInv):
                 Glocal[:,1] = self.G[data.name]['pressureDVy'].squeeze() #???
                 Glocal[:,2] = self.G[data.name]['pressureDVz'].squeeze() #???
             else:
-                print(Glocal.shape, self.G[data.name]['pressure'].shape)
                 Glocal[:,0] = self.G[data.name]['pressure'].squeeze() #???
 
             #ec += Nclocal
@@ -1211,7 +1210,7 @@ class Pressure(SourceInv):
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
-    def assembleCd(self, datas, add_prediction=None, verbose=False):
+    def assembleCd(self, datas, add_prediction=None, verbose=True):
         '''
         Assembles the data covariance matrices that have been built for each
         data structure.
@@ -1234,6 +1233,12 @@ class Pressure(SourceInv):
         assert self.Gassembled is not None, \
                 "You should assemble the Green's function matrix first"
 
+        # print
+        if verbose:
+            print ("---------------------------------")
+            print ("---------------------------------")
+            print ("Assembling Cd for pressure source {}".format(self.name))
+        
         # Check
         if type(datas) is not list:
             datas = [datas]
@@ -1246,8 +1251,11 @@ class Pressure(SourceInv):
         st = 0
         for data in datas:
             # Fill in Cd
+            
+            # Talk to me
             if verbose:
-                print("{0:s}: data vector shape {1:s}".format(data.name, self.d[data.name].shape))
+                print("Dealing with data {} of type {}".format(data.name, data.dtype))
+
             se = st + self.d[data.name].shape[0]
             Cd[st:se, st:se] = data.Cd
             # Add some Cp if asked
@@ -1282,8 +1290,8 @@ class Pressure(SourceInv):
         if verbose:
             print ("---------------------------------")
             print ("---------------------------------")
-            print ("Assembling the Cm matrix ")
-
+            print ("Assembling the Cm matrix for pressure source {}".format(self.name))
+            print (f"sigma = {sigma}")
 
         # Creates the principal Cm matrix
         if self.source == "pCDM":
@@ -1507,4 +1515,70 @@ class Pressure(SourceInv):
 
         # All done
         return
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    # Save Cm to file
+    def writeCm2File(self, dtype='d', outputDir='.'):
+        '''
+        Write the model a priori covariance matrix to a binary file.
+
+        Args:
+            * filename      : Name of the file.
+        
+        Kwargs:
+            * dtype         : Data type to use. Default is double ('d'). Can be 'f' for float32.
+            * outputDir     : Directory to write the file in.
+
+        Returns:
+            * None
+        '''
+
+        # Check that Cm exists
+        assert hasattr(self, 'Cm'), "No Cm matrix to write"
+
+        # Write to file
+        filename = f"{self.name.replace(' ', '_')}.cm"
+        self.Cm.astype(dtype).tofile(os.path.join(outputDir, filename))
+        print('Writing Cm matrix to file {}'.format(filename))
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    # Read Cm from file
+    def setCmFromFile(self, filename=None, dtype='d', inDir='.'):
+        '''
+        Read the model a priori covariance matrix from a binary file.
+
+        Args:
+            * filename      : Name of the file.
+            
+        Kwargs:
+            * dtype         : Data type to use. Default is double ('d'). Can be 'f' for float32.
+            * inDir         : Directory to read the file from.
+        
+        Returns:
+            * None
+        '''
+        
+        # Check name conventions
+        if filename is None:
+            if os.path.isfile(os.path.join(inDir, f'{self.name.replace(" ","_")}.cm')):
+                filename = os.path.join(inDir, f'{self.name.replace(" ","_")}.cm')
+
+        # Read the files and reshape the Cm
+        Cm = np.fromfile(filename, dtype=dtype)
+        n = int(np.sqrt(Cm.size))
+        Cm = Cm.reshape((n, n))
+        
+        # Store Cm
+        self.Cm = Cm
+        print('Reading Cm matrix from file {}'.format(filename))
+
+        # All done
+        return
+    # ----------------------------------------------------------------------
+    
 #EOF

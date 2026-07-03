@@ -1,0 +1,79 @@
+\documentclass[a4paper,12pt]{memoir}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{appendix}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{ulem}
+
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{3}
+\chapterstyle{bianchi}
+
+\makeatletter
+\def\maketitle{%
+  \null
+  \thispagestyle{empty}%
+  \vfill
+  \begin{center}\leavevmode
+    \normalfont
+    {\LARGE \@title\par}%
+    \vskip 1cm
+    {\Large \@author\par}%
+    \vskip 1cm
+    {\Large \@date\par}%
+  \end{center}%
+  \vfill
+  \null
+  \cleardoublepage
+  }
+\makeatother
+
+\title{CSI - Classic Slip Inversion}
+\author{\small{Romain Jolivet \\
+Zacharie Duputel -- Bryan Riel -- Junle Jiang -- Mark Simons\\ \vspace{0.5in}
+Laboratoire de G\'eologie \\		
+\'Ecole Normale Sup\'erieure de Paris \\
+Paris, 75005, France \\ \vspace{0.2in}
+
+EOST \\
+Universit\'e de Strasbourg \\
+Strasbourg, 00000, France\\ \vspace{0.2in}
+
+Seismological Laboratory\\
+California Institute of Technology\\
+Pasadena, CA 91106, USA}
+}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents 
+
+%%%Preface
+\input{preface}
+
+%%%Introduction
+%\input{intro}
+
+%%%Chapter on pre-reqs
+\input{python}
+
+%%%Chapter on usage
+%\input{usage}
+
+\appendix
+\addappheadtotoc
+%%%Chapter on I/O 
+%\input{ioutils}
+
+\addcontentsline{toc}{chapter}{\numberline{}Bibliography}
+ 
+\bibliography{references}{}
+\bibliographystyle{plainnat}
+
+\end{document}

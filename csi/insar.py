@@ -24,13 +24,14 @@ import cartopy.io.shapereader as shpreader
 import shapely.geometry as sgeom
 from shapely.ops import unary_union
 from shapely.prepared import prep
-#import shapely.speedups
-#shapely.speedups.enable()
+import multiprocessing as mp
+import re
 
 # Personals
 from .SourceInv import SourceInv
 from .geodeticplot import geodeticplot as geoplot
 from . import csiutils as utils
+from . import eulerPoleUtils as eu
 
 class insar(SourceInv):
     '''
@@ -1003,13 +1004,12 @@ class insar(SourceInv):
         # All done
         return
 
-    def buildCd(self, sigma, lam, function='exp', diagonalVar=False,
-                normalizebystd=False):
+    def buildCd(self, sigma, lam, function='exp', diagonalVar=False, normalizebystd=False):
         '''
         Builds the full Covariance matrix from values of sigma and lambda.
-
+        
         If function='exp':
-
+        
             :math:`C_d(i,j) = \sigma^2  e^{-\\frac{d[i,j]}{\lambda}}`
 
         elif function='gauss':
@@ -1089,17 +1089,139 @@ class insar(SourceInv):
 
         # All done
         return d
+    
+    def getBlockList(self, blocks):
+        '''
+        For each point, get the blocks in which it is located.
+        Otherwise, set the block to None.
+
+        Args:
+            * blocks    : list of block objects
+
+        Returns:
+            * None
+        '''
+
+        # Get the blocks
+        self.block_list = []
+        
+        for k in range(len(self.vel)):
+
+            for block in blocks:
+                
+                if block.PointInBlock(self.lon[k], self.lat[k]):
+                
+                    self.block_list.append(block.name)
+                
+                    break
+    
+            if len(self.block_list) != k+1:
+                self.block_list.append(None)
+        
+       # Check if there are points that are not in any block
+        if None in self.block_list:
+            print('Warning: {} points are not in any block.'.format(self.block_list.count(None)))
+
+        # Save
+        self.block_list = np.array(self.block_list)
+
+        # All done
+        return
+    
+    def distance2block(self, blocks, discretized=False):
+        ''' 
+        Computes the distance between the acquisition points and block boundaries.
+
+        Args:
+            * blocks    : list of blocks objects.
+        
+        Kwargs:
+            * discretized : If True, compute the distance to the discretized boundary.
+
+        Return:
+            * d         : distance
+        '''
+
+        # Check something 
+        if blocks.__class__ is not list:
+            blocks = [blocks]
+
+        # Compute the distance to the block or blocks
+        d = []
+        for lon, lat in zip(self.lon, self.lat):
+            d.append([block.distance2boundary(lon, lat, discretized=discretized) for block in blocks])
+        
+        # All done
+        return np.array(d)
+
+    def reject_pixels_closeblock(self, dist, blocks, discretized=False):
+        '''
+        Rejects the pixels that are {dist} km close to the blocks boundaries.
+
+        Args:
+            * dist      : Threshold distance.
+            * blocks    : list of Blocks objects.
+        
+        Kwargs:
+            * discretized : If True, compute the distance to the discretized boundary.
+
+        Returns:
+            * None
+        '''
+
+        # Compute the distance to the boundaries of the blocks
+        dist2block = self.distance2block(blocks, discretized=discretized)
+
+        # Find the nearest stations
+        u = np.any(dist2block <= dist, axis=1)
+        
+        # reject them        
+        self.reject_pixel(u)
+        
+        del dist2block
+
+        # All done
+        return
+    
+    def reject_pixels_awayblock(self, dist, blocks, discretized=False):
+        '''
+        Rejects the pixels that are {dist} km away from the blocks boundaries.
+
+        Args:
+            * dist      : Threshold distance.
+            * blocks    : list of Blocks objects.
+        
+        Kwargs:
+            * discretized : If True, compute the distance to the discretized boundary.
+
+        Returns:
+            * None
+        '''
+
+        # Compute the distance to the boundaries of the blocks
+        dist2block = self.distance2block(blocks, discretized=discretized)
+
+        # Find the nearest stations
+        u = np.logical_not(np.any(dist2block <= dist, axis=1))
+        
+        # reject them        
+        self.reject_pixel(u)
+        
+        del dist2block
+
+        # All done
+        return
 
     def distance2point(self, lon, lat):
         '''
-        Returns the distance of all pixels to a point.
+        Returns the distance of all pixels to a point (in km)
 
         Args:
-            * lon       : Longitude of a point
-            * lat       : Latitude of a point
+            * lon       : Longitude of a point or array of longitudes
+            * lat       : Latitude of a point or array of latitudes
 
         Returns:
-            * array
+            * array of distances (shape (Npix, Npoints))
         '''
 
         # Get coordinates
@@ -1110,7 +1232,10 @@ class insar(SourceInv):
         xp, yp = self.ll2xy(lon, lat)
 
         # compute distance
-        return np.sqrt( (x-xp)**2 + (y-yp)**2 )
+        if np.isscalar(xp):
+            return np.sqrt((x-xp)**2+(y-yp)**2)
+        else:
+            return np.sqrt( (x[:,None]-xp[None,:])**2 + (y[:,None]-yp[None,:])**2 )
 
     def returnAverageNearPoint(self, lon, lat, distance):
         '''
@@ -1120,7 +1245,7 @@ class insar(SourceInv):
         Args:
             * lon       : longitude of the point
             * lat       : latitude of the point
-            * distance  : distance around the point
+            * distance  : distance around the point (in km)
 
         Returns:
             * float, float, tuple
@@ -1203,18 +1328,21 @@ class insar(SourceInv):
         # Iterate over the stations
         for lon, lat in zip(out.lon, out.lat):
             vel, err, los = self.returnAverageNearPoint(lon, lat, distance)
-            out.vel_los.append(vel)
-            out.err_los.append(err)
-            out.los.append(los)
+            out.vel_los.append(vel if vel is not None else np.nan)
+            out.err_los.append(err if err is not None else np.nan)
+            out.los.append(los if los is not None else np.array([np.nan, np.nan, np.nan]))
 
         # Convert to arrays
         out.vel_los = np.array(out.vel_los)
         out.err_los = np.array(out.err_los)
         out.los = np.array(out.los)
+        
+        # Check NaNs
+        out.checkNaNs()
 
         # Do a projection
         if doprojection:
-            gps.project2InSAR(out.los)
+            out.project2InSAR(los=out.los)
 
         # All done
         return out
@@ -1313,27 +1441,32 @@ class insar(SourceInv):
 
         # Deal with the covariance matrix
         if self.Cd is not None:
-            self.Cd = np.delete(np.delete(Cd ,u, axis=0), u, axis=1)
+            self.Cd = np.delete(np.delete(self.Cd, u, axis=0), u, axis=1)
 
         # All done
         return
 
-    def setGFsInFault(self, fault, G, vertical=True):
+    def setGFsInSource(self, source, G, vertical=True):
         '''
-        From a dictionary of Green's functions, sets these correctly into the fault
-        object fault for future computation.
+        From a dictionary of Green's functions, sets these correctly into the source 
+        object (fault, pressure, block or multiblock) for future computation.
 
         Args:
-            * fault     : Instance of Fault
-            * G         : Dictionary with 3 entries 'strikeslip', 'dipslip' and 'tensile'. These can be a matrix or None.
+            * source    : Instance of Fault, Pressure, Block or MultiBlock
+            * G         : Dictionary with entries 'strikeslip', 'dipslip' and 'tensile' for a fault,
+            'pressure', 'pressureDVx', 'pressureDVy', 'pressureDVz' for a pressure,
+            'rotation', 'intradef' for a block,
+            'rotation', 'intradef', 'boundary' for a multiblock. These can be a matrix or None.
 
         Kwargs:
-            * vertical  : Set here for consistency with other data objects, but will always be set to True, whatever you do.
+            * vertical  : Do we set the vertical GFs? default is True
 
         Returns:
             * None
         '''
-        if fault.type=="Fault":
+        
+        if source.type == "Fault":
+            
             # Get the values
             try:
                 GssLOS = G['strikeslip']
@@ -1353,10 +1486,11 @@ class insar(SourceInv):
                 GcpLOS = None
 
             # set the GFs
-            fault.setGFs(self, strikeslip=[GssLOS], dipslip=[GdsLOS], tensile=[GtsLOS],
-                        coupling=[GcpLOS], vertical=True)
+            source.setGFs(self, strikeslip=[GssLOS], dipslip=[GdsLOS], tensile=[GtsLOS],
+                          coupling=[GcpLOS], vertical=True)
 
-        elif fault.type=="Pressure":
+        elif source.type == "Pressure":
+            
             try:
                 GpLOS = G['pressure']
             except:
@@ -1374,9 +1508,62 @@ class insar(SourceInv):
             except:
                 GdvzLOS = None
 
-            fault.setGFs(self, deltapressure=[GpLOS], 
-                               GDVx=[GdvxLOS] , GDVy=[GdvyLOS], GDVz =[GdvzLOS], 
-                               vertical=True)
+            source.setGFs(self, deltapressure=[GpLOS],
+                          GDVx=[GdvxLOS], GDVy=[GdvyLOS], GDVz =[GdvzLOS],
+                          vertical=True)
+            
+        elif source.type == 'Block':
+                
+            # Initialize
+            GrotLOS = None
+            GintLOS = None
+            
+            # Import
+            Grot = G['rotation']
+            Gint = G['intradef']
+            
+            # Set
+            if Grot is not None:
+                GrotLOS = Grot
+            if Gint is not None:
+                GintLOS = Gint
+            
+            # Organize
+            source.setGFs(self,
+                          rotation=[GrotLOS],
+                          intradef=[GintLOS],
+                          vertical=True)
+        
+        elif source.type == 'MultiBlock':
+            
+            # Initialize
+            GrotLOS = None
+            GintLOS = None
+            GboundLOS = None
+            
+            # Import
+            Grot = G['rotation']
+            Gint = G['intradef']
+            Gbound = G['boundary']
+            
+            # Set
+            if Grot is not None:
+                GrotLOS = Grot
+            if Gint is not None:
+                GintLOS = Gint
+            if Gbound is not None:
+                GboundLOS = Gbound
+            
+            # Organize
+            source.setGFs(self,
+                          rotation=[GrotLOS],
+                          intradef=[GintLOS],
+                          boundary=[GboundLOS],
+                          vertical=True)
+        
+        else:
+            
+            raise NotImplementedError("Source type {} not supported".format(source.type))
 
         # All done
         return
@@ -1420,8 +1607,7 @@ class insar(SourceInv):
         normX = np.abs(self.x - x0).max()
         normY = np.abs(self.y - y0).max()
         base_max = np.max([normX, normY])
-        #print(self.x,self.y)
-        print('normalizing factors are ', x0,y0,normX,normY)
+
         self.TransformNormalizingFactor = {}
         self.TransformNormalizingFactor['x'] = normX
         self.TransformNormalizingFactor['y'] = normY
@@ -1430,29 +1616,63 @@ class insar(SourceInv):
         # All done
         return
 
-    def getTransformEstimator(self, trans, computeNormFact=True):
+
+    def getNumberOfTransformParameters(self, transformation):
         '''
-        Returns the Estimator for the transformation to estimate in the InSAR data.
+        Returns the number of transform parameters for the given transformation.
+        Strain is only computed as an aerial strain (2D).
 
         Args:
-            * trans     : Transformation type
-                - 1: constant offset to the data
-                - 3: constant and linear function of x and y
-                - 4: constant, linear term and cross term.
-                - strain: Estimates an aerial strain tensor
-
-        Kwargs:
-            * computeNormFact   : Recompute the normalization factor
+            * transformation : String. It can be:
+                - 'strain': Estimates an aerial strain tensor
+                - string : polynomial estimator. It is the list of the terms to include in the estimator. Possible values are: '1', 'x', 'y', 'xy', 'x2', 'y2'. 
 
         Returns:
-            * None
+            * Integer
         '''
 
-        # Several cases
-        if type(trans) is int:
-            T = self.getPolyEstimator(trans, computeNormFact=computeNormFact)
-        elif type(trans) is str:
+        # Strain
+        if transformation == 'strain':
+            Npo = 3
+        
+        # Polynomial estimator
+        elif type(transformation) is str and all(term in ('1', 'x', 'y', 'xy', 'x2', 'y2') for term in re.split(r'[^A-Za-z0-9]+', transformation)):
+            Npo = len(re.split(r'[^A-Za-z0-9]+', transformation))
+
+        # All done
+        return Npo
+
+    def getTransformEstimator(self, transformation, computeNormFact=True):
+        '''
+        Returns the estimator for the transformation to estimate in the InSAR data.
+
+        Args:
+            * transformation     : Transformation type. It can be:
+                - 'strain': Estimates an aerial strain tensor
+                - string : polynomial estimator. It is the string of the terms to include in the estimator. Possible values are: '1', 'x', 'y', 'xy', 'x2', 'y2'. Example: '1,x,y'.
+
+        Kwargs:
+            * computeNormFact   : compute and store the normalizing factor
+
+        Returns:
+            * Estimator matrix (numpy array)
+        '''
+
+        # Strain
+        if transformation == 'strain':
             T = self.get2DstrainEst(computeNormFact=computeNormFact)
+        
+        # Polynomial estimator
+        elif type(transformation) is str and all(term in ('1', 'x', 'y', 'xy', 'x2', 'y2') for term in re.split(r'[^A-Za-z0-9]+', transformation)):
+            T = self.getPolyEstimator(transformation, computeNormFact=computeNormFact)
+        
+        # No transformation
+        elif transformation is None:
+            T = None
+
+        # Unknown
+        else:
+            raise NotImplementedError('Transformation type {} not supported'.format(transformation))
 
         # All done
         return T
@@ -1490,9 +1710,6 @@ class insar(SourceInv):
         # Store the normalizing factor
         self.StrainNormalizingFactor = base
 
-        # Allocate a Base
-        H = np.zeros((2,nc))
-
         # Allocate the 2 full matrix
         Hfe = np.zeros((ns,nc))
         Hfn = np.zeros((ns,nc))
@@ -1504,20 +1721,18 @@ class insar(SourceInv):
         Hfn[:,2] = base_y
 
         # multiply by the los
-        Hout = self.los[:,0][:,np.newaxis]*Hfe + self.los[:,1][:,np.newaxis]*Hfn
-
+        T = self.los[:,0][:,np.newaxis] * Hfe + self.los[:,1][:,np.newaxis] * Hfn
+        
         # All done
-        return Hout
+        return T
 
-    def getPolyEstimator(self, ptype, computeNormFact=True):
+    def getPolyEstimator(self, polycomp, computeNormFact=True):
         '''
-        Returns the Estimator for the polynomial form to estimate in the InSAR data.
+        Returns the estimator for the polynomial form to estimate in the InSAR data.
 
         Args:
-            * ptype: integer
-                - 1: constant offset to the data
-                - 3: constant and linear function of x and y
-                - 4: constant, linear term and cross term.
+            * polycomp:
+                - str of polynomial components to include in the estimator. Possible values are: '1', 'x', 'y', 'xy', 'x2', 'y2'. Example: '1,x,y'.
 
         Kwargs:
             * computeNormFact : bool
@@ -1526,44 +1741,63 @@ class insar(SourceInv):
             * None
         '''
 
-        # number of data points
+        # Get number of data points
         nd = self.vel.shape[0]
 
-        # Create the Estimator
-        orb = np.zeros((nd, ptype))
-        if ptype > 0.0:
-            orb[:,0] = 1.0
+        # Extract polynomial components
+        polycomp = re.split(r'[^A-Za-z0-9]+', polycomp)
+        
+        # Compute normalizing factors
+        if computeNormFact:
+            self.computeTransformNormalizingFactor()
+        else:
+            assert hasattr(self, 'TransformNormalizingFactor'), 'You must set TransformNormalizingFactor first'
 
-        if ptype >= 3:
-            # Compute normalizing factors
-            if computeNormFact:
-                self.computeTransformNormalizingFactor()
-            else:
-                assert hasattr(self, 'TransformNormalizingFactor'), 'You must set TransformNormalizingFactor first'
+        normX = self.TransformNormalizingFactor['x']
+        normY = self.TransformNormalizingFactor['y']
+        x0, y0 = self.TransformNormalizingFactor['ref']
+        
+        # Allocate the transform matrix
+        T = np.zeros((nd, len(polycomp)))
+        i = 0
+        
+        # Fill in the estimator
+        if '1' in polycomp:
+            T[:, i] = 1.
+            i += 1
 
-            normX = self.TransformNormalizingFactor['x']
-            normY = self.TransformNormalizingFactor['y']
-            x0, y0 = self.TransformNormalizingFactor['ref']
+        if 'x' in polycomp:
+            T[:, i] = (self.x - x0) / normX
+            i += 1
 
-            # Fill in functionals
-            orb[:,1] = (self.x - x0) / normX
-            orb[:,2] = (self.y - y0) / normY
+        if 'y' in polycomp:
+            T[:, i] = (self.y - y0) / normY
+            i += 1
 
-        if ptype == 4:
-            orb[:,3] = orb[:,1] * orb[:,2]
+        if 'xy' in polycomp:
+            T[:, i] = (self.x - x0) * (self.y - y0) / (normX * normY)
+            i += 1
+
+        if 'x2' in polycomp:
+            T[:, i] = ((self.x - x0) / normX)**2
+            i += 1
+
+        if 'y2' in polycomp:
+            T[:, i] = ((self.y - y0) / normY)**2
+            i += 1
 
         # Scale everything by the data factor
-        orb *= self.factor
+        T *= self.factor
 
         # All done
-        return orb
+        return T
 
-    def computePoly(self, fault, computeNormFact=True):
+    def computeTransformation(self, source, computeNormFact=True):
         '''
-        Computes the orbital bias estimated in fault
+        Computes the displacements associated with a geometrical transformation (polynomial or strain).
 
         Args:
-            * fault : Fault object that has a polysol structure.
+            * source : Source object that has a polysol structure.
 
         Kwargs:
             * computeNormFact   : Recompute the norm factors
@@ -1573,39 +1807,36 @@ class insar(SourceInv):
         '''
 
         # Get the polynomial type
-        ptype = fault.poly[self.name]
+        transformation = source.poly[self.name]
 
         # Get the parameters
-        params = fault.polysol[self.name]
+        params = source.polysol[self.name]
         if type(params) is dict:
-            params = params[ptype]
+            params = params[transformation]
 
         # Get the estimator
-        if type(ptype) is int:
-            Horb = self.getPolyEstimator(ptype, computeNormFact=computeNormFact)
-        elif type(ptype) is str:
-            Horb = self.get2DstrainEst(computeNormFact=computeNormFact)
+        T = self.getTransformEstimator(transformation, computeNormFact=computeNormFact)
 
         # Compute the polynomial
-        self.orbit = np.dot(Horb, params)
+        self.orbit = T @ params
 
         # All done
         return
 
-    def computeCustom(self, fault):
+    def computeCustom(self, source):
         '''
-        Computes the displacements associated with the custom green's functions.
+        Computes the displacements associated with the custom Green's Functions.
 
         Args:
-            * fault : A fault instance
+            * source : A deformation source instance.
 
         Returns:
             * None
         '''
 
         # Get GFs and parameters
-        G = fault.G[self.name]['custom']
-        custom = fault.custom[self.name]
+        G = source.G[self.name]['custom']
+        custom = source.custom[self.name]
 
         # Compute
         self.custompred = np.dot(G,custom)
@@ -1613,12 +1844,12 @@ class insar(SourceInv):
         # All done
         return
 
-    def removePoly(self, fault, verbose=False, custom=False ,computeNormFact=True):
+    def removeTransformation(self, source, verbose=False, custom=False, computeNormFact=True):
         '''
-        Removes a polynomial from the parameters that are in a fault.
+        Removes a transformation from the parameters that are in a source.
 
         Args:
-            * fault     : a fault instance
+            * source     : a source instance
 
         Kwargs:
             * verbose           : Show us stuff
@@ -1630,50 +1861,24 @@ class insar(SourceInv):
         '''
 
         # compute the polynomial
-        self.computePoly(fault,computeNormFact=computeNormFact)
+        self.computeTransformation(source, computeNormFact=computeNormFact)
 
-        # Print Something
-        if verbose:
-            print('Correcting insar {} from polynomial function: {}'.format(self.name))
         # Correct
         self.vel -= self.orbit
-        # Correct Custom
-        if custom:
-            self.computeCustom(fault)
-            self.vel -= self.custompred
 
         # All done
         return
 
-    def removeTransformation(self, fault, verbose=False, custom=False):
-        '''
-        Wrapper of removePoly to ensure consistency between data sets.
-
-        Args:
-            * fault     : a fault instance
-
-        Kwargs:
-            * verbose   : talk to us
-            * custom    : Remove custom GFs
-
-        Returns:
-            * None
-        '''
-
-        self.removePoly(fault, verbose=verbose, custom=custom)
-
-        # All done
-        return
-
-    def removeSynth(self, faults, direction='sd', poly=None, vertical=True, custom=False, computeNormFact=True):
+    def removeSynth(self, sources, direction='sd', blockcomponent='rot+intra+bound', poly=None, vertical=True, custom=False, computeNormFact=True):
         '''
         Removes the synthetics using the faults and the slip distributions that are in there.
 
         Args:
-            * faults        : List of faults.
+            * sources           : List of sources.
 
         Kwargs:
             * direction         : Direction of slip to use.
+            * blockcomponent    : if a block is used, which component to use. Can be any combination of 'rot' and 'intra' and 'bound'.
             * poly              : if a polynomial function has been estimated, build and/or include
             * vertical          : always True - used here for consistency among data types
             * custom            : if True, uses the fault.custom and fault.G[data.name]['custom'] to correct
@@ -1684,7 +1889,8 @@ class insar(SourceInv):
         '''
 
         # Build synthetics
-        self.buildsynth(faults, direction=direction, poly=poly, custom=custom, computeNormFact=computeNormFact)
+        self.buildsynth(sources, direction=direction, blockcomponent=blockcomponent,
+                        poly=poly, custom=custom, computeNormFact=computeNormFact)
 
         # Correct
         self.vel -= self.synth
@@ -1692,16 +1898,25 @@ class insar(SourceInv):
         # All done
         return
 
-    def buildsynth(self, sources, direction='sd', poly=None, vertical=True, custom=False, computeNormFact=True):
+    def buildsynth(self, sources, direction='sd', blockcomponent='rot+intra+bound', vertical=True, custom=False, computeNormFact=True):
         '''
-        Computes the synthetic data using either the faults and the associated slip distributions or the pressure sources.
+        Computes the synthetic data associated with deformation sources (Fault, Pressure, Block, ...) or geometrical transformations.
 
         Args:
-            * sources        : List of faults or pressure sources.
+            * sources        : list of sources to include.
 
         Kwargs:
             * direction         : Direction of slip to use or None for pressure sources.
-            * poly              : if a polynomial function has been estimated, build and/or include
+            * blockcomponent   : string or dictionary
+                Which block components to consider.
+                
+                - If blockcomponent is a string, all blocks will have the same components considered.
+                   Options are 'rotation', 'intradef', 'boundary' or any combination (e.g. 'rotation+intradef').
+                   
+                - If blockcomponent is a dictionary, each block can have different components considered (only valid for a multiblock)
+                  The dictonary should be of the form {csi.Block.name: 'rotation+intradef+boundary'}
+                  For example, if you want to consider only rotation for block A and rotation + intradef for block B, you can set
+                  blockcomponent = {'A': 'rotation', 'B': 'rotation+intradef'}.
             * vertical          : always True. Used here for consistency among data types
             * custom            : if True, uses the fault.custom and fault.G[data.name]['custom'] to correct
             * computeNormFact   : if False, uses TransformNormalizingFactor set with self.setTransformNormalizingFactor
@@ -1717,17 +1932,18 @@ class insar(SourceInv):
         # Number of data
         Nd = self.vel.shape[0]
 
-        # Clean synth
+        # Reset synthetic to zero
         self.synth = np.zeros((self.vel.shape))
 
         # Loop on each source
         for source in sources:
+            
+            # Get the GFs
+            G = source.G[self.name]
 
-            # object type: SurfaceMotion
+            # SurfaceMotion
             if source.type == 'Surface':
-
-                # Get the GFs
-                G = source.G[self.name]
+                
                 # Get the motion
                 motion = []
                 if 'e' in source.direction[self.name]: motion.append(source.motion[:,0])
@@ -1737,11 +1953,8 @@ class insar(SourceInv):
                 # Do it
                 self.synth += G.dot(motion)
 
-            # Source type: a fault
-            if source.type=="Fault":
-
-                # Get the good part of G
-                G = source.G[self.name]
+            # Fault
+            elif source.type == "Fault":
 
                 if ('s' in direction) and ('strikeslip' in G.keys()):
                     Gs = G['strikeslip']
@@ -1764,25 +1977,9 @@ class insar(SourceInv):
                     losdc_synth = np.dot(Gc,Sc)
                     self.synth += losdc_synth
 
-                if custom:
-                    Gc = G['custom']
-                    Sc = source.custom[self.name]
-                    losdc_synth = np.dot(Gc, Sc)
-                    self.synth += losdc_synth
-
-                if poly is not None:
-                    # Compute the polynomial
-                    self.computePoly(source,computeNormFact=computeNormFact)
-                    if poly=='include':
-                        self.removePoly(source, computeNormFact=computeNormFact)
-                    else:
-                        self.synth += self.orbit
-
-            #Loop on each pressure source
-            elif source.type=="Pressure":
-
-                # Get the good part of G
-                G = source.G[self.name]
+            # Loop on each pressure source
+            elif source.type == "Pressure":
+                
                 if source.source in {"Mogi", "Yang"}:
                     Gp = G['pressure']
                     losdp_synth = Gp*source.deltapressure
@@ -1805,22 +2002,92 @@ class insar(SourceInv):
                     print("Scaling by opening")
                     losdp_synth = Gp*Sp
                     self.synth += losdp_synth
+            
+            # Block
+            elif source.type == 'Block':
+                
+                # Block rotation
+                if ('rotation' in blockcomponent) and ('rotation' in G.keys()):
+                    
+                    Grot = G['rotation']
 
+                    rot = np.array([source.omega_x, source.omega_y, source.omega_z]) / eu.MAS2RAD if source.omega_x is not None else np.zeros(3)
+                    synth_rot = Grot @ rot
+                    
+                    synth = synth_rot
+                
+                # Intra block deformation
+                if ('intradef' in blockcomponent) and ('intradef' in G.keys()):
+                
+                    Gint = G['intradef']
 
-                if custom:
-                    Gc = G['custom']
-                    Sc = source.custom[self.name]
-                    losdc_synth = np.dot(Gc, Sc)
-                    self.synth += losdc_synth
-
-                if poly is not None:
-                    # Compute the polynomial
-                    self.computePoly(source,computeNormFact=computeNormFact)
-                    if poly=='include':
-                        self.removePoly(source, computeNormFact=computeNormFact)
+                    eps = np.array([source.eps_lonlon, source.eps_lonlat, source.eps_latlat]) if source.eps_lonlon is not None else np.zeros(3)
+                    synth_intra = Gint @ eps
+                    
+                    if ('rotation' in blockcomponent) and ('rotation' in G.keys()):
+                        synth += synth_intra
                     else:
-                        self.synth += self.orbit
+                        synth = synth_intra
+                
+                self.synth += synth
+            
+            # Multiblock
+            elif source.type == 'MultiBlock':
 
+                # Get the block components to consider
+                if type(blockcomponent) is str:
+                    source.blockcomponent = {block.name: blockcomponent for block in source.blocks}
+                else:
+                    source.blockcomponent = blockcomponent
+                
+                synth = np.zeros((self.vel.shape))
+                
+                for iblock, block in enumerate(source.blocks):
+                
+                    # Block rotation
+                    if ('rotation' in source.blockcomponent[block.name]) and ('rotation' in G.keys()):
+
+                        Grot = G['rotation'][:, iblock*3:(iblock+1)*3]
+                        rot = np.array([block.omega_x, block.omega_y, block.omega_z]) / eu.MAS2RAD if block.omega_x is not None else np.zeros(3)
+                        synth_rot = Grot @ rot
+                        
+                        synth += synth_rot
+                    
+                    # Block boundary deformation
+                    if ('boundary' in source.blockcomponent[block.name]) and ('boundary' in G.keys()):
+                    
+                        Gbound = G['boundary'][:, iblock*3:(iblock+1)*3]
+                        rot = np.array([block.omega_x, block.omega_y, block.omega_z]) / eu.MAS2RAD if block.omega_x is not None else np.zeros(3)
+                        synth_bound = Gbound @ rot
+                        
+                        synth += synth_bound
+                    
+                    # Intra block deformation
+                    if ('intradef' in source.blockcomponent[block.name]) and ('intradef' in G.keys()):
+                    
+                        Gint = G['intradef'][:, iblock*3:(iblock+1)*3]
+                        eps = np.array([block.eps_lonlon, block.eps_lonlat, block.eps_latlat]) if block.eps_lonlon is not None else np.zeros(3)
+                        synth_intra = Gint @ eps
+                        
+                        synth += synth_intra
+                
+                self.synth += synth
+            
+            # Geometrical transformation
+            elif source.type == 'transformation':
+                
+                # Compute the transformation
+                self.computeTransformation(source, computeNormFact=computeNormFact)
+                
+                self.synth += self.orbit
+            
+            # Custom GFs
+            if custom:
+                Gc = G['custom']
+                Sc = source.custom[self.name]
+                losdc_synth = np.dot(Gc, Sc)
+                self.synth += losdc_synth
+                
         # All done
         return
 
@@ -1870,6 +2137,7 @@ class insar(SourceInv):
         self.lat = np.delete(self.lat, u)
         self.x = np.delete(self.x, u)
         self.y = np.delete(self.y, u)
+        
         if self.err is not None:
             self.err = np.delete(self.err, u)
         if self.los is not None:
@@ -1886,17 +2154,31 @@ class insar(SourceInv):
 
         if self.synth is not None:
             self.synth = np.delete(self.synth, u, axis=0)
+        
+        if hasattr(self, 'block_list'):
+            self.block_list = np.delete(self.block_list, u, axis=0)
+        
+        if hasattr(self, 'block_distance'):
+            self.block_distance = np.delete(self.block_distance, u, axis=0)
+
+        # Clean downsampler
+        if hasattr(self, 'blocks'):
+            j = 0
+            for i in u.tolist():
+                self.blocks.pop(i-j)
+                self.blocksll.pop(i-j)
+                j += 1
 
         # All done
         return
 
-    def getDistance2Faults(self, faults):
+    def distance2fault(self, faults, discretized=False):
         '''
-        Returns the minimum distance to a fault for each pixel
+        Returns the minimum distance to a list of fault for each pixel.
 
         Args:
             * faults    : a fault or a list of faults.
-
+            * discretized : if True, uses the discretized fault points.
         Return:
             * distance  : array
         '''
@@ -1904,52 +2186,98 @@ class insar(SourceInv):
         # Check something
         if faults.__class__ is not list:
             faults = [faults]
-
-        # Build a line object with the faults
-        fl = []
-        for flt in faults:
-            f = [[x, y] for x,y in np.vstack((flt.xf, flt.yf)).T.tolist()]
-            fl = fl + f
-
+        
         # Get all the positions
         pp = [[x, y] for x,y in zip(self.x, self.y)]
 
-        # Get distances
-        D = scidis.cdist(pp, fl)
-
-        # Get minimums
-        d = np.min(D, axis=1)
+        # Build a line object with the faults
+        d = []
+        
+        for flt in faults:
+            
+            # Get the fault points
+            if discretized:
+                xf = flt.xi
+                yf = flt.yi
+            else:
+                xf = flt.xf
+                yf = flt.yf
+            
+            f = [[x, y] for x, y in np.vstack((xf, yf)).T.tolist()]
+            
+            # Get distances
+            D = scidis.cdist(pp, f)
+            
+            d.append(np.min(D, axis=1))
+            
         del D
+        d = np.array(d).T
 
         # All done
         return d
 
-    def reject_pixels_fault(self, dis, faults):
+    def reject_pixels_closefault(self, dist, faults, discretized=False):
         '''
-        Rejects the pixels that are {dis} km close to the fault.
+        Rejects the pixels that are {dist} km close to the faults.
 
         Args:
-            * dis       : Threshold distance.
+            * dist       : Threshold distance.
             * faults    : list of fault objects.
+            * discretized : if True, uses the discretized fault points.
 
         Returns:
             * None
         '''
-
-        # Get distances 
-        d = self.getDistance2Faults(faults)
+        
+        # Check something
+        if faults.__class__ is not list:
+            faults = [faults]
+        
+        # Get distances to faults
+        dist2fault = self.distance2fault(faults, discretized=discretized)
 
         # Find the close ones
-        if dis>0.:
-            u = np.where(d<=dis)[0]
-        else:
-            u = np.where(d>=(-1.0*dis))[0]
+        u = np.any(dist2fault <= dist, axis=1)
+        
+        # Delete
+        del dist2fault
 
+        # Reject
+        self.reject_pixel(u)
+        
+        # All done
+        return
+    
+    def reject_pixels_awayfault(self, dist, faults, discretized=False):
+        '''
+        Rejects the pixels that are {dist} km away from the faults.
+
+        Args:
+            * dist       : Threshold distance.
+            * faults    : list of fault objects.
+            * discretized : if True, uses the discretized fault points.
+
+        Returns:
+            * None
+        '''
+        
+        # Check something
+        if faults.__class__ is not list:
+            faults = [faults]
+
+        # Get distances to faults
+        dist2fault = self.distance2fault(faults, discretized=discretized)
+
+        # Find the close ones
+        u = np.logical_not(np.any(dist2fault <= dist, axis=1))
+        
+        del dist2fault
+        
         # Reject
         self.reject_pixel(u)
 
         # All done
-        return u
+        return
 
     def getprofile(self, name, loncenter, latcenter, length, azimuth, width):
         '''
@@ -2668,7 +2996,7 @@ class insar(SourceInv):
 
 
     def plotprofile(self, name, figsize=(10,10), fault=None, norm=None, synth=False, 
-                    cbaxis=[0.1, 0.1, 0.1, 0.01],
+                    cbaxis=[0.1, 0.1, 0.1, 0.01], cmap='jet', box=None,
                     alpha=.3, plotType='scatter', drawCoastlines=True):
         '''
         Plot profile.
@@ -2695,7 +3023,8 @@ class insar(SourceInv):
                   show=False, alpha=alpha, 
                   plotType=plotType, expand=0., 
                   drawCoastlines=drawCoastlines, 
-                  cbaxis=cbaxis,
+                  cbaxis=cbaxis, cmap=cmap,
+                  box=box,
                   Map=True, Fault=False)
 
         # plot the box on the map
@@ -2709,7 +3038,7 @@ class insar(SourceInv):
             bb[i,1] = b[i,1]
         bb[-1,0] = bb[0,0]
         bb[-1,1] = bb[0,1]
-        self.fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=3, linewidth=2)
+        self.fig.ax2D.plot(bb[:,0], bb[:,1], '-k', zorder=3, linewidth=2)
 
         # open a figure
         figp = plt.figure(figsize=(10,5))
@@ -2991,7 +3320,7 @@ class insar(SourceInv):
 
         # All done
 
-    def plot(self, faults=None, figure=None, gps=None, norm=None, data='data', show=True, 
+    def plot(self, faults=None, blocks=None, surfacemotions=None, figure=None, gps=None, norm=None, data='data', show=True, 
              Map=True, Fault=True, lognorm=False,
              drawCoastlines=True, expand=0.2, edgewidth=1, figsize=None, markersize=1.,
              plotType='scatter', cmap='jet', alpha=1., box=None, titleyoffset=1.1,
@@ -3002,6 +3331,8 @@ class insar(SourceInv):
 
         Kwargs:
             * faults            : list of fault objects.
+            * blocks        : list of instances of blocks
+            * surfacemotions : list of surface motion objects
             * figure            : number of the figure.
             * gps               : list of gps objects.
             * norm              : colorbar limits
@@ -3044,7 +3375,8 @@ class insar(SourceInv):
                                      figsize=figsize)
 
         # Shaded topo
-        if shadedtopo is not None: fig.shadedTopography(**shadedtopo)
+        if shadedtopo is not None:
+            fig.shadedTopography(**shadedtopo)
 
         # Draw the coastlines
         if drawCoastlines:
@@ -3070,6 +3402,22 @@ class insar(SourceInv):
             for fault in faults:
                 if fault.type=="Fault":
                     fig.faulttrace(fault, zorder=2)
+
+        # Plot the blocks if asked
+        if blocks is not None:
+            if type(blocks) is not list:
+                blocks = [blocks]
+            for block in blocks:
+                fig.blockboundary(block, zorder=2)
+                
+        # Plot the surface motion nodes if asked
+        if surfacemotions is not None:
+            if type(surfacemotions) is not list:
+                surfacemotions = [surfacemotions]
+            for smotion in surfacemotions:
+                color_ = smotion.color if hasattr(smotion, 'color') else 'k'
+                markersize_ = smotion.markersize if hasattr(smotion, 'markersize') else 10
+                fig.SurfaceMotionNodes(smotion, color=color_, markersize=markersize_)
 
         # Title
         if title:
@@ -3110,9 +3458,15 @@ class insar(SourceInv):
         # Check wether the attributes exists and are of the correct size
         values = []
         for d in data:
-            assert hasattr(self, d), 'Attribute {} not found in the data'.format(d)
-            assert getattr(self, d).shape[0]==self.lon.shape[0], 'Attribute {} has the wrong size'.format(d)
-            values.append(getattr(self, d))
+            
+            if d == 'res':
+                assert self.synth is not None, 'No synthetics computed, cannot plot residuals'
+                values.append(self.vel - self.synth)
+                
+            else:
+                assert hasattr(self, d), 'Attribute {} not found in the data'.format(d)
+                assert getattr(self, d).shape[0]==self.lon.shape[0], 'Attribute {} has the wrong size'.format(d)
+                values.append(getattr(self, d))
         
         # Loop over the data
         if norm is None:
@@ -3445,29 +3799,34 @@ class insar(SourceInv):
         # All done
         return Az*180./np.pi,pAz*180./np.pi
 
-    def getOffsetFault(self, profile, fault, distance, threshold=25, discretized=True, verbose=False, useerrors=True):
+    def getOffsetFault(self, profilename, fault, distance, threshold=25, discretized=True, verbose=False, useerrors=True, synthetic=False):
         '''
         Computes the offset next to a fault along a profile. This is a copy from 
         a script written by Manon Dalaison during her PhD in 2020 (infamous year).
         
         Args:
-            * profile   : Name of the profile
-            * fault     : fault object
-            * distance  : Distance to take on each side of the fault (min, max)
+            * profilename  : Name of the profile
+            * fault        : fault object
+            * distance     : Distance to take on each side of the fault (min, max)
 
         Kwargs:
             * threshold : minimum number of data points on each side to move on
+            * synthetic  : use synthetics instead of data
 
         Returns:
             * offset, uncertainty, los
         '''
 
         # Get the profile
-        rawts = self.profiles[profile]['LOS Velocity']
-        d     = self.profiles[profile]['Distance']
-        err = self.profiles[profile]['LOS Error']
-        los = self.profiles[profile]['LOS vector']
-        if err is None: err = np.ones((len(d),))
+        if synthetic:
+            rawts = self.profiles[profilename]['LOS Synthetics']
+        else:
+            rawts = self.profiles[profilename]['LOS Velocity']
+        d = self.profiles[profilename]['Distance']
+        err = self.profiles[profilename]['LOS Error']
+        los = self.profiles[profilename]['LOS vector']
+        if err is None:
+            err = np.ones((len(d),))
 
         # NaNs
         d = d[np.isfinite(rawts)]
@@ -3477,8 +3836,9 @@ class insar(SourceInv):
         rawts = rawts[np.isfinite(rawts)]
 
         # Shift with respect to the fault position
-        intersect = self.intersectProfileFault(profile, fault, discretized=discretized)
-        if intersect is not None: d -= intersect
+        intersect = self.intersectProfileFault(profilename, fault, discretized=discretized)
+        if intersect is not None:
+            d -= intersect
         
         # Extract points that are in the limit fault area
         pointleft  = ((d > -distance[1]) & (d < -distance[0]))
@@ -3505,13 +3865,13 @@ class insar(SourceInv):
 
         # Check, if False, keep going
         if (len(displeft)<threshold) or (len(dispright)<threshold) :
-            if verbose: print("Warning: not enough data for profile",profile,"values replaced by NaN")
+            if verbose: print("Warning: not enough data for profile",profilename,"values replaced by NaN")
             return np.nan, np.nan, [np.nan, np.nan, np.nan]
 
         # Linear regression in the two clouds of points
         if useerrors:
-            wleft    = 1./errleft /np.sum(1./errleft)
-            wright   = 1./errright /np.sum(1./errright)
+            wleft    = 1./errleft / np.sum(1./errleft)
+            wright   = 1./errright / np.sum(1./errright)
             fitLeft   = np.polyfit(dleft, displeft, 1, w=wleft)
             fitRight  = np.polyfit(dright, dispright, 1, w=wright)
         else:
@@ -3523,8 +3883,8 @@ class insar(SourceInv):
         fitRight_fn = np.poly1d(fitRight)
 
         # Get RMS Residual of fit
-        rmsleft  = (np.sum(wleft*(fitLeft_fn(dleft)-displeft)**2)/len(displeft))**(1/2.)
-        rmsright = (np.sum(wright*(fitRight_fn(dright)-dispright)**2)/len(dispright))**(1/2.)
+        rmsleft  = (np.sum(wleft*(fitLeft_fn(dleft)-displeft)**2)/np.sum(wleft))**(1/2.)
+        rmsright = (np.sum(wright*(fitRight_fn(dright)-dispright)**2)/np.sum(wright))**(1/2.)
         creep_err = (rmsleft**2+rmsright**2)**(1/2.)
 
         # Get creep rate value
@@ -3538,45 +3898,64 @@ class insar(SourceInv):
         # All done
         return creep, creep_err, los
 
-    def getStepFromProfile(self, profname, fault, leftdistance, rightdistance, discretized=False, method='mean'):
+    def getStepFromProfile(self, profilename, fault, leftdistance, rightdistance, discretized=True, method='mean', synthetic=False):
         '''
         Returns the offset across a fault from a profile.
 
         Args:
-            profname    : Name of the profile
-            fault       : fault object
-            leftdistance: tuple of distances between which to average displacement to the left
-            rightdistance: tuple of distances between which to average displacement to the right
+            profilename          : Name of the profile
+            fault            : fault object
+            leftdistance     : tuple of distances between which to average displacement to the left
+            rightdistance    : tuple of distances between which to average displacement to the right
+        
+        Kwargs:
+            discretized : use the discretized fault trace
+            method      : 'mean' or 'median' to compute the average displacement on each side of the fault
+            synthetic   : use synthetics instead of data
 
         Returns:
             step, std, los
         '''
+        
+        # Get the profile
+        if synthetic:
+            rawts = self.profiles[profilename]['LOS Synthetics']
+        else:
+            rawts = self.profiles[profilename]['LOS Velocity']
+        d = self.profiles[profilename]['Distance']
+        err = self.profiles[profilename]['LOS Error']
+        los = self.profiles[profilename]['LOS vector']
+        
+        # NaNs
+        d = d[np.isfinite(rawts)]
+        err = err[np.isfinite(rawts)]
+        if los is not None:
+            los = los[np.isfinite(rawts),:]
+        rawts = rawts[np.isfinite(rawts)]
 
-        # get profile
-        profile = self.profiles[profname]
-        y = profile['LOS Velocity']
-        los = profile['LOS vector']
-
-        # Reference
-        x = profile['Distance'] - self.intersectProfileFault(profname, fault, discretized=True)
+        # Shift with respect to the fault position
+        intersect = self.intersectProfileFault(profilename, fault, discretized=discretized)
+        if intersect is not None:
+            d -= intersect
 
         # Find plus and minus
-        ip = np.flatnonzero(np.logical_and(x>leftdistance[0], x<leftdistance[1]))
-        im = np.flatnonzero(np.logical_and(x>rightdistance[0], x<rightdistance[1]))
+        ip = np.flatnonzero(np.logical_and(d>leftdistance[0], d<leftdistance[1]))
+        im = np.flatnonzero(np.logical_and(d>rightdistance[0], d<rightdistance[1]))
 
         # Average
         if method == 'mean':
-            step = np.nanmean(y[ip]) - np.nanmean(y[im])
-        elif method=='median':
-            step = np.nanmedian(y[ip]) - np.nanmedian(y[im])
-        std = np.sqrt(np.nanstd(y[ip])**2 + np.nanstd(y[im])**2)
+            step = np.nanmean(rawts[ip]) - np.nanmean(rawts[im])
+        elif method == 'median':
+            step = np.nanmedian(rawts[ip]) - np.nanmedian(rawts[im])
+        std = np.sqrt(np.nanstd(rawts[ip])**2 + np.nanstd(rawts[im])**2)
+        
         if los is not None:
             los = (np.nanmean(los[ip,:], axis=0) + np.nanmean(los[im,:], axis=0))/2
         else:
             los = None
 
         # All done
-        return step,std,los
+        return step, std, los
 
     def alongStrikeStep(self, fault, offset, width, binning, discretized=True, strike='mean', returnBox=False):
         '''

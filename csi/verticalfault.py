@@ -430,7 +430,6 @@ class verticalfault(RectangularPatches):
         # All done 
         return
 
-
     def differentiateGFs(self, datas):
         '''
         Uses the Delaunay triangulation to prepare a differential Green's function matrix, data vector

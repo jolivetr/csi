@@ -34,7 +34,7 @@ class seismiclocations(SourceInv):
 
     '''
 
-    def __init__(self, name, utmzone=None, ellps='WGS84', lon0=None, lat0=None):
+    def __init__(self, name, utmzone=None, ellps='WGS84', lon0=None, lat0=None, verbose=True):
 
         # Base class init
         super(seismiclocations, self).__init__(name, 
@@ -46,9 +46,10 @@ class seismiclocations(SourceInv):
         # Initialize the data set type
         self.dtype = 'seismiclocations'
 
-        print ("---------------------------------")
-        print ("---------------------------------")
-        print ("Initialize Seismicity data set {}".format(self.name))
+        if verbose:
+            print ("---------------------------------")
+            print ("---------------------------------")
+            print ("Initialize Seismicity data set {}".format(self.name))
 
         # Initialize the location
 
@@ -576,6 +577,79 @@ class seismiclocations(SourceInv):
 
         # All done
         return
+    
+    def read_from_AFAD_focal_mechanisms(self, infile):
+        '''
+        Reads data from a file from an AFAD focal mechanism file.
+        (written in 2026)
+
+        Args:
+            * infile    : input file
+
+        Returns:
+            * None
+        '''
+
+        # Open and load in Pandas
+        with open(infile, 'r') as fin:
+            data = pd.read_csv(fin)
+
+        # Initialize things
+        self.time = np.array([dt.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S.%fZ") for d in data.Date])
+        self.lon = data['Longitude'].values
+        self.lat = data['Latitude'].values
+        self.depth = data['Depth'].values
+        self.mag = data['Magnitude'].values
+        
+        self.strike1 = data['Strike1'].values
+        self.dip1 = data['Dip1'].values
+        self.rake1 = data['Rake1'].values
+        self.strike2 = data['Strike2'].values
+        self.dip2 = data['Dip2'].values
+        self.rake2 = data['Rake2'].values
+
+        # Save data
+        self.data = data
+
+        # Create the utm
+        self.lonlat2xy()
+
+        # All done
+        return
+    
+    def read_from_KOERI(self, infile):
+        '''
+        Reads data from a file from KOER.
+
+        Args:
+            * infile    : input file
+            
+        Returns:
+            * None
+        '''
+        
+        # Open and load in Pandas
+        with open(infile, 'r', encoding='windows-1254') as fin:
+            data = pd.read_csv(fin, sep='\t')
+
+        # Convert date
+        data['datetime'] = pd.to_datetime(data.Date, format='%Y.%m.%d') + pd.to_timedelta(data['Origin Time'])
+        
+        # Initialize things
+        self.time = np.array([dt.datetime.fromtimestamp(d.timestamp()) for d in data.datetime])
+        self.lon = data.Longitude.values
+        self.lat = data.Latitude.values
+        self.depth = data['Depth(km)'].values
+        self.mag = data.ML.values
+
+        # Save data
+        self.data = data
+        
+        # Create the utm
+        self.lonlat2xy()
+        
+        # All done
+        return
 
     def read_from_Lomax(self, infile):
         '''
@@ -590,7 +664,7 @@ class seismiclocations(SourceInv):
 
         # Open and load in Pandas
         with open(infile, 'r') as fin:
-            data = pd.read_csv(fin, delimiter=', ')
+            data = pd.read_csv(fin, sep=r'\s*[,;]\s*')
 
         # Initialize things
         self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'],
@@ -603,6 +677,80 @@ class seismiclocations(SourceInv):
         self.lat = data['latitude'].values
         self.depth = data['depth'].values
         self.mag = data['Mamp'].astype(float).values
+
+        # Save data
+        self.data = data
+
+        # Create the utm
+        self.lonlat2xy()
+
+        # All done
+        return
+
+    def autoCSVread(self, infile, header=0, timekey=None, lonkey=None, latkey=None, depthkey=None, magkey=None, timeformat="%Y-%m-%dT%H:%M:%S.%f"):
+        '''
+        Attempts a direct read at a CSV file. Should work if the CSV file has a generic format that can be read 
+        with pandas. Then the code tries to find the longitude, latitude, depth, magnitude and time columns.
+
+        Args:
+            * infile    : input file
+            
+        Kwargs:
+            * header    : length of the header
+            
+        Returns:
+            * None
+        '''
+
+        # Open and load in Pandas
+        with open(infile, 'r') as fin:
+            data = pd.read_csv(fin, header=header)
+
+        # Get keys 
+        keys = [key.lower() for key in data.keys()]
+
+        # Initialize things
+        timekeys = ['time', 'date', 'origin']
+        if timekey is not None: timekeys.append(timekey.lower())
+        try:
+            self.time = data[[key for key in keys if key in timekeys]].values.squeeze()
+        except:
+            assert False, "Could not find the time column. Please provide the name of the time column with the timekey keyword argument. Possible keys are {}".format(keys)
+            
+        # Time format
+        try:
+            self.time = np.array([dt.datetime.strptime(t, timeformat) for t in self.time])
+        except:
+            assert False, f'Provide the time format in string mode. Currently trying {timeformat}'
+        
+        # Longitude, latitude, depth and magnitude
+        lonkeys = ['lon', 'longitude']
+        if lonkey is not None: lonkeys.append(lonkey.lower())
+        try:
+            self.lon = data[[key for key in keys if key in lonkeys]].astype(float).values.squeeze()
+        except:
+            assert False, "Could not find the longitude column. Please provide the name of the longitude column with the lonkey keyword argument. Possible keys are {}".format(keys)
+
+        latkeys = ['lat', 'latitude']
+        if latkey is not None: latkeys.append(latkey.lower())
+        try:
+            self.lat = data[[key for key in keys if key in latkeys]].astype(float).values.squeeze()
+        except:
+            assert False, "Could not find the latitude column. Please provide the name of the latitude column with the latkey keyword argument. Possible keys are {}".format(keys)
+
+        depthkeys = ['depth']
+        if depthkey is not None: depthkeys.append(depthkey.lower())
+        try:
+            self.depth = data[[key for key in keys if key in depthkeys]].astype(float).values.squeeze()
+        except:
+            assert False, "Could not find the depth column. Please provide the name of the depth column with the depthkey keyword argument. Possible keys are {}".format(keys)
+
+        magkeys = ['mag', 'magnitude']
+        if magkey is not None: magkeys.append(magkey.lower())
+        try:
+            self.mag = data[[key for key in keys if key in magkeys]].astype(float).values.squeeze()
+        except:
+            assert False, "Could not find the magnitude column. Please provide the name of the magnitude column with the magkey keyword argument. Possible keys are {}".format(keys)
 
         # Save data
         self.data = data
@@ -661,11 +809,11 @@ class seismiclocations(SourceInv):
         # All done
         return
 
-    def read_from_HypoDD(self, infile, header=0, delimiter='\s+'):
+    def read_from_csv(self, infile, ilon, ilat, idepth, imag, iyr, imo, ida, ihr, imi, isd,
+                      ierr=None, irms=None,
+                      header=None, delimiter='\s+'):
         '''
-        Reads data from a file from HypoDD (as given by to me by Dirk Beker).
-
-        Format: event no, lat, lon, depth, internal_x, internal_y, internal_z, err_x, err_y, err_z, year, month, day, hour, minute, second, magnitude, no CC P-times, no CC S-times, no CT P-times, no CT S-times, rms value CC data, rms value CT data, cluster ID
+        Reads data from a csv file. User must provide the column number (starting from 0) for all the fields,
 
         Args:
             * infile    : input file
@@ -679,26 +827,21 @@ class seismiclocations(SourceInv):
 
         # Open and load in Pandas
         with open(infile, 'r') as fin:
-            data = pd.read_csv(fin, header=header, delimiter=delimiter, names=['event no', 'lat', 'lon', 'depth', 
-                                                                               'internal_x', 'internal_y', 'internal_z',
-                                                                               'err_x', 'err_y', 'err_z', 
-                                                                               'year', 'month', 'day', 'hour', 'minute', 'second', 
-                                                                               'mag',
-                                                                               'no CC P-times', 'no CC S-times', 
-                                                                               'no CT P-times', 'no CT S-times', 
-                                                                               'rms value CC data', 'rms value CT data', 'cluster ID'])
+            data = pd.read_csv(fin, header=header, delimiter=delimiter)
 
         # Initialize things
-        self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data['year'],
-                                                                                                           data['month'],
-                                                                                                           data['day'],
-                                                                                                           data['hour'],
-                                                                                                           data['minute'],
-                                                                                                           data['second'])])
-        self.lon = data['lon'].values
-        self.lat = data['lat'].values
-        self.depth = data['depth'].values
-        self.mag = data['mag'].astype(float).values
+        self.time = np.array([dt.datetime(y, m, d, h, mi) + dt.timedelta(seconds=s) for y, m, d, h, mi, s in zip(data[iyr],
+                                                                                                           data[imo],
+                                                                                                           data[ida],
+                                                                                                           data[ihr],
+                                                                                                           data[imi],
+                                                                                                           data[isd])])
+        self.lon = data[ilon].values
+        self.lat = data[ilat].values
+        self.depth = data[idepth].values
+        self.mag = data[imag].astype(float).values
+        if ierr is not None: self.err = data[ierr]
+        if irms is not None: self.rms = data[irms]
 
         # Save data
         self.data = data
@@ -930,6 +1073,101 @@ class seismiclocations(SourceInv):
         # All done
         return
 
+    def read_fromGCMT(self, infile):
+        """
+        Reads data from a file from GCMT catalog.
+        
+        Args:
+            * infile    : input file
+            
+        Returns:
+            * None
+        """
+        
+        # Open the file
+        fin = open(infile, 'r')
+
+        # Read all
+        All_lines = fin.readlines()
+
+        # Initialize things
+        self.time = []
+        self.lon = []
+        self.lat = []
+        self.depth = []
+        self.mag = []
+        self.strike1 = []
+        self.dip1 = []
+        self.rake1 = []
+        self.strike2 = []
+        self.dip2 = []
+        self.rake2 = []
+
+        # Initialize counter
+        i = 0
+
+        # Loop over the lines
+        while i < len(All_lines):
+            
+            # Read the first line
+            line1 = All_lines[i]
+            
+            year = int(line1[5:9])
+            month = int(line1[10:12])
+            day = int(line1[13:15])
+            hour = int(line1[16:18])
+            min = int(line1[19:21])
+            sec = float(line1[22:26])
+            self.time.append(dt.datetime(year, month, day, hour, min)+dt.timedelta(seconds=sec))
+            
+            lat = float(line1[27:33])
+            lon = float(line1[34:41])
+            depth = float(line1[42:46])
+            self.lon.append(lon)
+            self.lat.append(lat)
+            self.depth.append(depth)
+            
+            mag = float(line1[47:51])
+            self.mag.append(mag)
+
+            i += 4
+
+            # Read the fifth line
+            line4 = All_lines[i]
+            
+            strike1, dip1, rake1, strike2, dip2, rake2 = map(float, line4[57:].split())
+            self.strike1.append(strike1)
+            self.dip1.append(dip1)
+            self.rake1.append(rake1)
+            self.strike2.append(strike2)
+            self.dip2.append(dip2)
+            self.rake2.append(rake2)
+
+            i += 1
+
+        # Close the file
+        fin.close()
+        
+        # Make arrays
+        self.time = np.array(self.time)
+        self.lon = np.array(self.lon)
+        self.lat = np.array(self.lat)
+        self.depth = np.array(self.depth)
+        self.mag = np.array(self.mag)
+        self.strike1 = np.array(self.strike1)
+        self.dip1 = np.array(self.dip1)
+        self.rake1 = np.array(self.rake1)
+        self.strike2 = np.array(self.strike2)
+        self.dip2 = np.array(self.dip2)
+        self.rake2 = np.array(self.rake2)
+
+        # Create the utm
+        self.lonlat2xy()
+
+        # All done
+        return
+        
+
     def selectbox(self, minlon, maxlon, minlat, maxlat, depth=100000., mindep=0.0):
         '''
         Select the earthquakes in a box defined by min and max, lat and lon.
@@ -1014,7 +1252,7 @@ class seismiclocations(SourceInv):
             ed = end
 
         # Get values
-        print ("Selecting earthquake between {} and {}".format(st.isoformat(),ed.isoformat()))
+        print("Selecting earthquake between {} and {}".format(st.isoformat(),ed.isoformat()))
         u = np.flatnonzero((self.time > st) & (self.time < ed))
 
         # Selection
@@ -1095,7 +1333,7 @@ class seismiclocations(SourceInv):
         # All done
         return
 
-    def distance2point(self, point, distance=5., dstyle='horizontal'):
+    def distance2point(self, point, distance=1e9, dstyle='horizontal'):
         '''
         Selects the earthquakes that are located less than {distance} away from the given point.
 
@@ -1149,6 +1387,9 @@ class seismiclocations(SourceInv):
         Returns:   
             * None. Selected events are kept. Others are deleted.
         '''
+        
+        if type(faults) is not list:
+            faults = [faults]
 
         # Create the list
         u = []
@@ -1388,6 +1629,16 @@ class seismiclocations(SourceInv):
             if filename is not None:
                 fout.write('{} {} {} {} {} {} {} \n'.format(qlon, qlat, qtime, qz, qmag, qdis, qh))
 
+        proj['x'] = np.array(proj['x'])
+        proj['y'] = np.array(proj['y'])
+        proj['lon'] = np.array(proj['lon'])
+        proj['lat'] = np.array(proj['lat'])
+        proj['time'] = np.array(proj['time'])
+        proj['depth'] = np.array(proj['depth'])
+        proj['mag'] = np.array(proj['mag'])
+        proj['AlongStrikeDistance'] = np.array(proj['AlongStrikeDistance'])
+        proj['DistanceToFault'] = np.array(proj['DistanceToFault'])
+        
         # Close the file
         if filename is not None:
             fout.close()
@@ -2086,6 +2337,20 @@ class seismiclocations(SourceInv):
         self.lon = np.hstack((self.lon, catalog.lon))
         self.depth = np.hstack((self.depth, catalog.depth))
         self.time = np.hstack((self.time, catalog.time))
+        
+        if hasattr(catalog, 'strike1'): self.strike1 = np.hstack((self.strike1, catalog.strike1))
+        if hasattr(catalog, 'dip1'): self.dip1 = np.hstack((self.dip1, catalog.dip1))
+        if hasattr(catalog, 'rake1'): self.rake1 = np.hstack((self.rake1, catalog.rake1))
+        if hasattr(catalog, 'strike2'): self.strike2 = np.hstack((self.strike2, catalog.strike2))
+        if hasattr(catalog, 'dip2'): self.dip2 = np.hstack((self.dip2, catalog.dip2))
+        if hasattr(catalog, 'rake2'): self.rake2 = np.hstack((self.rake2, catalog.rake2))
+        if hasattr(catalog, 'time_yr'): self.time_yr = np.hstack((self.time_yr, catalog.time_yr))
+        if hasattr(catalog, 'Mo'): self.Mo = np.hstack((self.Mo, catalog.Mo))
+        if hasattr(catalog, 'err'): self.err = np.hstack((self.err, catalog.err))
+        if hasattr(catalog, 'rms'): self.rms = np.hstack((self.rms, catalog.rms))
+        if hasattr(catalog, 'CMTinfo'): self.CMTinfo.extend(catalog.CMTinfo)
+        if hasattr(self, 'cumMo'): self.cumMo = np.hstack((self.cumMo, catalog.cumMo))
+        if hasattr(self, 'cumEQ'): self.cumEQ = np.hstack((self.cumEQ, catalog.cumEQ))
 
         # Compute the xy
         self.lonlat2xy()
@@ -2626,6 +2891,19 @@ class seismiclocations(SourceInv):
             self.CMTinfo = np.array(self.CMTinfo)
             self.CMTinfo = np.delete(self.CMTinfo,u)
             self.CMTinfo = self.CMTinfo.tolist()
+        
+        if hasattr(self, 'time_yr'): self.time_yr = np.delete(self.time_yr,u)
+        
+        if hasattr(self, 'cumMo'): self.cumMo = np.delete(self.cumMo,u)
+        
+        if hasattr(self, 'cumEQ'): self.cumEQ = np.delete(self.cumEQ,u)
+        
+        if hasattr(self, 'strike1'): self.strike1 = np.delete(self.strike1,u)
+        if hasattr(self, 'dip1'): self.dip1 = np.delete(self.dip1,u)
+        if hasattr(self, 'rake1'): self.rake1 = np.delete(self.rake1,u)
+        if hasattr(self, 'strike2'): self.strike2 = np.delete(self.strike2,u)
+        if hasattr(self, 'dip2'): self.dip2 = np.delete(self.dip2,u)
+        if hasattr(self, 'rake2'): self.rake2 = np.delete(self.rake2,u)
 
         # Conditional
         if hasattr(self, 'err'): self.err = np.delete(self.err, u)
@@ -2667,6 +2945,9 @@ class seismiclocations(SourceInv):
 
         # Conditional
         if hasattr(self, 'rms'): self.rms = self.rms[u]
+        
+        # Conditional
+        if hasattr(self, 'time_yr'): self.time_yr = self.time_yr[u]
 
         # All done
         return

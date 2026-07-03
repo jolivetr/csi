@@ -1,0 +1,257 @@
+\chapter{Installation}
+\label{chap:python}
+
+Installation of GIAnT on a desktop or laptop is simple. Most of the package consists of python programs and just need to be copied to a specified location. We include a simple Python script for components of GIAnT that are in Fortran or C. A large number of other Python modules need to be installed in order for GIAnT to work on your machine. Installing these pre-requisites are relatively easy. We recommend using a package manager like apt or yum on linux systems to install the pre-requisites before installing GIAnT. We provide command lines to install the required Python libraries on a Linux Ubuntu machine.
+
+For Apple computers, a very convenient way to install all the pre-requisites is to use the package manager MacPorts (free)\footnote{\url{http://www.macports.org}}. Installing MacPorts on Apple machines is very straightforward but requires Xcode\footnote{\url{https://developer.apple.com/xcode/}} (free). We provide command lines to install the required Python libraries on an Apple computer using MacPorts. Please be sure to run these commands as root. Another package manager called Fink is available\footnote{\url{http://www.finkproject.org}} but the installation of all the libraries required by GIAnT has never been tested with Fink.
+
+\section{Pre-requisites}
+\label{sec:prereq}
+All the following pre-requisites may be installed from source. Although, we strongly advise the use of a package manager for beginners.
+
+\subsection{Python 2.6 or higher}
+GIAnT framework uses Python (\url{http://www.python.org}) and you will need a minimum of python 2.6, for various pre-requisite packages to work seamlessly. If for some reason, you choose to build Python from source, please ensure that you use the same set of compilers for building any of the other packages for Python. Also ensure that you get the development package for Python for Linux. 
+
+On Apple computers, all the required libraries for GIAnT are available on MacPorts, for Python 2.6 or Python 2.7. The suggested commands are for Python 2.7 but can de adapted by changing 27 to 26 in any commands.
+
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install python2.7 python2.7-dev
+
+Mac:
+>> port install python27
+\end{verbatim}
+
+\subsection{Numerical Python (NumPy)}
+GIAnT extensively uses NumPy (\url{http://numpy.scipy.org}) for representing the datasets as arrays and for many array manipulation routines. We also use some of the FFT and linear algebra routines provided with NumPy for processing data sets. numpy.int , numpy.float and numpy.np.float32 are the most common data formats used at various stages of processing arrays and data. 
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install python-numpy
+
+Mac:
+>> port install py27-numpy
+\end{verbatim}
+
+If you want to improve the performance of Numpy, we suggest using LAPACK, BLAS and ATLAS libraries. For more details on installing numpy from source using these libraries, see \url{http://docs.scipy.org/doc/numpy/user/install.html}. On Apple computers, a variant of Numpy that includes LAPACK, BLAS and the optimization ATLAS libraries is available on MacPorts. We suggest users to install the variant including compilation by gcc 4.5:
+
+\begin{verbatim}
+Mac:
+>> port install py27-numpy +atlas +gcc45
+\end{verbatim}
+
+\subsection{Scientific Python (SciPy)}
+SciPy (\url{http://scipy.org}) contains many functions for linear algebra operations, FFTs and optimization. SciPy also includes support for sparse matrices and provides solvers for various types of optimization problems. 
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install python-scipy
+
+Mac:
+>> port install py27-scipy
+\end{verbatim}
+
+Vanilla distributions of SciPy obtained through utilities like yum, apt are typically not optimized. For best performance on large Linux computers, SciPy must be compiled with ATLAS / Intel MKL support. On Apple computers, the optimized SciPy distribution can be installed doing:
+
+\begin{verbatim}
+Mac: 
+>> port install py27-scipy +atlas +gcc45
+\end{verbatim}
+
+\subsection{Cython}
+Cython (\url{http://www.cython.org}) is a language that makes writing C extensions for the Python language as easy as Python itself. Cython is ideal for wrapping external C libraries and for writing fast C modules that speeds up the execution of Python code.
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install cython
+
+Mac:
+>> port install py27-cython
+\end{verbatim}
+
+\subsection{Matplotlib}
+Matplotlib (\url{http://matplotlib.sourceforge.net}) is a python 2D plotting library which produces publication quality figures in a variety of hardcopy formats and interactive environments across platforms. We use matplotlib for displaying outputs and our interactive time-series viewers.
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install python-matplotlib
+
+Mac:
+>> port install py27-matplotlib
+\end{verbatim}
+
+\subsection{h5py}
+h5py (\url{http://code.google.com/p/h5py}) provides a NumPy interface to Hierarchial Data Format 5 (HDF5) memory mapped files. We use h5py for storage and retrieval of named variables during various stages of processing. One of the big advantages of h5py is it allows us to access slices of large matrices directly from a file, without having to use up memory resources needed to read the entire matrices. The latest version of MATLAB \textsuperscript{\textregistered} also uses the HDF5 format and it is possible to directly read in .mat files into Python using scipy.io.loadmat. 
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install python-h5py
+
+Mac: 
+>> port install py27-h5py
+\end{verbatim}
+
+\subsection{pygrib}
+GIAnT can directly interact with PyAPS modules to use weather model data for atmospheric phase screen corrections. pygrib (\url{http://code.google.com/p/pygrib}) provides the interface for directly reading in GRIB-format weather data files in Python. Successful installation of pygrib needs grib\_api, openjpeg, jasper, libpng, zlib (including all development versions) which can all be obtained using standard repository management tools. Pygrib also needs the basemap or pyproj module for python to be installed. 
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install zlib1g zlib1g-dev
+>> apt-get install libpng12-0 libpng12-dev
+>> apt-get install libjasper1 libjasper-dev
+>> apt-get install libopenjpeg2 libopenjpeg-dev
+>> apt-get install libgrib-api-1.9.9 libgrib-api-dev libgrib-api-tools
+>> apt-get install python-mpltoolkits.basemap
+>> apt-get install pyproj
+>> easy_install pygrib (On some platforms)
+\end{verbatim}
+
+Unfortunately, pygrib is not directly available using a package manager on all Linux machines. You will have to follow instructions on the Google code page to install pygrib after installing all the required packages. 
+
+On Apple computers, you can install PyGrib using macports (all the dependencies will follow with that command):
+
+\begin{verbatim}
+Mac:
+>> port install py27-pygrib
+\end{verbatim}
+
+\subsection{pywavelets}
+The MInTS \cite{hetland:mints} time-series approach uses wavelets for spatial analysis. We provide our own Meyer wavelet library for analysis with the original MInTS approach. However, GIAnT also allows one to use other wavelets for spatial decomposition of unwrapped interferograms using the pywt (\url{http://github.com/nigma/pywt}) package. 
+
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install python-pywt
+
+Mac:
+>> port install py27-pywavelets
+\end{verbatim}
+
+\subsection{LXML}
+GIAnT uses XML files for setting up data and processing parameters. Specifically, we use the eTree module from lxml to construct input XML files and the objectify module from lxml to read in XML files. LXML (\url{http://lxml.de}) should be available as a standard repository on most linux distributions.
+
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install python-lxml
+
+Mac:
+>> port install py27-lxml
+\end{verbatim}
+
+\section{Optional}
+We would also recommend installing the following packages before installing GIAnT.
+
+\subsection{ffmpeg or mencoder}
+We will need one of the two packages to use matplotlib.animation submodule for making movies.
+
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install ffmpeg mencoder
+
+Mac: 
+>> port install ffmpeg
+\end{verbatim}
+Mencoder is not available through MacPorts (maybe through Fink).
+
+\subsection{pyresample}
+Pyresample is a Python package that allows for easy geocoding of swath data (interferograms etc). We use pyresample to generate movies in the geocoded domain. Pyresample can be downloaded from \url{http://code.google.com/p/pyresample/}.
+
+\subsection{HDFview}
+HDFview is open source software for exploring the contents of an HDF file. The latest version can be downloaded from \url{http://www.hdfgroup.org/hdf-java-html/hdfview/index.html}. 
+
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install hdfview
+\end{verbatim}
+
+HDFview does not exist through MacPorts but can be easily installed following the instructions on the HDFview website.
+
+\subsection{iPython}
+Interactive Python (iPython) \citep{ipython:software} provides a rich toolkit for Python that allows users to work with the python interpreter in an environment similar to MATLAB or IDL. 
+
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install ipython
+
+Mac:
+>> port install py27-ipython
+\end{verbatim}
+
+\subsection{bpython}
+bpython \url{http://bpython-interpreter.org/} is a simple interface to the python interpreter. We recommend bpython when iPython cannot be used, for example when you are on a NFS partition.
+
+\begin{verbatim}
+Ubuntu - 12.04:
+>> apt-get install bpython
+
+Mac:
+>> port install py27-bpython
+\end{verbatim}
+
+\subsection{xmlcopyeditor}
+xmlcopyeditor \url{http://xml-copy-editor.sourceforge.net/} is a simple editor for XML. The XML files used in GIAnT or ISCE can be easily modified using a text editor but xmlcopyeditor makes the task a little simpler. We recommend installing the package from source.
+
+\section{Installation}
+\label{sec:install}
+
+GIAnT has the following directory structure.
+\begin{verbatim}
+GIAnT (INSTALL directory)
+|
+|---- tsinsar   (Time-series library)
+|
+|---- pyaps     (Atmospheric corrections)
+|
+|---- SCR       (Time-series analysis scripts)
+|
+|---- geocode   (Geocoding library and scripts)
+|
+|---- solvers   (Solvers)
+|
+|---- setup.py  (Installation script)
+|
+|---- setup.cfg (Setup configure file)
+\end{verbatim}
+The parent \textbf{GIAnT} directory just needs to be copied to the install location. C and Fortran modules need to be built using C and Fortran compilers (see Section~\ref{sec:build_ext}). The final step is to include the full path of the \textbf{GIAnT} directory should be included in the environment variable \textbf{PYTHONPATH}. This will allow python to import these modules whenever they are used in any script. 
+
+\noindent Using Bash, the commands would be:
+\begin{verbatim}
+>> export GIANT=/directory/where/you/did/copy/GIAnT
+>> export PYTHONPATH=$GIANT:$PYTHONPATH
+\end{verbatim}
+Using Csh, the commands would be:
+\begin{verbatim}
+>> setenv GIANT '/directory/where/you/did/copy/GIAnT'
+>> setenv PYTHONPATH $GIANT:$PYTHONPATH
+\end{verbatim}
+These commands should be included in your .bashrc or .cshrc files.
+
+\subsection{Building extensions}
+\label{sec:build_ext}
+The setup script builds the \textbf{gsvd} module which contains our interface to the generalized SVD decomposition from LAPACK, similar to SciPy's interface to LAPACK and BLAS in this directory. The gsvd is used for $L_2$ norm regularized inversions in GIAnT. 
+
+The default settings uses the default C and fortran compilers to build extensions. The setup.cfg file can also be modified to force the machine to use a specific fortran compiler. If you have multiple Fortran and C compilers on your machine, you should specify the version compatible with your installation of python as shown below:
+\begin{verbatim}
+>>CC=Compiler python setup.py build_ext 
+		--fcompiler=compiler-options
+\end{verbatim}
+
+On Apple computers, the default compiler will be clang. This will cause some problems if you use any regularized inversions. Therefore, on Apple computer, if you linked Numpy and Scipy to Atlas, as mentioned previously, you want to compile gsvd using:
+\begin{verbatim}
+>> CC=gcc-mp-4.5 python setup.py build_ext
+	 --fcompiler=gnu95
+\end{verbatim}
+The compiler options can also be included in the setup.cfg file before executing setup.py .
+
+If your LAPACK/BLAS libraries were not built with gfortran, readup on the ''--fcompiler'' option for numpy distutils.
+
+\vspace{1cm}
+\noindent \underline{\textbf{Alternate installation}} \\
+Alternately, identify the directories in which the LAPACK, BLAS and ATLAS libraries are located. Compile using f2py in the gsvd directory.
+\begin{verbatim}
+>> f2py gensvd.pyf dggsvd.f -LPATH_TO_LIBS -llapacklib 
+     -lblaslib -latlaslib
+
+On Ubuntu - 12.04:
+>> f2py gensvd.pyf dggsvd.f -llapack -lblas -latlas
+\end{verbatim}
+Test the compiled module using the provided test.py. Ensure that you are using the f2py corresponding to the numpy version you want to use.
+
+
+\subsection{Non-standard installations}
+If you happened to install any of the above pre-requisite libraries yourself and if they are not located in the Standard library directories for your OS, include the paths to the shared object files (libxxxxxxxxx.so) to the environment variable \textbf{LD\_LIBRARY\_PATH}. This set of tools has not been tested, or even installed, on Windows operated machines.
+
+

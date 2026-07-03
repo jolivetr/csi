@@ -1956,12 +1956,8 @@ class geodeticplot(object):
 
         # plot colorbar
         if colorbar:
-<<<<<<< HEAD
             self.addColorbar(d, scalarMap, cbaxis, cborientation, self.figCarte, 
                              cblabel=cblabel, alpha=alpha) 
-=======
-            self.addColorbar(d, scalarMap, cbaxis, cborientation, self.fig2D, cblabel=cblabel) 
->>>>>>> 4e4607c417d5dd4dfaa2b1cf1607b11df045c18f
 
         # Plot LOS
         if los is not None:

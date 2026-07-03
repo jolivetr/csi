@@ -288,7 +288,7 @@ class geodeticplot(object):
         # All done
         return
 
-    def addColorbar(self, values, scalarMap, cbaxis, cborientation, figure, cblabel=''):
+    def addColorbar(self, values, scalarMap, cbaxis, cborientation, figure, cblabel='', alpha=1):
         '''
         Adds a colorbar for a given {scalarMap} to the chosen {figure}
 
@@ -305,7 +305,7 @@ class geodeticplot(object):
 
         scalarMap.set_array(values)
         cax = figure.add_axes(cbaxis)
-        cb = plt.colorbar(scalarMap, cax=cax, orientation=cborientation)
+        cb = plt.colorbar(scalarMap, cax=cax, orientation=cborientation, alpha=alpha)
         cb.set_label(label=cblabel, weight='bold')
         
         # Save this axis
@@ -1686,6 +1686,7 @@ class geodeticplot(object):
 
         # Prepare the colormap
         cmap = plt.get_cmap(cmap)
+        
         if lognorm:
             cNorm = colors.LogNorm(vmin=vmin, vmax=vmax)
         else:
@@ -1759,7 +1760,8 @@ class geodeticplot(object):
 
         # plot colorbar
         if colorbar:
-            self.addColorbar(d, scalarMap, cbaxis, cborientation, self.figCarte, cblabel=cblabel) 
+            self.addColorbar(d, scalarMap, cbaxis, cborientation, self.figCarte, 
+                             cblabel=cblabel, alpha=alpha) 
 
         # Plot LOS
         if los is not None:

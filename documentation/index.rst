@@ -36,6 +36,8 @@ This manual is minimal... We are aware of it... But until someone manages to loc
 Here is a non-exhaustive list of basic capabilities:
 
   - Simplifies construction of multi-patch faults with rectangular, triangular and node based parameterization
+  - Supports block modeling workflows with rigid block rotation and internal block deformation
+  - Supports multi-block workflows including block-boundary fault interactions
   - For each of the fault parameterizations, allows construction of GFs (homogeneous or stratified elastic structure)
   - Handles various geodetic data types
     - SAR (offsets or interferometry)
@@ -48,10 +50,15 @@ Here is a non-exhaustive list of basic capabilities:
   - Makes profiles across displacements fields (any kind), plot faults in 2-3D, plot displacement maps and vectors, coastlines, political boundaries, etc
   - Tools for fault slip inversions:
     - Solves for slip distribution using constrained LSQ or classic MCMC (less than ~40 parameters). 
+    - Solves multi-source inverse problems combining faults, pressure sources and block models.
     - Can provide the input files for AlTar (Bayesian solver of M. Simons' group @CalTech, available `here <https://github.com/AlTarFramework/altar>`_)
     - Some tools to handle kinematic slip inversions.
 
 To cite CSI, please use the doi of the code provided by Github or see the citation page.
+
+People involved
+===============================
+Romain Jolivet, Manon Dalaison (IPGP), Bryan Raimbault (CNES), Emile Denise (ENS)
 
 Contacts
 ===============================

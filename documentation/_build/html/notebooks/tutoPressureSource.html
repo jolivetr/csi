@@ -6,15 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>A tutorial for pressure sources in CSI &#8212; CSI 1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=2c6a083b" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
     <script src="../_static/documentation_options.js?v=f2a433a1"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="CSI Publications" href="../CSIpublications.html" />
@@ -40,34 +41,34 @@
 <h1>A tutorial for pressure sources in CSI<a class="headerlink" href="#A-tutorial-for-pressure-sources-in-CSI" title="Link to this heading">¶</a></h1>
 <p>In this notebook, we show how to model displacements as measured by InSAR and GPS data with pressure sources. This part has been implemented by Tara Shreeve in 2019 and cleaned up by Romain Jolivet in 2024.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Numpy</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># CSI</span>
-<span class="kn">import</span> <span class="nn">csi.insar</span> <span class="k">as</span> <span class="nn">insar</span>
-<span class="kn">import</span> <span class="nn">csi.gps</span> <span class="k">as</span> <span class="nn">gps</span>
-<span class="kn">import</span> <span class="nn">csi.Pressure</span> <span class="k">as</span> <span class="nn">pressure</span>
-<span class="kn">import</span> <span class="nn">csi.Mogi</span> <span class="k">as</span> <span class="nn">mogi</span>
-<span class="kn">import</span> <span class="nn">csi.Yang</span> <span class="k">as</span> <span class="nn">yang</span>
-<span class="kn">import</span> <span class="nn">csi.CDM</span> <span class="k">as</span> <span class="nn">cdm</span>
-<span class="kn">import</span> <span class="nn">csi.pCDM</span> <span class="k">as</span> <span class="nn">pcdm</span>
-<span class="kn">from</span> <span class="nn">csi.csiutils</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csi.insar</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">insar</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csi.gps</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gps</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csi.Pressure</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pressure</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csi.Mogi</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mogi</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csi.Yang</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">yang</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csi.CDM</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csi.pCDM</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pcdm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">csi.csiutils</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
 <span class="c1"># Reference</span>
-<span class="n">lon0</span><span class="o">=</span><span class="mf">10.0</span>
-<span class="n">lat0</span><span class="o">=</span><span class="mf">30.0</span>
+<span class="n">lon0</span> <span class="o">=</span> <span class="mf">10.</span>
+<span class="n">lat0</span> <span class="o">=</span> <span class="mf">30.</span>
 </pre></div>
 </div>
 </div>
-<section id="Testing-the-Mogi-source-in-CSI">
-<h2>Testing the Mogi source in CSI<a class="headerlink" href="#Testing-the-Mogi-source-in-CSI" title="Link to this heading">¶</a></h2>
+<section id="Testing-the-Mogi-source">
+<h2>Testing the Mogi source<a class="headerlink" href="#Testing-the-Mogi-source" title="Link to this heading">¶</a></h2>
 <section id="Create-the-source">
 <h3>Create the source<a class="headerlink" href="#Create-the-source" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the source</span>
@@ -98,15 +99,15 @@ Initializing pressure source My Mogi source
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/Users/romainjolivet/MYBIN/csi/Mogi.py:260: Warning: Results may be inaccurate if depth is not much greater than radius
+/Users/emile/Documents/Etude/2024_2025_M2/stage_ENS/codes/csi/csi/Mogi.py:260: Warning: Results may be inaccurate if depth is not much greater than radius
   warnings.warn(&#39;Results may be inaccurate if depth is not much greater than radius&#39;,Warning)
 </pre></div></div>
 </div>
 </section>
-<section id="Create-the-GNSS-network">
-<h3>Create the GNSS network<a class="headerlink" href="#Create-the-GNSS-network" title="Link to this heading">¶</a></h3>
+<section id="Create-the-fake-GNSS-network">
+<h3>Create the fake GNSS network<a class="headerlink" href="#Create-the-fake-GNSS-network" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a gps network</span>
@@ -132,7 +133,7 @@ Initialize GPS array My GPS network
 <section id="Create-the-fake-InSAR-data">
 <h3>Create the fake InSAR data<a class="headerlink" href="#Create-the-fake-InSAR-data" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create some points where we will have InSAR data</span>
@@ -166,7 +167,7 @@ Initialize InSAR data set My InSAR network
 <section id="Build-Greens'-functions">
 <h3>Build Greens’ functions<a class="headerlink" href="#Build-Greens'-functions" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build Green&#39;s functions</span>
@@ -200,7 +201,7 @@ Converting to pressure for Mogi Green&#39;s function calculations
 <section id="Build-synthetic-motion">
 <h3>Build synthetic motion<a class="headerlink" href="#Build-synthetic-motion" title="Link to this heading">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make a synthetic dataset</span>
@@ -218,7 +219,7 @@ Converting to pressure for Mogi Green&#39;s function calculations
 <section id="Show-me">
 <h3>Show me<a class="headerlink" href="#Show-me" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make a plot</span>
@@ -238,16 +239,16 @@ Converting to pressure for Mogi Green&#39;s function calculations
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_tutoPressureSource_14_0.png" src="../_images/notebooks_tutoPressureSource_14_0.png" />
+<img alt="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_14_0.png" src="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_14_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># If you want to show the InSAR</span>
 <span class="n">sar</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="s1">&#39;synth&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plotType</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
-         <span class="n">shadedtopo</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="s1">&#39;gebco&#39;</span><span class="p">,</span> <span class="s1">&#39;smooth&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+         <span class="n">shadedtopo</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="s1">&#39;srtm&#39;</span><span class="p">,</span> <span class="s1">&#39;smooth&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
          <span class="n">cblabel</span><span class="o">=</span><span class="s1">&#39;LOS motion (cm)&#39;</span><span class="p">,</span> <span class="n">cbaxis</span><span class="o">=</span><span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">],</span> <span class="n">cborientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">,)</span>
 </pre></div>
 </div>
@@ -260,11 +261,22 @@ Converting to pressure for Mogi Green&#39;s function calculations
 Carefull: there is no NaNs, the interpolation might be a whole load of garbage...
 </pre></div></div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/emile/anaconda3/envs/csi/lib/python3.13/site-packages/cartopy/io/srtm.py:339: UserWarning: SRTM requires an account set up and log in to access. Use of this Downloader is likely to fail with HTTP 401 errors.
+  warnings.warn(&#39;SRTM requires an account set up and log in to access. &#39;
+/Users/emile/anaconda3/envs/csi/lib/python3.13/site-packages/cartopy/io/srtm.py:339: UserWarning: SRTM requires an account set up and log in to access. Use of this Downloader is likely to fail with HTTP 401 errors.
+  warnings.warn(&#39;SRTM requires an account set up and log in to access. &#39;
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_tutoPressureSource_15_1.png" src="../_images/notebooks_tutoPressureSource_15_1.png" />
+<img alt="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_15_2.png" src="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_15_2.png" />
 </div>
 </div>
 </section>
@@ -274,7 +286,7 @@ Carefull: there is no NaNs, the interpolation might be a whole load of garbage..
 <section id="id1">
 <h3>Create the source<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the source</span>
@@ -303,9 +315,9 @@ Using CDM conventions for rotation - dip = 90 is vertical, rotation clockwise ar
 </div>
 </section>
 <section id="id2">
-<h3>Create the GNSS network<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<h3>Create the fake GNSS network<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a gps network</span>
@@ -331,7 +343,7 @@ Initialize GPS array My GPS network
 <section id="id3">
 <h3>Create the fake InSAR data<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create some points where we will have InSAR data</span>
@@ -365,7 +377,7 @@ Initialize InSAR data set My InSAR network
 <section id="id4">
 <h3>Build Greens’ functions<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build Green&#39;s functions</span>
@@ -399,7 +411,7 @@ Converting to pressure for Yang Green&#39;s function calculations
 <section id="id5">
 <h3>Build synthetic motion<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make a synthetic dataset</span>
@@ -417,7 +429,7 @@ Converting to pressure for Yang Green&#39;s function calculations
 <section id="id6">
 <h3>Show me<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make a plot</span>
@@ -437,16 +449,16 @@ Converting to pressure for Yang Green&#39;s function calculations
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_tutoPressureSource_28_0.png" src="../_images/notebooks_tutoPressureSource_28_0.png" />
+<img alt="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_28_0.png" src="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_28_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># If you want to show the InSAR</span>
 <span class="n">sar</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="s1">&#39;synth&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plotType</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-         <span class="n">shadedtopo</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="s1">&#39;gebco&#39;</span><span class="p">,</span> <span class="s1">&#39;smooth&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+         <span class="n">shadedtopo</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="s1">&#39;srtm&#39;</span><span class="p">,</span> <span class="s1">&#39;smooth&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
          <span class="n">cblabel</span><span class="o">=</span><span class="s1">&#39;LOS motion (cm)&#39;</span><span class="p">,</span> <span class="n">cbaxis</span><span class="o">=</span><span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">],</span> <span class="n">cborientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">,)</span>
 </pre></div>
 </div>
@@ -459,11 +471,22 @@ Converting to pressure for Yang Green&#39;s function calculations
 Carefull: there is no NaNs, the interpolation might be a whole load of garbage...
 </pre></div></div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/emile/anaconda3/envs/csi/lib/python3.13/site-packages/cartopy/io/srtm.py:339: UserWarning: SRTM requires an account set up and log in to access. Use of this Downloader is likely to fail with HTTP 401 errors.
+  warnings.warn(&#39;SRTM requires an account set up and log in to access. &#39;
+/Users/emile/anaconda3/envs/csi/lib/python3.13/site-packages/cartopy/io/srtm.py:339: UserWarning: SRTM requires an account set up and log in to access. Use of this Downloader is likely to fail with HTTP 401 errors.
+  warnings.warn(&#39;SRTM requires an account set up and log in to access. &#39;
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_tutoPressureSource_29_1.png" src="../_images/notebooks_tutoPressureSource_29_1.png" />
+<img alt="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_29_2.png" src="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_29_2.png" />
 </div>
 </div>
 </section>
@@ -474,7 +497,7 @@ Carefull: there is no NaNs, the interpolation might be a whole load of garbage..
 <section id="id7">
 <h3>Create the source<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the source</span>
@@ -505,15 +528,15 @@ Initializing pressure source My CDM source
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/Users/romainjolivet/MYBIN/csi/CDM.py:42: FutureWarning: CDM is not yet fully tested as the amplitudes are awkward. Please check the code.
+/Users/emile/Documents/Etude/2024_2025_M2/stage_ENS/codes/csi/csi/CDM.py:42: FutureWarning: CDM is not yet fully tested as the amplitudes are awkward. Please check the code.
   warnings.warn(&#34;CDM is not yet fully tested as the amplitudes are awkward. Please check the code.&#34;, FutureWarning)
 </pre></div></div>
 </div>
 </section>
 <section id="id8">
-<h3>Create the GNSS network<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<h3>Create the fake GNSS network<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a gps network</span>
@@ -539,7 +562,7 @@ Initialize GPS array My GPS network
 <section id="id9">
 <h3>Create the fake InSAR data<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create some points where we will have InSAR data</span>
@@ -573,7 +596,7 @@ Initialize InSAR data set My InSAR network
 <section id="id10">
 <h3>Build Greens’ functions<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build Green&#39;s functions</span>
@@ -605,7 +628,7 @@ My InSAR network of type insar in a homogeneous half-space
 <section id="id11">
 <h3>Build synthetic motion<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make a synthetic dataset</span>
@@ -631,7 +654,7 @@ Scaling by opening
 <section id="id12">
 <h3>Show me<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make a plot</span>
@@ -651,16 +674,16 @@ Scaling by opening
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_tutoPressureSource_42_0.png" src="../_images/notebooks_tutoPressureSource_42_0.png" />
+<img alt="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_43_0.png" src="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_43_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[44]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># If you want to show the InSAR</span>
 <span class="n">sar</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="s1">&#39;synth&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plotType</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-         <span class="n">shadedtopo</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="s1">&#39;gebco&#39;</span><span class="p">,</span> <span class="s1">&#39;smooth&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+         <span class="n">shadedtopo</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="s1">&#39;srtm&#39;</span><span class="p">,</span> <span class="s1">&#39;smooth&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
          <span class="n">cblabel</span><span class="o">=</span><span class="s1">&#39;LOS motion (cm)&#39;</span><span class="p">,</span> <span class="n">cbaxis</span><span class="o">=</span><span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">],</span> <span class="n">cborientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">,)</span>
 </pre></div>
 </div>
@@ -673,11 +696,22 @@ Scaling by opening
 Carefull: there is no NaNs, the interpolation might be a whole load of garbage...
 </pre></div></div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/emile/anaconda3/envs/csi/lib/python3.13/site-packages/cartopy/io/srtm.py:339: UserWarning: SRTM requires an account set up and log in to access. Use of this Downloader is likely to fail with HTTP 401 errors.
+  warnings.warn(&#39;SRTM requires an account set up and log in to access. &#39;
+/Users/emile/anaconda3/envs/csi/lib/python3.13/site-packages/cartopy/io/srtm.py:339: UserWarning: SRTM requires an account set up and log in to access. Use of this Downloader is likely to fail with HTTP 401 errors.
+  warnings.warn(&#39;SRTM requires an account set up and log in to access. &#39;
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_tutoPressureSource_43_1.png" src="../_images/notebooks_tutoPressureSource_43_1.png" />
+<img alt="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_44_2.png" src="../_build/html/.doctrees/nbsphinx/notebooks_tutoPressureSource_44_2.png" />
 </div>
 </div>
 </section>
@@ -689,7 +723,7 @@ Carefull: there is no NaNs, the interpolation might be a whole load of garbage..
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">CSI</a></h1>
 
@@ -700,7 +734,16 @@ Carefull: there is no NaNs, the interpolation might be a whole load of garbage..
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
@@ -719,16 +762,6 @@ Carefull: there is no NaNs, the interpolation might be a whole load of garbage..
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -745,8 +778,8 @@ Carefull: there is no NaNs, the interpolation might be a whole load of garbage..
       &#169;2024, Romain Jolivet.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/notebooks/tutoPressureSource.ipynb.txt"

@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>gps class &#8212; CSI 1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=2c6a083b" />
     <script src="../_static/documentation_options.js?v=f2a433a1"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,7 +38,7 @@
 <h1>gps class<a class="headerlink" href="#gps-class" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="csi.gps">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">gps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">gps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps" title="Link to this definition">¶</a></dt>
 <dd><p>A class that handles a network of gps displacements</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -96,17 +97,32 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.buildsynth">
-<span class="sig-name descname"><span class="pre">buildsynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.buildsynth" title="Link to this definition">¶</a></dt>
-<dd><p>Takes the slip model in each of the faults and builds the synthetic displacement using the Green’s functions.</p>
+<span class="sig-name descname"><span class="pre">buildsynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blockcomponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rotation+intradef+boundary'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.buildsynth" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the synthetic data associated with deformation sources (Fault, Pressure, Block, …) or geometrical transformations.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>faults        : list of faults to include.</p></li>
+<li><p>sources       : list of sources to include.</p></li>
 </ul>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>direction     : list of directions to use. Can be any combination of ‘s’, ‘d’ and ‘t’.</p></li>
+<li><dl class="simple">
+<dt>blockcomponent<span class="classifier">string or dictionary</span></dt><dd><p>Which block components to consider.</p>
+<ul>
+<li><dl class="simple">
+<dt>If blockcomponent is a string, all blocks will have the same components considered.</dt><dd><p>Options are ‘rotation’, ‘intradef’, ‘boundary’ or any combination (e.g. ‘rotation+intradef’).</p>
+</dd>
+</dl>
+</li>
+<li><p>If blockcomponent is a dictionary, each block can have different components considered (only valid for a multiblock)
+The dictonary should be of the form {csi.Block.name: ‘rotation+intradef+boundary’}
+For example, if you want to consider only rotation for block A and rotation + intradef for block B, you can set
+blockcomponent = {‘A’: ‘rotation’, ‘B’: ‘rotation+intradef’}.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 <li><p>vertical      : True/False</p></li>
-<li><p>include_poly  : if a polynomial function has been estimated, include it.</p></li>
 <li><p>custom        : if some custom green’s function was used, include it.</p></li>
 </ul>
 </dd>
@@ -115,6 +131,12 @@
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gps.checkNaNs">
+<span class="sig-name descname"><span class="pre">checkNaNs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.checkNaNs" title="Link to this definition">¶</a></dt>
+<dd><p>Checks and remove data points that have NaNs in vel_enu, err_enu, lon, lat, los, vel_los, err_los.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -241,8 +263,8 @@ Stores it in transformation.</p>
 <dd><p>Removes a rotation from the lon, lat and velocity of a rotation pole.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>elon   : Longitude of the rotation pole</p></li>
-<li><p>elat   : Latitude of the rotation pole</p></li>
+<li><p>elon   : Longitude of the rotation pole (in degrees)</p></li>
+<li><p>elat   : Latitude of the rotation pole (in degrees)</p></li>
 <li><p>omega  : Amplitude of the rotation (in rad/yr).</p></li>
 </ul>
 </dd>
@@ -288,8 +310,28 @@ number of stations randomly chosen.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="csi.gps.distance2block">
+<span class="sig-name descname"><span class="pre">distance2block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.distance2block" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the distance between the GPS stations and block boundaries.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>blocks    : list of blocks objects.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>discretized : Use discretized boundaries (default False).</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>d         : distance</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.distance2fault">
-<span class="sig-name descname"><span class="pre">distance2fault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.distance2fault" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">distance2fault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.distance2fault" title="Link to this definition">¶</a></dt>
 <dd><p>Computes the distance between the GPS stations and a list of faults.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -353,6 +395,23 @@ Positive is clockwise for the rotation. Only works with 2D.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="csi.gps.getBlockList">
+<span class="sig-name descname"><span class="pre">getBlockList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.getBlockList" title="Link to this definition">¶</a></dt>
+<dd><p>For each point in the network, get the blocks in which it is located.
+Otherwise, set the block to None.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>blocks    : list of block objects</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.getHelmertMatrix">
 <span class="sig-name descname"><span class="pre">getHelmertMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meanbase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.getHelmertMatrix" title="Link to this definition">¶</a></dt>
 <dd><p>Returns a Helmert matrix for a gps data set.</p>
@@ -401,7 +460,16 @@ Strain is only computed as an aerial strain (2D). If verticals are included, it 
 a vertical translation for the network.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>transformation : String. Can be ‘strain’, ‘full’, ‘strainnorotation’, ‘strainnotranslation’, ‘strainonly’</p></li>
+<li><dl class="simple">
+<dt>transformation<span class="classifier">String. It can be:</span></dt><dd><ul>
+<li><p>‘full’: full Helmert transform</p></li>
+<li><p>‘strain’: strain only</p></li>
+<li><p>‘translation’: translation only</p></li>
+<li><p>‘translationrotation’: translation and rotation only</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -443,18 +511,28 @@ a vertical translation for the network.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.getTransformEstimator">
 <span class="sig-name descname"><span class="pre">getTransformEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.getTransformEstimator" title="Link to this definition">¶</a></dt>
-<dd><p>Returns the estimator for the transform.</p>
+<dd><p>Returns the estimator for the transformation to estimate in the GNSS data.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>transformation : String. Can be ‘strain’, ‘full’, ‘strainnorotation’, ‘strainnotranslation’, ‘strainonly’, ‘translation’ or ‘translationrotation’</p></li>
+<li><dl class="simple">
+<dt>transformation<span class="classifier">Transformation type. It can be:</span></dt><dd><ul>
+<li><p>‘full’: full Helmert transform</p></li>
+<li><p>‘strain’: strain only</p></li>
+<li><p>‘translation’: translation only</p></li>
+<li><p>‘translationrotation’: translation and rotation only</p></li>
+<li><p>‘rotation’: rotation only</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
-<li><p>computeNormFact: compute and store the normalizing factor</p></li>
+<li><p>computeNormFact : compute and store the normalizing factor</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>2d array</p></li>
+<li><p>Estimator matrix (numpy array)</p></li>
 </ul>
 </dd>
 </dl>
@@ -604,7 +682,7 @@ If station is already in here, there is several options:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.intersectProfileFault">
-<span class="sig-name descname"><span class="pre">intersectProfileFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.intersectProfileFault" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">intersectProfileFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.intersectProfileFault" title="Link to this definition">¶</a></dt>
 <dd><p>Gets the distance between the fault/profile intersection and the profile center.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -622,10 +700,10 @@ If station is already in here, there is several options:</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.keep_stations">
 <span class="sig-name descname"><span class="pre">keep_stations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stations</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.keep_stations" title="Link to this definition">¶</a></dt>
-<dd><p>Keeps only the stations on the arg list.</p>
+<dd><p>Keeps the stations named in stations.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>stations  : list of stations to keep.</p></li>
+<li><p>stations  : name or list of names of station.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -659,14 +737,17 @@ If station is already in here, there is several options:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">135</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legendscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legendunit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_los</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawCoastlines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.2,</span> <span class="pre">0.1,</span> <span class="pre">0.02]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cborientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cblabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landcolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lightgrey'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seacolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadedtopo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verticalsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[30]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verticalnorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headlength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headaxislength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minshaft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minlength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['data']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['k']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">titleyoffset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.plot" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surfacemotions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">135</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legendscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legendunit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_los</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawCoastlines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.2,</span> <span class="pre">0.1,</span> <span class="pre">0.02]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cborientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cblabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landcolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lightgrey'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seacolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadedtopo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verticalsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[30]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verticalnorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verticalcmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headlength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headaxislength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minshaft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minlength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['data']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['k']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">titleyoffset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.plot" title="Link to this definition">¶</a></dt>
 <dd><p>Plot the network</p>
 <dl class="simple">
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>faults        : list of instances of faults</p></li>
+<li><p>blocks        : list of instances of blocks</p></li>
+<li><p>surfacemotions : list of instances of surfacemotion</p></li>
 <li><p>data          : list of data to plot (can be ‘data’, ‘synth’, ‘res’ or ‘transformation’)</p></li>
 <li><p>vertical      : plot verticals (True/False)</p></li>
 <li><p>verticalsize  : size of the dots for vertical plots (list as long as data)</p></li>
+<li><p>verticalcmap  : colormap for verticals (default is ‘jet’)</p></li>
 <li><p>color         : lits of color specifications as long as data</p></li>
 <li><p>name          : plot the name of the stations</p></li>
 <li><p>legendscale   : size of the legend (default is 10)</p></li>
@@ -801,6 +882,42 @@ If station is already in here, there is several options:</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="csi.gps.read_from_binary">
+<span class="sig-name descname"><span class="pre">read_from_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vel_enu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">err_enu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minerr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkNaNs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.read_from_binary" title="Link to this definition">¶</a></dt>
+<dd><p>Read from binary file or from array.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>station   : binary array (or binary file) containing the station names (type str)</p></li>
+<li><dl class="simple">
+<dt>vel_enu<span class="classifier">binary array (or binary file) containing the ENU velocities (shape (Nsta, 3) formatted as [e_vel, n_vel, u_vel]</span></dt><dd><p>or shape (Nsta, 2) formatted as [e_vel, n_vel])</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>err_enu<span class="classifier">binary array (or binary file) containing the ENU velocity errors (shape (Nsta, 3) formatted as [e_err, n_err, u_err]</span></dt><dd><p>or shape (Nsta, 2) formatted as [e_err, n_err])</p>
+</dd>
+</dl>
+</li>
+<li><p>x       : binary array (or binary file) containing the longitude of the stations or utm coordinates if utm=True (in km)</p></li>
+<li><p>y       : binary array (or binary file) containing the latitude of the stations or utm coordinates if utm=True (in km)</p></li>
+<li><p>utm     : If True, x and y are UTM coordinates, otherwise they are longitude and latitude</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>factor    : multiplication factor for velocities</p></li>
+<li><p>dtype     : data type (default is np.float32 if data is a file)</p></li>
+<li><p>minerr    : if err=0, then err=minerr.</p></li>
+<li><p>checkNaNs : If True, kicks out stations with NaNs</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.read_from_en">
 <span class="sig-name descname"><span class="pre">read_from_en</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">velfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minerr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'std'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.read_from_en" title="Link to this definition">¶</a></dt>
 <dd><p>Reading velocities from a en file formatted as:</p>
@@ -872,6 +989,55 @@ If station is already in here, there is several options:</p>
 <td></td>
 <td></td>
 <td></td>
+</tr>
+</tbody>
+</table>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>velfile   : Input file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>factor    : multiplication factor for velocities</p></li>
+<li><p>minerr    : if err=0, then err=minerr.</p></li>
+<li><p>header    : length of the header</p></li>
+<li><p>checkNaNs : If True, kicks out stations with NaNs</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gps.read_from_eric_gmt">
+<span class="sig-name descname"><span class="pre">read_from_eric_gmt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">velfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minerr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkNaNs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.read_from_eric_gmt" title="Link to this definition">¶</a></dt>
+<dd><p>Reading velocities from a enu file formatted as</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head" colspan="4"><p>Lon | Lat | e_vel</p></th>
+<th class="head" colspan="12"><p>n_vel | e_err | n_err | Cov(XY) | Station Name | u_vel</p></th>
+<th class="head"><p>u_err</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td colspan="4"><blockquote>
+<div><div class="line-block">
+<div class="line"><a href="#id1"><span class="problematic" id="id2">|</span></a></div>
+</div>
+</div></blockquote>
+<p>0  |  1  |   2</p>
+</td>
+<td colspan="12"><blockquote>
+<div><div class="line-block">
+<div class="line">|       |         |              |</div>
+</div>
+</div></blockquote>
+<p>3   |   4   |   5   |    6    |       7      |   8</p>
+</td>
+<td><p>9</p></td>
 </tr>
 </tbody>
 </table>
@@ -999,11 +1165,32 @@ field from self to that of network.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.reject_stations">
-<span class="sig-name descname"><span class="pre">reject_stations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.reject_stations" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">reject_stations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stations</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.reject_stations" title="Link to this definition">¶</a></dt>
 <dd><p>Reject the stations named in stations.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>station   : name or list of names of station.</p></li>
+<li><p>stations   : name or list of names of station.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gps.reject_stations_awayblock">
+<span class="sig-name descname"><span class="pre">reject_stations_awayblock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.reject_stations_awayblock" title="Link to this definition">¶</a></dt>
+<dd><p>Rejects the stations that are {dist} km away from the blocks boundaries.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>dist      : Threshold distance.</p></li>
+<li><p>blocks    : list of Blocks objects.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>discretized : Use discretized boundaries (default False).</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -1015,12 +1202,13 @@ field from self to that of network.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.reject_stations_awayfault">
-<span class="sig-name descname"><span class="pre">reject_stations_awayfault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.reject_stations_awayfault" title="Link to this definition">¶</a></dt>
-<dd><p>Rejects the pixels that are {dis} km away from the faults</p>
+<span class="sig-name descname"><span class="pre">reject_stations_awayfault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.reject_stations_awayfault" title="Link to this definition">¶</a></dt>
+<dd><p>Rejects the pixels that are {dist} km away from the faults.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
 <li><p>dis       : Threshold distance.</p></li>
 <li><p>faults    : list of fault objects.</p></li>
+<li><p>discretized: If True, use the discretized fault trace for distance calculation.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -1031,13 +1219,35 @@ field from self to that of network.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="csi.gps.reject_stations_fault">
-<span class="sig-name descname"><span class="pre">reject_stations_fault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.reject_stations_fault" title="Link to this definition">¶</a></dt>
-<dd><p>Rejects the pixels that are dis km close to the fault.</p>
+<dt class="sig sig-object py" id="csi.gps.reject_stations_closeblock">
+<span class="sig-name descname"><span class="pre">reject_stations_closeblock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.reject_stations_closeblock" title="Link to this definition">¶</a></dt>
+<dd><p>Rejects the stations that are {dist} km close to the blocks boundaries.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>dis       : Threshold distance.</p></li>
+<li><p>dist      : Threshold distance.</p></li>
+<li><p>blocks    : list of Blocks objects.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>discretized : Use discretized boundaries (default False).</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.gps.reject_stations_closefault">
+<span class="sig-name descname"><span class="pre">reject_stations_closefault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.reject_stations_closefault" title="Link to this definition">¶</a></dt>
+<dd><p>Rejects the pixels that are dist km close to the fault.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>dist       : Threshold distance.</p></li>
 <li><p>faults    : list of fault objects.</p></li>
+<li><p>discretized: If True, use the discretized fault trace for distance calculation.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -1098,15 +1308,16 @@ field from self to that of network.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.gps.removeSynth">
-<span class="sig-name descname"><span class="pre">removeSynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.removeSynth" title="Link to this definition">¶</a></dt>
-<dd><p>Removes the synthetics from a slip model.</p>
+<span class="sig-name descname"><span class="pre">removeSynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blockcomponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rot+intra+bound'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.removeSynth" title="Link to this definition">¶</a></dt>
+<dd><p>Removes the synthetics from given deformation sources.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>faults        : list of faults to include.</p></li>
+<li><p>sources       : list of deformation sources to include.</p></li>
 </ul>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>direction     : list of directions to use. Can be any combination of ‘s’, ‘d’ and ‘t’.</p></li>
+<li><p>blockcomponent: for blocks and multiblocks, which components to use. Can be any combination of ‘rot’, ‘intra’ and ‘bound’.</p></li>
 <li><p>poly          : if a polynomial function has been estimated, include it.</p></li>
 <li><p>custom        : if some custom green’s function was used, include it.</p></li>
 </ul>
@@ -1194,15 +1405,18 @@ field from self to that of network.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="csi.gps.setGFsInFault">
-<span class="sig-name descname"><span class="pre">setGFsInFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.setGFsInFault" title="Link to this definition">¶</a></dt>
-<dd><p>From a dictionary of Green’s functions, sets these correctly into the fault 
-object fault for future computation.</p>
-<dl class="simple">
+<dt class="sig sig-object py" id="csi.gps.setGFsInSource">
+<span class="sig-name descname"><span class="pre">setGFsInSource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.gps.setGFsInSource" title="Link to this definition">¶</a></dt>
+<dd><p>From a dictionary of Green’s functions, sets these correctly into the source 
+object (fault, pressure, block or multiblock) for future computation.</p>
+<dl>
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>fault     : Instance of Fault</p></li>
-<li><p>G         : Dictionary with 3 entries ‘strikeslip’, ‘dipslip’ and ‘tensile’. These can be a matrix or None.</p></li>
+<li><p>source    : Instance of Fault, Pressure, Block or MultiBlock</p></li>
+<li><p>G         : Dictionary with entries ‘strikeslip’, ‘dipslip’ and ‘tensile’ for a fault,</p></li>
 </ul>
+<p>‘pressure’, ‘pressureDVx’, ‘pressureDVy’, ‘pressureDVz’ for a pressure,
+‘rotation’, ‘intradef’ for a block,
+‘rotation’, ‘intradef’, ‘boundary’ for a multiblock. These can be a matrix or None.</p>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>vertical  : Do we set the vertical GFs? default is True</p></li>
@@ -1460,7 +1674,7 @@ example: STAT.dat, COPO.dat, ISME.dat …</p>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">CSI</a></h1>
 
@@ -1471,7 +1685,16 @@ example: STAT.dat, COPO.dat, ISME.dat …</p>
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
@@ -1492,16 +1715,6 @@ example: STAT.dat, COPO.dat, ISME.dat …</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -1518,8 +1731,8 @@ example: STAT.dat, COPO.dat, ISME.dat …</p>
       &#169;2024, Romain Jolivet.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/classes/gps.rst.txt"

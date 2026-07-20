@@ -1,39 +1,48 @@
 Installation
 ===============================
 
-Dependencies:
--------------
+Dependencies
+------------
 
-CSI relies on a lot of amazing librairies written by smart people. Please install:
+CSI is a pure Python package. Core runtime dependencies are declared in ``pyproject.toml`` and include numpy, scipy, shapely, pyproj, matplotlib and cartopy.
 
-- python3
-- gcc
-- numpy
-- spicy
-- shapely
-- pyproj
-- matplotlib
-- cartopy
-- multiprocessing
-- h5py
-- okada4py (available on `GitHub <https://github.com/jolivetr/okada4py>`_)
+Optional external tools:
 
-CSI also has ties with EDKS, a software written by Luis Rivera (Univ. Strasbourg). Since this is not mine, I cannot distribute it. It allows to compute Green's functions in a layered medium. Other softwares can be used but we haven't implmemented the links with CSI.
+- ``okada4py`` for some dislocation workflows (available on `GitHub <https://github.com/jolivetr/okada4py>`_)
+- EDKS (external software by Luis Rivera) for layered Green's functions used by some advanced workflows
 
-Repositories:
--------------
+Install CSI (recommended)
+-------------------------
 
-CSI is available on `GitHub <https://github.com/jolivetr/csi>`_! Go get it and clone it to your computer.
+Clone the repository, then install in editable mode:
 
-Install:
---------
+.. code-block:: bash
 
-There is nothing to compile for CSI. It is pure python and we haven't written a proper install script.
-Therefore, the easiest way to go is to add the directory where you have cloned CSI to your PYTHONPATH environment variable:
+	pip install -e .
 
-For instance, in Bash, add to your .bashrc or .bash_profile:
+Install documentation dependencies:
 
->> export PYTHONPATH=/where/I/did/drop/the/code:$PYTHONPATH
+.. code-block:: bash
 
-This should do it!
+	pip install -e ".[docs]"
+
+Build the documentation
+-----------------------
+
+From the ``documentation`` folder:
+
+.. code-block:: bash
+
+	make html
+
+The generated site is written to ``documentation/_build/html``.
+
+Legacy fallback
+---------------
+
+If editable installation is not available in your environment, CSI can still be used by adding the repository root to ``PYTHONPATH``.
+
+.. code-block:: bash
+
+	export PYTHONPATH=/path/to/csi:$PYTHONPATH
 

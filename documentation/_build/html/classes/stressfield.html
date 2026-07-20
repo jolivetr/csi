@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>stressfield class &#8212; CSI 1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=2c6a083b" />
     <script src="../_static/documentation_options.js?v=f2a433a1"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,7 +38,7 @@
 <h1>stressfield class<a class="headerlink" href="#stressfield-class" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="csi.stressfield">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">stressfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">stressfield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield" title="Link to this definition">¶</a></dt>
 <dd><p>A class that handles a stress field. Not used in a long time, untested, could be incorrect.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -54,29 +55,9 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="csi.stressfield.Fault2Stress">
-<span class="sig-name descname"><span class="pre">Fault2Stress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slipdirection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_dip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stressonpatches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield.Fault2Stress" title="Link to this definition">¶</a></dt>
-<dd><p>Takes a fault, or a list of faults, and computes the stress change associated with the slip on the fault.</p>
-<dl class="simple">
-<dt>Args:   </dt><dd><ul class="simple">
-<li><p>fault             : Fault object (RectangularFault).</p></li>
-</ul>
-</dd>
-<dt>Kwargs:</dt><dd><ul class="simple">
-<li><p>factor            : Conversion factor between the slip units and distance units. Usually, distances are in Km. Therefore, if slip is in mm, then factor=1e-6.</p></li>
-<li><p>slipdirection     : any combination of s, d, and t.</p></li>
-<li><p>mu                : Shear Modulus (default is 30GPa).</p></li>
-<li><p>nu                : Poisson’s ratio (default is 0.25).</p></li>
-<li><p>stressonpatches   : Re-sets the station locations to be where the center of the patches are.</p></li>
-<li><p>force_dip         : Specify the dip angle of the patches</p></li>
-<li><p>verbos            : talk to me</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>None</p></li>
-</ul>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="csi.stressfield.computeSecInv">
+<span class="sig-name descname"><span class="pre">computeSecInv</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield.computeSecInv" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the second invariant of the stress tensor and returns it</p>
 </dd></dl>
 
 <dl class="py method">
@@ -98,6 +79,63 @@
 </dl>
 <p>If these are floats, all the tensors will be projected on that plane. Otherwise, they need to be the size ofthe number of tensors.</p>
 <p>Positive Normal Traction means extension. Positive Shear Traction means left-lateral.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.stressfield.fault2Stress">
+<span class="sig-name descname"><span class="pre">fault2Stress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s2m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">la</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slipdirection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_dip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield.fault2Stress" title="Link to this definition">¶</a></dt>
+<dd><p>Takes a fault, or a list of faults, and computes the stress change associated with the slip on the fault.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>fault             : Fault object (RectangularFault).</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>s2m               : Conversion factor for the slip units. Factor is to put everything in meters.</p></li>
+<li><p>p2m               : Conversion factor for the distance units. Factor is to put everything in meters.</p></li>
+<li><p>slipdirection     : any combination of s, d, and t.</p></li>
+<li><p>la                : Lamé parameter (default is 30GPa).</p></li>
+<li><p>mu                : Shear Modulus (default is 30GPa).</p></li>
+<li><p>nu                : Poisson’s ratio (default is 0.25).</p></li>
+<li><p>force_dip         : Specify the dip angle of the patches.</p></li>
+<li><p>verbose           : talk to me.</p></li>
+<li><p>Nworkers          : number of workers to use for the parallel computation (default is None, which means the number of available cores).</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.stressfield.fault2Stress_finitediff">
+<span class="sig-name descname"><span class="pre">fault2Stress_finitediff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s2m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">la</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slipdirection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_dip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield.fault2Stress_finitediff" title="Link to this definition">¶</a></dt>
+<dd><p>Takes a fault, or a list of faults, and computes the stress change associated with the slip on the fault.
+The calculation is done with finite differences</p>
+<dl class="simple">
+<dt>Args:   </dt><dd><ul class="simple">
+<li><p>fault             : Fault object (RectangularFault).</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>s2m               : Conversion factor for the slip units. Factor is to put everything in meters.</p></li>
+<li><p>p2m               : Conversion factor for the distance units. Factor is to put everything in meters.</p></li>
+<li><p>slipdirection     : any combination of s, d, and t.</p></li>
+<li><p>la                : Lamé parameter (default is 30GPa)</p></li>
+<li><p>mu                : Shear Modulus (default is 30GPa).</p></li>
+<li><p>nu                : Poisson’s ratio (default is 0.25).</p></li>
+<li><p>force_dip         : Specify the dip angle of the patches</p></li>
+<li><p>verbos            : talk to me</p></li>
+<li><p>dx                : finite difference step (default is 1m)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -223,6 +261,40 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="csi.stressfield.readStrainFromFile">
+<span class="sig-name descname"><span class="pre">readStrainFromFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield.readStrainFromFile" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the strain field from an ascii file.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>filename    : name of the file to read (default is derived from the strain field name)</p></li>
+<li><p>inDir         : input directory (default is current directory)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.stressfield.readStressFromFile">
+<span class="sig-name descname"><span class="pre">readStressFromFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield.readStressFromFile" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the stress field from an ascii file.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>filename    : name of the file to read (default is derived from the stress field name)</p></li>
+<li><p>inDir         : input directory (default is current directory)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="csi.stressfield.setLonLatZ">
 <span class="sig-name descname"><span class="pre">setLonLatZ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield.setLonLatZ" title="Link to this definition">¶</a></dt>
 <dd><p>Sets longitude, latitude and depth.</p>
@@ -302,6 +374,40 @@
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.stressfield.writeStrain2File">
+<span class="sig-name descname"><span class="pre">writeStrain2File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield.writeStrain2File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the strain field to an ascii file.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>outDir    : output directory (default is current directory)</p></li>
+<li><p>filename  : output filename (default is derived from the stress field name)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.stressfield.writeStress2File">
+<span class="sig-name descname"><span class="pre">writeStress2File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.stressfield.writeStress2File" title="Link to this definition">¶</a></dt>
+<dd><p>Writes the stress field to an ascii file.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>outDir    : output directory (default is current directory)</p></li>
+<li><p>filename  : output filename (default is derived from the stress field name)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -311,7 +417,7 @@
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">CSI</a></h1>
 
@@ -322,7 +428,16 @@
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
@@ -345,16 +460,6 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -371,8 +476,8 @@
       &#169;2024, Romain Jolivet.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/classes/stressfield.rst.txt"

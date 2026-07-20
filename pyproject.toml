@@ -12,7 +12,17 @@ authors = [{ name = "Romain Jolivet" }]
 dependencies = ["numpy", "scipy", "cartopy", "shapely", "pyproj", "matplotlib"]
 
 [project.optional-dependencies]
-docs = ["netcdf4", "h5py"]
+docs = [
+	"sphinx>=7",
+	"nbsphinx",
+	"ipython",
+	"nbconvert",
+	"pypandoc-binary",
+	"netcdf4",
+	"h5py",
+	"ndsplines",
+	"pandas",
+]
 
 [tool.hatch.version]
 path = "csi/__init__.py"

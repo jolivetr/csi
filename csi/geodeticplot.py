@@ -1,5 +1,5 @@
 '''
-Class that plots the class verticalfault, gps and insar in 3D.
+Class that plots deformation sources (fault, blocks, ...) and geodetic data (gnss, insar, ...).
 
 Written by R. Jolivet and Z. Duputel, April 2013.
 
@@ -21,119 +21,122 @@ import pyproj as pp
 import os, copy, sys
 
 # Matplotlib
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 import matplotlib.collections as colls
-from matplotlib.patches import PathPatch
 import matplotlib.patches as patches
 import matplotlib.transforms as transforms
 
-# Cartopy 
-import cartopy 
+# Cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from cartopy.io import PostprocessedRasterSource, LocatedImage
 from cartopy.io.srtm import SRTM1Source, SRTM3Source
 from cartopy.io import srtm
 
-# mpl_toolkits
+# mpl_toolkits for 3D plotting
 from mpl_toolkits.mplot3d import Axes3D
 import mpl_toolkits.mplot3d.art3d as art3d
+import functools
 
-# CSI
+# csi
 from .SourceInv import SourceInv
 from .gebco import GebcoSource
 
+# Some functions
+
+def _scaled_proj(ax, shape):
+    return np.dot(
+        Axes3D.get_proj(ax),
+        np.diag([shape[0], shape[1], shape[2], 1])
+    )
 
 class geodeticplot(object):
     '''
-    A class to create plots of geodetic data with faults. Geographic representation is based on cartopy.
-    Two figures are created. One with a map and the other with a 3D view of the fault.
+    A class to create plots of geodetic data (InSAR, GNSS, ...) with deformation sources (faults, blocks, ...).
+    Two figures are created: one with a 2D map and the other with a 3D map. Geographic representation is based on cartopy.
 
     Args:
-        * lonmin    : left-boundary of the map
-        * lonmax    : Right-boundary of the map
-        * latmin    : Bottom-boundary of the map
-        * latmax    : Top of the map
+        * lonmin    : left boundary of the map
+        * lonmax    : right boundary of the map
+        * latmin    : bottom boundary of the map
+        * latmax    : top boundary of the map
 
     Kwargs:
         * figure        : Figure number
-        * pbaspect      : ??
         * resolution    : Resolution of the mapped coastlines, lakes, rivers, etc. See cartopy for details
-        * figsize       : tuple of the size of the 2 figures
+        * figsize       : tuple of the size (also a tuple) of the 2 figures
 
     Returns:
         * None
     '''
 
     def __init__(self,lonmin, latmin, lonmax, latmax,
-                 figure=None, pbaspect=None,resolution='auto',
-                 figsize=[None,None], Map=True, Fault=True):
+                 figure=None, resolution='auto',
+                 figsize=[None, None], Map=True, Fault=True):
 
-        # Save
+        # Save box
         self.lonmin = lonmin
         self.lonmax = lonmax
         self.latmin = latmin
         self.latmax = latmax
 
-        # Lon0 lat0
-        self.lon0 = lonmin + (lonmax-lonmin)/2.
-        self.lat0 = latmin + (latmax-latmin)/2.
+        # lon0 / lat0
+        self.lon0 = lonmin + (lonmax - lonmin) / 2
+        self.lat0 = latmin + (latmax - latmin) / 2
 
         # Projection
         self.projection = ccrs.PlateCarree()
 
-        # Open a figure
+        # Open a figure for the 3D plot
         if Fault:
-            figFaille = plt.figure(figure, figsize=figsize[0])
-            faille = figFaille.add_subplot(111, projection='3d')
+            fig3D, ax3D = plt.subplots(num=figure, subplot_kw={'projection': '3d'}, figsize=figsize[0],
+                                       nrows=1, ncols=1)
+            
+            ax3D.set_xlabel('Longitude (°)')
+            ax3D.set_ylabel('Latitude (°)')
+            ax3D.set_zlabel('Depth (km)')
+            
+            ax3D.set_xlim(self.lonmin, self.lonmax)
+            ax3D.set_ylim(self.latmin, self.latmax)
         
-        # Chec figure number
+        # Check figure number
         if figure == None:
             fignums = plt.get_fignums()
-            if len(fignums)>0:
+            if len(fignums) > 0:
                 nextFig = np.max(plt.get_fignums())+1
             else:
                 nextFig = 1
         else:
-            nextFig=figure+1
+            nextFig = figure+1
 
-        # Open another one
+        # Open another figure for the 2D plot
         if Map:
-            figCarte  = plt.figure(nextFig, figsize=figsize[1])
-            carte = figCarte.add_subplot(111, projection=self.projection)
-            carte.set_extent([self.lonmin, self.lonmax, self.latmin, self.latmax], crs=self.projection)
+            fig2D, ax2D = plt.subplots(num=nextFig, subplot_kw={'projection': self.projection}, figsize=figsize[1],
+                                           nrows=1, ncols=1)
+            
+            ax2D.set_extent([self.lonmin, self.lonmax, self.latmin, self.latmax], crs=self.projection)
 
             # Gridlines (there is something wrong with the gridlines class...)
-            gl = carte.gridlines(crs=self.projection, draw_labels=True, alpha=0.5, zorder=0)
-            gl.xlabel_style = {'color': 'k', 'weight': 'bold'}
-            gl.ylabel_style = {'color': 'k', 'weight': 'bold'}
-            self.cartegl = gl
-        #carte.set_xticks(carte.get_xticks())
-        #carte.set_yticks(carte.get_yticks())
-        #carte.tick_params(axis='both', which='major', labelsize='large')
+            gl = ax2D.gridlines(crs=self.projection, draw_labels=True, alpha=0.5, zorder=0)
+            gl.xlabel_style = {'size': 'large', 'color': 'k', 'weight': 'bold'}
+            gl.ylabel_style = {'size': 'large', 'color': 'k', 'weight': 'bold'}
 
-        # Set the axes
+        # Store plots
         if Fault:
-            faille.set_xlabel('Longitude')
-            faille.set_ylabel('Latitude')
-            faille.set_zlabel('Depth (km)')
-
-        # store plots
-        if Fault:
-            self.faille = faille
-            self.figFaille = figFaille
+            self.fig3D = fig3D
+            self.ax3D = ax3D
         else:
-            self.faille = None
-            self.figFaille = None
+            self.fig3D = None
+            self.ax3D = None
+        
         if Map:
-            self.carte  = carte
-            self.figCarte = figCarte
+            self.fig2D = fig2D
+            self.ax2D = ax2D
         else:
-            self.carte = None
-            self.figCarte = None
+            self.fig2D = None
+            self.ax2D = None
 
         # All done
         return
@@ -166,9 +169,9 @@ class geodeticplot(object):
         lonc,latc = csiobj.xy2ll(xc,yc+textoffset)
 
         # Show me
-        self.carte.plot([lon1, lon2], [lat1,lat2], '-', color=color, 
+        self.ax2D.plot([lon1, lon2], [lat1,lat2], '-', color=color, 
                         linewidth=linewidth, zorder=zorder)
-        self.carte.text(lonc,latc,'{} km'.format(scalebar), fontdict=fontdict,
+        self.ax2D.text(lonc,latc,'{} km'.format(scalebar), fontdict=fontdict,
                         horizontalalignment='center',zorder=zorder)
 
         # All done
@@ -191,9 +194,9 @@ class geodeticplot(object):
 
         # Figure 1
         if 'fault' in fig2close:
-            plt.close(self.figFaille)
+            plt.close(self.fig3D)
         if 'map' in fig2close:
-            plt.close(self.figCarte)
+            plt.close(self.fig2D)
 
         # All done
         return
@@ -213,12 +216,12 @@ class geodeticplot(object):
         '''
 
         # Change axis of the map
-        if mapaxis != None and self.carte is not None:
-            self.carte.axis(mapaxis)
+        if mapaxis != None and self.ax2D is not None:
+            self.ax2D.axis(mapaxis)
 
         # Change the axis of the 3d projection
-        if triDaxis != None and self.faille is not None:
-            self.faille.axis(triDaxis)
+        if triDaxis != None and self.ax3D is not None:
+            self.ax3D.axis(triDaxis)
 
         # Fits the horizontal axis to the asked values
         if fitOnBox:
@@ -226,16 +229,16 @@ class geodeticplot(object):
                 self.lonmin -= 360.
             if self.lonmax>180.:
                 self.lonmax -= 360.
-            if self.carte is not None:  self.carte.set_extent([self.lonmin, self.lonmax, self.latmin, self.latmax])
-            if self.faille is not None:
-                self.faille.set_xlim(self.carte.get_xlim())
-                self.faille.set_ylim(self.carte.get_ylim())
+            if self.ax2D is not None:  self.ax2D.set_extent([self.lonmin, self.lonmax, self.latmin, self.latmax])
+            if self.ax3D is not None:
+                self.ax3D.set_xlim(self.ax2D.get_xlim())
+                self.ax3D.set_ylim(self.ax2D.get_ylim())
 
         # Delete figures
-        if 'map' not in showFig:
-            plt.close(self.figCarte)
-        if 'fault' not in showFig:
-            plt.close(self.figFaille)
+        if 'map' not in showFig and self.fig2D is not None:
+            plt.close(self.fig2D)
+        if 'fault' not in showFig and self.fig3D is not None:
+            plt.close(self.fig3D)
 
         # Show
         plt.show()
@@ -264,26 +267,26 @@ class geodeticplot(object):
         '''
 
         # Change axis of the map
-        if mapaxis is not None and self.carte is not None:
-            self.carte.axis(mapaxis)
+        if mapaxis is not None and self.ax2D is not None:
+            self.ax2D.axis(mapaxis)
 
         # Change the axis of the 3d proj
-        if triDaxis is not None and self.faille is not None:
-            self.faille.axis(triDaxis)
+        if triDaxis is not None and self.ax3D is not None:
+            self.ax3D.axis(triDaxis)
 
         # Save
         if (ftype == 'png') and (dpi is not None) and (bbox_inches is not None):
-            if 'fault' in saveFig and self.faille is not None:
-                self.figFaille.savefig('%s_fault.png' % (prefix),
+            if 'fault' in saveFig and self.ax3D is not None:
+                self.fig3D.savefig('%s_fault.png' % (prefix),
                         dpi=dpi, bbox_inches=bbox_inches)
-            if 'map' in saveFig and self.carte is not None:
-                self.figCarte.savefig('%s_map.png' % (prefix),
+            if 'map' in saveFig and self.ax2D is not None:
+                self.fig2D.savefig('%s_map.png' % (prefix),
                         dpi=dpi, bbox_inches=bbox_inches)
         else:
-            if 'fault' in saveFig and self.faille is not None:
-                self.figFaille.savefig('{}_fault.{}'.format(prefix, ftype))
-            if 'map' in saveFig and self.carte is not None:
-                self.figCarte.savefig('{}_map.{}'.format(prefix, ftype))
+            if 'fault' in saveFig and self.ax3D is not None:
+                self.fig3D.savefig('{}_fault.{}'.format(prefix, ftype))
+            if 'map' in saveFig and self.ax2D is not None:
+                self.fig2D.savefig('{}_map.{}'.format(prefix, ftype))
 
         # All done
         return
@@ -321,8 +324,8 @@ class geodeticplot(object):
         Returns:
             * None
         '''
-        self.figFaille.clf()
-        self.figCarte.clf()
+        self.fig3D.clf()
+        self.fig2D.clf()
         return
 
     def titlemap(self, titre, y=1.1):
@@ -336,23 +339,23 @@ class geodeticplot(object):
             * None
         '''
 
-        self.carte.set_title(titre, y=y)
+        self.ax2D.set_title(titre, y=y)
 
         # All done
         return
 
-    def titlefault(self, titre):
+    def titlefault(self, title):
         '''
         Sets the title of the fault model.
 
         Args:
-            * titre : title of the fault
+            * title : title of the fault
 
         Returns:
             * None
         '''
 
-        self.faille.set_title(titre, title=1.08)
+        self.ax3D.set_title(title, y=1.08)
 
         # All done
         return
@@ -371,11 +374,10 @@ class geodeticplot(object):
             * None
         '''
 
-        if self.faille is None:
-            print('No fault figure work on')
+        if self.ax3D is None:
             return
 
-        self.faille.set_zlim3d([-1.0*(depth+5), 0])
+        self.ax3D.set_zlim3d([-1.0*(depth+5), 0])
         if zticklabels is None:
             zticks = []
             zticklabels = []
@@ -386,8 +388,8 @@ class geodeticplot(object):
             zticks = []
             for z in zticklabels:
                 zticks.append(-1.0*z)
-        self.faille.set_zticks(zticks)
-        self.faille.set_zticklabels(zticklabels)
+        self.ax3D.set_zticks(zticks)
+        self.ax3D.set_zticklabels(zticklabels)
 
         # All done
         return
@@ -408,16 +410,14 @@ class geodeticplot(object):
         '''
 
         # Check 
-        if self.faille is None:
-            print('No Fault figure to work on')
+        if self.ax3D is None:
             return
 
         # Set angles
-        self.faille.view_init(elevation,azimuth)
+        self.ax3D.view_init(elevation, azimuth)
 
         # Thank you stackoverflow
-        self.faille.get_proj = lambda: np.dot(Axes3D.get_proj(self.faille), 
-                np.diag([shape[0], shape[1], shape[2], 1]))
+        self.ax3D.get_proj = functools.partial(_scaled_proj, self.ax3D, shape)
 
         #all done
         return
@@ -431,13 +431,12 @@ class geodeticplot(object):
         """
 
         # Check 
-        if self.faille is None:
-            print('No Fault figure to work on')
+        if self.ax3D is None:
             return
 
-        xlim = self.faille.get_xlim3d()
-        ylim = self.faille.get_ylim3d()
-        zlim = self.faille.get_zlim3d()
+        xlim = self.ax3D.get_xlim3d()
+        ylim = self.ax3D.get_ylim3d()
+        zlim = self.ax3D.get_zlim3d()
 
         x_range = xlim[1] - xlim[0]
         y_range = ylim[1] - ylim[0]
@@ -449,11 +448,11 @@ class geodeticplot(object):
 
         max_range = 0.5 * np.array([x_range, y_range, z_range]).max()
 
-        self.faille.set_xlim3d([x0-max_range, x0+max_range])
-        self.faille.set_ylim3d([y0-max_range, y0+max_range])
-        self.faille.set_zlim3d(zlim)
+        self.ax3D.set_xlim3d([x0-max_range, x0+max_range])
+        self.ax3D.set_ylim3d([y0-max_range, y0+max_range])
+        self.ax3D.set_zlim3d(zlim)
 
-        self.figFaille.set_size_inches((14,6))
+        self.fig3D.set_size_inches((14,6))
 
         return
 
@@ -470,9 +469,9 @@ class geodeticplot(object):
         '''
         
         # check
-        if self.carte is None: return
+        if self.ax2D is None: return
 
-        self.carte.set_extent([xlim[0], xlim[1], ylim[0], ylim[1]])
+        self.ax2D.set_extent([xlim[0], xlim[1], ylim[0], ylim[1]])
 
         # All done
         return
@@ -506,7 +505,7 @@ class geodeticplot(object):
         '''
 
         # check
-        if self.carte is None: return
+        if self.ax2D is None: return
 
         # Define toposhading (thanks Thomas Lecocq and the Cartopy website)
         def shade(located_elevations):
@@ -539,7 +538,7 @@ class geodeticplot(object):
             shaded_topo = source
 
         # Add the raster
-        self.carte.add_raster(shaded_topo, cmap=cmap, alpha=alpha, zorder=zorder, clim=norm)
+        self.ax2D.add_raster(shaded_topo, cmap=cmap, alpha=alpha, zorder=zorder, clim=norm)
 
         # All done
         return
@@ -568,7 +567,7 @@ class geodeticplot(object):
         '''
 
         # check
-        if self.carte is None: return
+        if self.ax2D is None: return
 
         # Scale bar
         if drawMapScale is not None:
@@ -576,10 +575,10 @@ class geodeticplot(object):
 
         # Ocean color (not really nice since this colors everything in the background)
         if seacolor=='image':
-            self.carte.stock_img()
+            self.ax2D.stock_img()
         else:
             if seacolor is not None: 
-                self.carte.add_feature(cfeature.NaturalEarthFeature('physical', 
+                self.ax2D.add_feature(cfeature.NaturalEarthFeature('physical', 
                                                                     'ocean', 
                                                                     scale=resolution,
                                                                     edgecolor=color, 
@@ -595,7 +594,7 @@ class geodeticplot(object):
                                                 zorder=zorder, alpha=alpha)
 
         # Draw and get the line object
-        self.carte.add_feature(self.coastlines)
+        self.ax2D.add_feature(self.coastlines)
 
         ## MapScale
         if drawMapScale is not None:
@@ -621,7 +620,7 @@ class geodeticplot(object):
 
             # Draw them
         if meridians is not None and parallels is not None:
-            gl = self.carte.gridlines(color='gray', xlocs=meridians, ylocs=parallels, linestyle=(0, (1, 1)))
+            gl = self.ax2D.gridlines(color='gray', xlocs=meridians, ylocs=parallels, linestyle=(0, (1, 1)))
 
         # All done
         return
@@ -632,17 +631,16 @@ class geodeticplot(object):
         '''
 
         # Check
-        if self.carte is not None:
+        if self.ax2D is not None:
             self.countries = cfeature.NaturalEarthFeature(scale=resolution, category='cultural', name='admin_0_countries', 
                                                           linewidth=linewidth, edgecolor=edgecolor, facecolor=facecolor,
                                                           alpha=alpha, zorder=zorder)
-            self.carte.add_feature(self.countries)
+            self.ax2D.add_feature(self.countries)
         
         # All done
         return
 
-
-    def faulttrace(self, fault, color='r', add=False, discretized=False, linewidth=1, zorder=1):
+    def faulttrace(self, fault, color='r', add=False, discretized=False, linewidth=1, linestyle='solid', zorder=1):
         '''
         Plots a fault trace.
 
@@ -666,31 +664,118 @@ class geodeticplot(object):
         else:
             lon = fault.lon
             lat = fault.lat
+        
         # Plot the added faults before
         if add:
             for f in fault.addfaults:
                 #f[0][f[0]<0.] += 360.
-                self.carte.plot(f[0], f[1], '-k', zorder=zorder, linewidth=linewidth)
+                self.ax2D.plot(f[0], f[1], '-k', zorder=zorder, linewidth=linewidth)
             for f in fault.addfaults:
-                if self.faille_flag:
-                    self.faille.plot(f[0], f[1], '-k', linewidth=linewidth)
+                if self.ax3D_flag:
+                    self.ax3D.plot(f[0], f[1], '-k', linewidth=linewidth)
 
         # Plot the surface trace
-        #lon[lon<0] += 360.
-        #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
         if hasattr(fault, 'color'): color = fault.color
         if hasattr(fault, 'linewidth'): linewidth = fault.linewidth
-        if self.faille is not None: self.faille.plot(lon, lat, '-{}'.format(color), linewidth=linewidth)
-        if self.carte is not None: self.carte.plot(lon, lat, '-{}'.format(color), zorder=zorder, 
-                                                   linewidth=linewidth)
+        if hasattr(fault, 'linestyle'): linestyle = fault.linestyle
+        
+        if self.ax3D is not None:
+            try:
+                self.ax3D.plot3D(lon, lat, np.zeros(len(lon)),
+                                color=color, linewidth=linewidth, linestyle=linestyle, zorder=zorder,
+                                axlim_clip=True)
+            except:
+                self.ax3D.plot3D(lon, lat, np.zeros(len(lon)),
+                                color=color, linewidth=linewidth, linestyle=linestyle, zorder=zorder)
+            
+        if self.ax2D is not None:
+            self.ax2D.plot(lon, lat,
+                            color=color, linestyle=linestyle, linewidth=linewidth, zorder=zorder)
+
+        # All done
+        return
+
+    def blockboundary(self, block, discretized=False, color='k', linewidth=1, linestyle='solid', zorder=1):
+        '''
+        Plots a block boundary.
+
+        Args:
+            * block         : Block instance
+
+        Kwargs:
+            * discretized   : Plot the discretized fault boundary
+            * color         : Color of the fault.
+            * zorder        : matplotlib order of plotting
+            * linewidth     : Width of the lines
+            * linestyle     : Style of the lines
+            
+        Returns:
+            * None
+        '''
+
+        # discretized?
+        if discretized:
+            lon = block.loni
+            lat = block.lati
+        else:
+            lon = block.lon
+            lat = block.lat
+
+        # Plot the surface trace
+        if hasattr(block, 'color'): color = block.color
+        if hasattr(block, 'linewidth'): linewidth = block.linewidth
+        if hasattr(block, 'linestyle'): linestyle = block.linestyle
+        
+        if self.ax3D is not None:
+            self.ax3D.plot3D(lon, lat, np.zeros(len(lon)),
+                               color=color, linewidth=linewidth, linestyle=linestyle, zorder=zorder,
+                               axlim_clip=True)
+            
+        if self.ax2D is not None:
+            self.ax2D.plot(lon, lat,
+                            color=color, linestyle=linestyle, linewidth=linewidth, zorder=zorder)
+
+        # All done
+        return
+    
+    def SurfaceMotionNodes(self, surfacemotion, color='k', markersize=10, zorder=1):
+        '''
+        Plots the nodes of a surface motion object.
+
+        Args:
+            * surfacemotion : SurfaceMotion instance
+
+        Kwargs:
+            * color         : Color of the nodes.
+            * zorder        : matplotlib order of plotting
+            
+        Returns:
+            * None
+        '''
+
+        lon = surfacemotion.lon
+        lat = surfacemotion.lat
+
+        # Plot the surface trace
+        if hasattr(surfacemotion, 'color'): color = surfacemotion.color
+        if hasattr(surfacemotion, 'markersize'): markersize = surfacemotion.markersize
+        
+        if self.ax3D is not None:
+            self.ax3D.scatter3D(lon, lat, np.zeros(len(lon)),
+                               color=color, s=markersize, zorder=zorder,
+                               axlim_clip=True)
+            
+        if self.ax2D is not None:
+            self.ax2D.scatter(lon, lat,
+                            color=color, s=markersize, zorder=zorder)
 
         # All done
         return
 
     def faultpatches(self, fault, slip='strikeslip', norm=None, colorbar=True,
                      cbaxis=[0.1, 0.2, 0.1, 0.02], cborientation='horizontal', cblabel='',
-                     plot_on_2d=False, revmap=False, linewidth=1.0, cmap='jet', offset=None,
-                     alpha=1.0, factor=1.0, zorder=3, edgecolor='slip', colorscale='normal',stdfault=None):
+                     plot_on_2d=False, revmap=False, linewidth=1., cmap='jet', offset=None,
+                     alpha=1.0, factor=1., zorder=3, edgecolor='slip', colorscale='normal',stdfault=None):
         '''
         Plot the fualt patches
 
@@ -718,35 +803,74 @@ class geodeticplot(object):
             * None
         '''
 
-# Get slip
-        if slip in ('strikeslip'):
-            slip = fault.slip[:,0].copy()
+        # Get slip
+        if 'strikeslip' in slip:
+            
+            if 'longterm' in slip:
+                slip = fault.longterm_slip[:, 0].copy()
+            else:
+                slip = fault.slip[:, 0].copy()
+            
+            if stdfault != None:
+                stdslip = stdfault.slip[:, 0].copy()
+                
+        elif 'dipslip' in slip:
+            
+            if 'longterm' in slip:
+                slip = fault.longterm_slip[:, 1].copy()
+            else:
+                slip = fault.slip[:, 1].copy()
+                
+            if stdfault != None:
+                stdslip = stdfault.slip[:, 1].copy()
+                
+        elif 'tensileslip' in slip:
+            
+            if 'longterm' in slip:
+                slip = fault.longterm_slip[:, 2].copy()
+            else:
+                slip = fault.slip[:, 2].copy()
+                
+            if stdfault != None:
+                stdslip = stdfault.slip[:, 2].copy()
+     
+        elif 'total' in slip:
+            
+            if 'longterm' in slip:
+                slip = np.sqrt(fault.longterm_slip[:, 0]**2 + fault.longterm_slip[:, 1]**2 + fault.longterm_slip[:, 2]**2)
+            else:
+                slip = np.sqrt(fault.slip[:, 0]**2 + fault.slip[:, 1]**2 + fault.slip[:, 2]**2)
+            
             if stdfault!=None:
-                stdslip = stdfault.slip[:,0].copy()
-        elif slip in ('dipslip'):
-            slip = fault.slip[:,1].copy()
+                stdslip = np.sqrt(stdfault.slip[:, 0]**2 + stdfault.slip[:, 1]**2 + stdfault.slip[:, 2]**2)
+                
+        elif 'coupling' in slip:
+            
+            slip = fault.coupling.copy()
+            
             if stdfault!=None:
-                stdslip = stdfault.slip[:,1].copy()
-        elif slip in ('tensile'):
-            slip = fault.slip[:,2].copy()
-            if stdfault!=None:
-                stdslip = stdfault.slip[:,2].copy()
-        elif slip in ('total'):
-            slip = np.sqrt(fault.slip[:,0]**2 + fault.slip[:,1]**2 + fault.slip[:,2]**2)
-            if stdfault!=None:
-                stdslip = np.sqrt(stdfault.slip[:,0]**2 + stdfault.slip[:,1]**2 + stdfault.slip[:,2]**2)
+                stdslip = stdfault.coupling.copy()
+        
+        elif 'blockleft' in slip:
+            
+            list_blocks = np.array(fault.patchblock)[:, 0]
+            slip = []
+            for b in list_blocks:
+                slip.append(np.argwhere(np.array([b_.name for b_ in fault.multiblock.blocks]) == b.name)[0][0])
+            slip = np.array(slip).astype(float)
+            
+        elif 'blockright' in slip:
+            
+            list_blocks = np.array(fault.patchblock)[:, 1]
+            slip = []
+            for b in list_blocks:
+                slip.append(np.argwhere(np.array([b_.name for b_ in fault.multiblock.blocks]) == b.name)[0][0])
+            slip = np.array(slip).astype(float)
+        
         else:
             print ("Unknown slip direction")
             return
         slip *= factor
-
-        # norm
-        if norm == None:
-            vmin=slip.min()
-            vmax=slip.max()
-        else:
-            vmin=norm[0]
-            vmax=norm[1]
 
         # Potential offset of the fault wrt. its true position 
         if offset is None:
@@ -758,7 +882,15 @@ class geodeticplot(object):
         except:
             print('Warning: Depth cannot be determined automatically. Please set z-axis limit manually')
 
-        # set color business
+        # set color busines
+        
+        if norm == None:
+            vmin = np.nanmin(slip)
+            vmax = np.nanmax(slip)
+        else:
+            vmin = norm[0]
+            vmax = norm[1]
+        
         if revmap:
             cmap = plt.get_cmap(cmap)
         else:
@@ -770,7 +902,7 @@ class geodeticplot(object):
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
 
         # fault figure
-        if self.faille is not None:
+        if self.ax3D is not None:
             Xs = np.array([])
             Ys = np.array([])
             for p in range(len(fault.patch)):
@@ -798,14 +930,18 @@ class geodeticplot(object):
                     if (stdslip[p]>0) and (slip[p]!=0):
                         rect.set_alpha(np.min([1.,np.max([slip[p],0.])/stdslip[p]]))
                 rect.set_linewidth(linewidth)
-                self.faille.add_collection3d(rect)
+                rect.set_zorder(zorder)
+                try:
+                    self.ax3D.add_collection3d(rect, axlim_clip=True)
+                except:
+                    self.ax3D.add_collection3d(rect)
 
             # Reset x- and y-lims
-            self.faille.set_xlim([self.lonmin,self.lonmax])
-            self.faille.set_ylim([self.latmin,self.latmax])
+            self.ax3D.set_xlim([self.lonmin,self.lonmax])
+            self.ax3D.set_ylim([self.latmin,self.latmax])
 
         # If 2d.
-        if plot_on_2d and self.carte is not None:
+        if plot_on_2d and self.ax2D is not None:
             for p, patch in zip(range(len(fault.patchll)), fault.patchll):
                 x = []
                 y = []
@@ -819,7 +955,7 @@ class geodeticplot(object):
                     verts.append((xi,yi))
                 rect = colls.PolyCollection([verts])
                 rect.set_facecolor(scalarMap.to_rgba(slip[p]))
-                if edgecolor=='slip': 
+                if edgecolor=='slip':
                     rect.set_edgecolors(scalarMap.to_rgba(slip[p]))
                 else:
                     rect.set_edgecolors(edgecolor)
@@ -830,13 +966,16 @@ class geodeticplot(object):
                 if alpha<1.0:
                     rect.set_alpha(alpha)
                 rect.set_zorder(zorder)
-                self.carte.add_collection(rect)
+                self.ax2D.add_collection(rect)
 
         # put up a colorbar
         if colorbar:
-            if self.faille is not None: self.addColorbar(slip, scalarMap, cbaxis, cborientation, self.figFaille, cblabel=cblabel) 
-            if plot_on_2d and self.carte is not None: 
-                self.addColorbar(slip, scalarMap, cbaxis, cborientation,self.figCarte, cblabel=cblabel)
+            
+            if self.ax3D is not None:
+                self.addColorbar(slip, scalarMap, cbaxis, cborientation, self.fig3D, cblabel=cblabel)
+                
+            if plot_on_2d and self.ax2D is not None: 
+                self.addColorbar(slip, scalarMap, cbaxis, cborientation,self.fig2D, cblabel=cblabel)
 
         # All done
         return
@@ -927,23 +1066,23 @@ class geodeticplot(object):
         ex_ll,ey_ll = np.array(fault.xy2ll(xyz[:,:,0]+fault.xf,xyz[:,:,1]+fault.yf))
         ez_ll = xyz[:,:,2]-(fault.ellipshape['z0']/1000.)
 
-        if self.faille is not None:
+        if self.ax3D is not None:
             #x0 and y0 are in lat/lon, depth is negative and in km
-            self.faille.plot_surface(ex_ll,ey_ll,ez_ll,color=scalarMap.to_rgba(delta))
+            self.ax3D.plot_surface(ex_ll,ey_ll,ez_ll,color=scalarMap.to_rgba(delta))
 
             # Reset x- and y-lims
-            self.faille.set_xlim([self.lonmin,self.lonmax])
-            self.faille.set_ylim([self.latmin,self.latmax])
+            self.ax3D.set_xlim([self.lonmin,self.lonmax])
+            self.ax3D.set_ylim([self.latmin,self.latmax])
 
         # # If 2d. Just plots center for now, should plot ellipse projection onto surface
-        if plot_on_2d and self.carte is not None:
-             self.carte.scatter(fault.ellipshape['x0'],fault.ellipshape['y0'])
+        if plot_on_2d and self.ax2D is not None:
+             self.ax2D.scatter(fault.ellipshape['x0'],fault.ellipshape['y0'])
 
         # put up a colorbar
         if colorbar:
-            if self.faille is not None: self.addColorbar(delta, scalarMap, cbaxis, cborientation, self.figFaille, cblabel=cblabel)
-            if plot_on_2d and self.carte is not None:
-                self.addColorbar(delta, scalarMap, cbaxis, cborientation, self.figCarte, cblabel=cblabel)
+            if self.ax3D is not None: self.addColorbar(delta, scalarMap, cbaxis, cborientation, self.fig3D, cblabel=cblabel)
+            if plot_on_2d and self.ax2D is not None:
+                self.addColorbar(delta, scalarMap, cbaxis, cborientation, self.fig2D, cblabel=cblabel)
 
         # All done
         return
@@ -954,7 +1093,7 @@ class geodeticplot(object):
                    method='scatter', cmap='jet', plot_on_2d=False,
                    revmap=False, factor=1.0, npoints=10,
                    xystrides=[100, 100], zorder=0,
-                   vertIndex=False):
+                   vertIndex=False, linewidth=1., edgecolor='k', markersize=5):
         '''
         Plot a fault with tents.
 
@@ -973,24 +1112,63 @@ class geodeticplot(object):
             * npoints       : Number of subpoints per patch. This number is only indicative of the actual number of points that is picked out by the dropSourcesInPatch function of EDKS.py. It only matters to make the interpolation finer. Default value is generally alright.
             * xystrides     : If method is 'surface', then xystrides is going to be the number of points along x and along y used to interpolate the surface in 3D and its color.
             * vertIndex     : Writes the index of the vertices
+            * markersize    : Size of the markers in the scatter plot
 
         Returns:
             * None
         '''
 
         # Get slip
-        if slip in ('strikeslip'):
-            slip = fault.slip[:,0].copy()
-        elif slip in ('dipslip'):
-            slip = fault.slip[:,1].copy()
-        elif slip in ('tensile'):
-            slip = fault.slip[:,2].copy()
-        elif slip in ('total'):
-            slip = np.sqrt(fault.slip[:,0]**2 + fault.slip[:,1]**2 + fault.slip[:,2]**2)
+        if 'strikeslip' in slip:
+            
+            if 'longterm' in slip:
+                slip = fault.longterm_slip[:, 0].copy()
+            else:
+                slip = fault.slip[:,0].copy()
+            
+        elif 'dipslip' in slip:
+            
+            if 'longterm' in slip:
+                slip = fault.longterm_slip[:, 1].copy()
+            else:
+                slip = fault.slip[:,1].copy()
+            
+        elif 'tensile' in slip:
+            
+            if 'longterm' in slip:
+                slip = fault.longterm_slip[:, 2].copy()
+            else:
+                slip = fault.slip[:,2].copy()
+            
+        elif 'total' in slip:
+            
+            if 'longterm' in slip:
+                slip = np.sqrt(fault.longterm_slip[:, 0]**2 + fault.longterm_slip[:, 1]**2 + fault.longterm_slip[:, 2]**2)
+            else:
+                slip = np.sqrt(fault.slip[:,0]**2 + fault.slip[:,1]**2 + fault.slip[:,2]**2)
+            
         elif slip in ('coupling'):
             slip = fault.coupling.copy()
+            
         elif slip in ('sensitivity'):
             slip = fault.sensitivity.copy()
+        
+        elif slip in ('blockleft'):
+            
+            list_blocks = np.array(fault.tentblock)[:, 0]
+            slip = []
+            for b in list_blocks:
+                slip.append(np.argwhere(np.array([b_.name for b_ in fault.multiblock.blocks]) == b.name)[0][0])
+            slip = np.array(slip).astype(float)
+            
+        elif slip in ('blockright'):
+            
+            list_blocks = np.array(fault.tentblock)[:, 1]
+            slip = []
+            for b in list_blocks:
+                slip.append(np.argwhere(np.array([b_.name for b_ in fault.multiblock.blocks]) == b.name)[0][0])
+            slip = np.array(slip).astype(float)
+            
         else:
             print ("Unknown slip direction")
             return
@@ -998,11 +1176,11 @@ class geodeticplot(object):
 
         # norm
         if norm == None:
-            vmin=slip.min()
-            vmax=slip.max()
+            vmin = np.nanmin(slip)
+            vmax = np.nanmax(slip)
         else:
-            vmin=norm[0]
-            vmax=norm[1]
+            vmin = norm[0]
+            vmax = norm[1]
 
         # set z axis
         self.setzaxis(fault.depth+5., zticklabels=fault.z_patches)
@@ -1029,35 +1207,42 @@ class geodeticplot(object):
             z = [-1.0*v[2] for v in verts]
             x.append(x[0]); y.append(y[0]); z.append(z[0])
             x = np.array(x); #x[x<0.] += 360.
-            if self.faille is not None: self.faille.plot3D(x, y, z, '-', color='gray', linewidth=1, alpha=alpha)
-            if plot_on_2d and self.carte is not None: self.carte.plot(x, y, '-', color='gray', linewidth=1, zorder=zorder, alpha=alpha)
+            if self.ax3D is not None:
+                self.ax3D.plot3D(x, y, z, '-', color=edgecolor, linewidth=linewidth, axlim_clip=True)
+            if plot_on_2d and self.ax2D is not None:
+                self.ax2D.plot(x, y, '-', color=edgecolor, linewidth=linewidth, zorder=zorder)
 
         # Plot the color for slip
-        # 1. Get the subpoints for each triangle
-        from .EDKSmp import dropSourcesInPatches as Patches2Sources
-        #if hasattr(fault, 'edksSources') and not hasattr(fault, 'plotSources'):
-        #    fault.plotSources = copy.deepcopy(fault.edksSources)
-        #    fault.plotSources[1] /= 1e3
-        #    fault.plotSources[2] /= 1e3
-        #    fault.plotSources[3] /= 1e3
-        #    fault.plotSources[4] /= 180./np.pi
-        #    fault.plotSources[5] /= 180./np.pi
-        #    fault.plotSources[6] /= 1e6
-        if hasattr(fault, 'plotSources'):
-            print('Using precomputed sources for plotting')
+        
+        # If npoints is None, we plot the slip on the nodes, which is very fast.
+        if npoints is None:
+            
+            X = np.array(fault.Vertices)[:, 0]
+            Y = np.array(fault.Vertices)[:, 1]
+            Z = np.array(fault.Vertices)[:, 2]
+            Slip = slip
+        
+        # If npoints is not None, we get the slip on the subsources, which is more time consuming but gives a smoother result.
         else:
-            fault.sourceNumber = npoints
-            Ids, xs, ys, zs, strike, dip, Areas = Patches2Sources(fault, verbose=False)
-            fault.plotSources = [Ids, xs, ys, zs, strike, dip, Areas]
+        
+            # 1. Get the subpoints for each triangle
+            from .EDKSmp import dropSourcesInPatches as Patches2Sources
 
-        # Get uhem
-        Ids = fault.plotSources[0]
-        X = fault.plotSources[1]
-        Y = fault.plotSources[2]
-        Z = fault.plotSources[3]
+            if hasattr(fault, 'plotSources') and fault.sourceNumber == npoints:
+                print('Using precomputed sources for plotting')
+            else:
+                fault.sourceNumber = npoints
+                Ids, xs, ys, zs, strike, dip, Areas = Patches2Sources(fault, verbose=False)
+                fault.plotSources = [Ids, xs, ys, zs, strike, dip, Areas]
 
-        # 2. Interpolate the slip on each subsource
-        Slip = fault._getSlipOnSubSources(Ids, X, Y, Z, slip)
+            # Get them
+            Ids = fault.plotSources[0]
+            X = fault.plotSources[1]
+            Y = fault.plotSources[2]
+            Z = fault.plotSources[3]
+
+            # 2. Interpolate the slip on each subsource
+            Slip = fault._getSlipOnSubSources(Ids, X, Y, Z, slip)
 
         # Check Method:
         if method == 'surface':
@@ -1079,35 +1264,37 @@ class geodeticplot(object):
 
             lon, lat = fault.xy2ll(x, y)
             #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
-            if self.faille is not None: self.faille.plot_surface(lon, lat, -1.0*z, facecolors=cols, rstride=1, cstride=1, antialiased=True, linewidth=0, alpha=alpha)
+            if self.ax3D is not None: self.ax3D.plot_surface(lon, lat, -1.0*z, facecolors=cols, rstride=1, cstride=1, antialiased=True, linewidth=0, alpha=alpha)
 
             # On 2D?
-            if plot_on_2d and self.carte is not None:
+            if plot_on_2d and self.ax2D is not None:
                 lon, lat = fault.xy2ll(X, Y)
                 #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
-                self.carte.scatter(lon, lat, c=Slip, cmap=cmap, linewidth=0, s=2, vmin=vmin, vmax=vmax, zorder=zorder, alpha=alpha)
+                self.ax2D.scatter(lon, lat, c=Slip, cmap=cmap, linewidth=0, s=2, vmin=vmin, vmax=vmax, zorder=zorder, alpha=alpha)
 
         elif method == 'scatter':
-            # Do the scatter ploto
+            # Do the scatter plot
             lon, lat = fault.xy2ll(X, Y)
+            
             #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
-            if self.faille is not None: cb = self.faille.scatter3D(lon, lat, zs=-1.0*Z, c=Slip, cmap=cmap, linewidth=0, s=2, vmin=vmin, vmax=vmax, alpha=alpha)
+            if self.ax3D is not None:
+                cb = self.ax3D.scatter3D(lon, lat, zs=-1.0*Z, c=Slip, cmap=cmap, linewidth=0, s=markersize, vmin=vmin, vmax=vmax, alpha=alpha)
 
             # On 2D?
-            if plot_on_2d and self.carte is not None:
-                self.carte.scatter(lon, lat, c=Slip, cmap=cmap, linewidth=0, vmin=vmin, vmax=vmax, zorder=zorder, alpha=alpha)
+            if plot_on_2d and self.ax2D is not None:
+                self.ax2D.scatter(lon, lat, c=Slip, cmap=cmap, linewidth=0, vmin=vmin, vmax=vmax, zorder=zorder, alpha=alpha)
                 if vertIndex:
                     for ivert,vert in enumerate(fault.Vertices_ll):
-                        x,y = self.carte(vert[0], vert[1])
+                        x,y = self.ax2D(vert[0], vert[1])
                         #if x<360.: #x+= 360.
                         plt.annotate('{}'.format(ivert), xy=(x,y),
                                      xycoords='data', xytext=(x,y), textcoords='data')
 
         # put up a colorbar
         if colorbar:
-            if self.faille is not None: self.addColorbar(Slip, scalarMap, cbaxis, cborientation, self.figFaille, cblabel=cblabel) 
-            if plot_on_2d and self.carte is not None:
-                self.addColorbar(Slip, scalarMap, cbaxis, cborientation, self.figCarte, cblabel=cblabel)
+            if self.ax3D is not None: self.addColorbar(Slip, scalarMap, cbaxis, cborientation, self.fig3D, cblabel=cblabel) 
+            if plot_on_2d and self.ax2D is not None:
+                self.addColorbar(Slip, scalarMap, cbaxis, cborientation, self.fig2D, cblabel=cblabel)
 
         # All done
         return lon, lat, Z, Slip
@@ -1134,7 +1321,7 @@ class geodeticplot(object):
             * None
         '''
 
-        if self.carte is None:
+        if self.ax2D is None:
             print('No Map figure to work on')
             return
 
@@ -1167,11 +1354,11 @@ class geodeticplot(object):
         lon = stress.lon
         lat = stress.lat
         #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
-        sc = self.carte.scatter(xloc, yloc, s=20, c=val, cmap=cmap, vmin=vmin, vmax=vmax, linewidth=linewidth)
+        sc = self.ax2D.scatter(xloc, yloc, s=20, c=val, cmap=cmap, vmin=vmin, vmax=vmax, linewidth=linewidth)
 
         # colorbar
         if colorbar:
-            self.addColorbar(val, sc, cbaxis, cborientation, self.figCarte, cblabel=cblabel) 
+            self.addColorbar(val, sc, cbaxis, cborientation, self.fig2D, cblabel=cblabel) 
 
         # All don
         return
@@ -1198,7 +1385,7 @@ class geodeticplot(object):
         '''
 
         # Check
-        if self.carte is None:
+        if self.ax2D is None:
             print('No Map figure to work on ')
             return
 
@@ -1238,21 +1425,29 @@ class geodeticplot(object):
                 dName = '{} Trans.'.format(gps.name)
                 Values = gps.transformation
             else:
-                assert hasattr(gps, dtype), f'{dtype} is not available for plotting'
-                dName = f'{dtype}'
-                Values = getattr(gps, dtype)
+                assert False, 'Data name not recognized'
             Data[dName] = {}
             Data[dName]['Values'] = Values
             Data[dName]['Color'] = col
 
-            if dtype in ('data', 'res') and np.isfinite(gps.err_enu[:,:2]).all():
+            # Add error
+            if dtype == 'data' and np.isfinite(gps.err_enu[:,:2]).all():
                 Data[dName]['Error'] = gps.err_enu
+            
+            if dtype == 'synth' and gps.synth_err is not None and np.isfinite(gps.synth_err[:,:2]).all():
+                Data[dName]['Error'] = gps.synth_err
+                
+            if dtype == 'res' and np.isfinite(gps.err_enu[:,:2]).all():
+                if gps.synth_err is not None and np.isfinite(gps.synth_err[:,:2]).all():
+                    Data[dName]['Error'] = np.sqrt(gps.err_enu**2 + gps.synth_err**2)
+                else:
+                    Data[dName]['Error'] = gps.err_enu
 
         # Plot these
         for dName in Data:
             values = Data[dName]['Values']
             c = Data[dName]['Color']
-            p = self.carte.quiver(lon, lat,
+            p = self.ax2D.quiver(lon, lat,
                                   values[:,0], values[:,1],
                                   color=c, width=width, headwidth=headwidth, 
                                   headlength=headlength, 
@@ -1271,8 +1466,6 @@ class geodeticplot(object):
                     print('Cannot plot ellipses or quiverkey if scale is None')
                     return
 
-                self.carte.ellipses = []
-
                 for vel, err, lo, la in zip(values, sigma, lon, lat):
 
                     # Found this on stackoverflow. Thanks!
@@ -1288,17 +1481,17 @@ class geodeticplot(object):
                     if lo>180.: lo = lo - 360.
                     center=(lo+vel[0]/scale, la+vel[1]/scale)
                     transf = transforms.Affine2D().scale(1/scale, 1/scale).translate(center[0], center[1])
-                    ellipse.set_transform(transf + self.carte.transData)
+                    ellipse.set_transform(transf + self.ax2D.transData)
 
                     # Plot of the ellipse
-                    self.carte.add_patch(ellipse)
+                    self.ax2D.add_patch(ellipse)
 
         # Plot Legend
         if quiverkeypos is not None:
-            q = self.carte.quiverkey(p, quiverkeypos[0], quiverkeypos[1],
+            q = self.ax2D.quiverkey(p, quiverkeypos[0], quiverkeypos[1],
                                      legendscale, '{} {}'.format(legendscale, legendunit),
                                      coordinates='axes', color=c, 
-                                     zorder=max([_.zorder for _ in self.carte.get_children()]))
+                                     zorder=max([_.zorder for _ in self.ax2D.get_children()]))
 
         # Plot the name of the stations if asked
         if name:
@@ -1306,11 +1499,11 @@ class geodeticplot(object):
                     'color'  : 'k',
                     'weight' : 'normal',
                     'size'   : 10}
-            lonmin, lonmax, latmin, latmax = self.carte.get_extent()
+            lonmin, lonmax, latmin, latmax = self.ax2D.get_extent()
             for lo, la, sta in zip(lon.tolist(), lat.tolist(), gps.station):
                 # Do it twice, I don't know why text is screwed up...
-                if lo<lonmax and lo>lonmin and la>latmin and la<latmax: self.carte.text(lo, la, sta, zorder=20, fontdict=font)
-                #self.carte.text(lo-360., la, sta, zorder=20, fontdict=font)
+                if lo<lonmax and lo>lonmin and la>latmin and la<latmax: self.ax2D.text(lo, la, sta, zorder=20, fontdict=font)
+                #self.ax2D.text(lo-360., la, sta, zorder=20, fontdict=font)
 
         # All done
         return
@@ -1340,7 +1533,7 @@ class geodeticplot(object):
         '''
 
         # Check
-        if self.carte is None:
+        if self.ax2D is None:
             print('No Map figure to work on')
             return
 
@@ -1398,11 +1591,11 @@ class geodeticplot(object):
         for dName in Data:
             mark = Data[dName]['Markersize']
             V = Data[dName]['Values']
-            sc = self.carte.scatter(lon, lat, s=mark, c=V, cmap=cmap, vmin=vmin, vmax=vmax, linewidth=linewidth, zorder=zorder, alpha=alpha)
+            sc = self.ax2D.scatter(lon, lat, s=mark, c=V, cmap=cmap, vmin=vmin, vmax=vmax, linewidth=linewidth, zorder=zorder, alpha=alpha)
 
         # Colorbar
         if colorbar:
-            self.addColorbar(V, sc, cbaxis, cborientation, self.figCarte, cblabel=cblabel) 
+            self.addColorbar(V, sc, cbaxis, cborientation, self.fig2D, cblabel=cblabel) 
 
         return
 
@@ -1426,7 +1619,7 @@ class geodeticplot(object):
         '''
 
         # Check 
-        if self.carte is None:
+        if self.ax2D is None:
             print('No Map figure to work on')
             return
 
@@ -1448,11 +1641,11 @@ class geodeticplot(object):
         cmap = plt.get_cmap(cmap)
 
         # Plot
-        sc = self.carte.scatter(lon, lat, s=100, c=d, cmap=cmap, vmin=vmin, vmax=vmax, linewidth=0.5, zorder=zorder, alpha=alpha)
+        sc = self.ax2D.scatter(lon, lat, s=100, c=d, cmap=cmap, vmin=vmin, vmax=vmax, linewidth=0.5, zorder=zorder, alpha=alpha)
 
         # plot colorbar
         if colorbar:
-            self.addColorbar(d, sc, cbaxis, cborientation, self.figCarte, cblabel=cblabel)
+            self.addColorbar(d, sc, cbaxis, cborientation, self.fig2D, cblabel=cblabel)
 
         # All done
         return
@@ -1510,16 +1703,16 @@ class geodeticplot(object):
             cmap = None
 
         # plot the earthquakes on the map if ask
-        if '2d' in plot and self.carte is not None:
-            sc = self.carte.scatter(lon, lat, s=markersize, c=color, vmin=vmin, vmax=vmax, cmap=cmap, linewidth=linewidth, edgecolor='k', zorder=zorder, alpha=alpha)
+        if '2d' in plot and self.ax2D is not None:
+            sc = self.ax2D.scatter(lon, lat, s=markersize, c=color, vmin=vmin, vmax=vmax, cmap=cmap, linewidth=linewidth, edgecolor='k', zorder=zorder, alpha=alpha)
             if colorbar:
-                self.addColorbar(color, sc, cbaxis, cborientation, self.figCarte, cblabel=cblabel) 
+                self.addColorbar(color, sc, cbaxis, cborientation, self.fig2D, cblabel=cblabel) 
 
         # plot the earthquakes in the volume if ask
-        if '3d' in plot and self.faille is not None:
-            sc = self.faille.scatter3D(lon, lat, -1.*earthquakes.depth, s=markersize, c=color, vmin=vmin, vmax=vmax, cmap=cmap, linewidth=linewidth, edgecolor='k', alpha=alpha)
+        if '3d' in plot and self.ax3D is not None:
+            sc = self.ax3D.scatter3D(lon, lat, -1.*earthquakes.depth, s=markersize, c=color, vmin=vmin, vmax=vmax, cmap=cmap, linewidth=linewidth, edgecolor='k', alpha=alpha)
             if colorbar:
-                self.addColorbar(color, sc, cbaxis, cborientation, self.figFaille, cblabel=cblabel) 
+                self.addColorbar(color, sc, cbaxis, cborientation, self.fig3D, cblabel=cblabel) 
 
         # All done
         return
@@ -1538,7 +1731,7 @@ class geodeticplot(object):
         '''
 
         # Check
-        if self.carte is None:
+        if self.ax2D is None:
             print('No Map figure to work on')
             return
 
@@ -1549,7 +1742,7 @@ class geodeticplot(object):
         bb = beach(fm, xy=xy, linewidth=linewidth, edgecolor=edgecolor, bgcolor=bgcolor, facecolor=facecolor, width=width, size=size, alpha=alpha, zorder=zorder)
 
         # Add it 
-        self.carte.add_collection(bb)
+        self.ax2D.add_collection(bb)
 
         # All done
         return 
@@ -1573,7 +1766,7 @@ class geodeticplot(object):
         '''
 
         # Check
-        if self.carte is None:
+        if self.ax2D is None:
             print('No Map figure to work on')
             return
 
@@ -1610,11 +1803,11 @@ class geodeticplot(object):
         lat = fault.sim.lat
 
         # Plot the insar
-        sc = self.carte.scatter(lon, lat, s=30, c=d, cmap=cmap, vmin=vmin, vmax=vmax, linewidth=0.1)
+        sc = self.ax2D.scatter(lon, lat, s=30, c=d, cmap=cmap, vmin=vmin, vmax=vmax, linewidth=0.1)
 
         # plot colorbar
         if colorbar:
-            self.addColorbar(d, sc, cbaxis, cborientation, self.figCarte, cblabel=cblabel) 
+            self.addColorbar(d, sc, cbaxis, cborientation, self.fig2D, cblabel=cblabel) 
 
         # All done
         return
@@ -1647,7 +1840,7 @@ class geodeticplot(object):
         '''
 
         # Check
-        if self.carte is None:
+        if self.ax2D is None:
             print('No Map figure to work on')
             return
 
@@ -1718,14 +1911,14 @@ class geodeticplot(object):
                 rect.set_edgecolors('k')
                 rect.set_zorder(zorder)
                 rect.set_alpha(alpha)
-                self.carte.add_collection(rect)
+                self.ax2D.add_collection(rect)
 
         elif plotType == 'scatter':
 
             lon = insar.lon
             #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
             lat = insar.lat
-            sc = self.carte.scatter(lon[::decim], lat[::decim], s=markersize,
+            sc = self.ax2D.scatter(lon[::decim], lat[::decim], s=markersize,
                                     c=d[::decim], cmap=cmap, norm=cNorm, 
                                     linewidth=0.0, zorder=zorder, alpha=alpha)
 
@@ -1751,7 +1944,7 @@ class geodeticplot(object):
                 data = sarint(xx,yy)
                 lon,lat = insar.xy2ll(xx,yy)
             # Plot
-            sc = self.carte.pcolormesh(lon, lat, data, cmap=cmap, norm=cNorm,
+            sc = self.ax2D.pcolormesh(lon, lat, data, cmap=cmap, norm=cNorm,
                                        zorder=zorder, alpha=alpha)
 
         else:
@@ -1760,7 +1953,7 @@ class geodeticplot(object):
 
         # plot colorbar
         if colorbar:
-            self.addColorbar(d, scalarMap, cbaxis, cborientation, self.figCarte, 
+            self.addColorbar(d, scalarMap, cbaxis, cborientation, self.fig2D, 
                              cblabel=cblabel, alpha=alpha) 
 
         # Plot LOS
@@ -1788,11 +1981,11 @@ class geodeticplot(object):
             lon1,lat1 = insar.xy2ll(x1,y1)
             lon2,lat2 = insar.xy2ll(x2,y2)
             lont,latt = insar.xy2ll(xt,yt)
-            self.carte.annotate("LOS", xy=(lont, latt),
+            self.ax2D.annotate("LOS", xy=(lont, latt),
                                 fontweight='bold', rotation=angle, fontsize=fontsize, 
                                 ha='center', va='center',
                                 zorder=11)
-            self.carte.annotate("", xy=(lon2, lat2), xytext=(lon1, lat1), 
+            self.ax2D.annotate("", xy=(lon2, lat2), xytext=(lon1, lat1), 
                                 arrowprops=dict(arrowstyle="simple", mutation_scale=mutscale, 
                                                      facecolor='white', edgecolor='k'),
                                 zorder=10)
@@ -1826,7 +2019,7 @@ class geodeticplot(object):
         '''
 
         # Check
-        if self.carte is None:
+        if self.ax2D is None:
             print('No Map figure to work on')
             return
 
@@ -1891,20 +2084,20 @@ class geodeticplot(object):
                 rect.set_color(scalarMap.to_rgba(disp))
                 rect.set_edgecolors('k')
                 rect.set_zorder(zorder)
-                self.carte.add_collection(rect)
+                self.ax2D.add_collection(rect)
 
         elif plotType == 'scatter':
             lon = corr.lon
             #lon[np.logical_or(lon<self.lonmin, lon>self.lonmax)] += 360.
             lat = corr.lat
-            self.carte.scatter(lon[::decim], lat[::decim], s=10., c=d[::decim], cmap=cmap, vmin=vmin, vmax=vmax, linewidth=0.0, zorder=zorder)
+            self.ax2D.scatter(lon[::decim], lat[::decim], s=10., c=d[::decim], cmap=cmap, vmin=vmin, vmax=vmax, linewidth=0.0, zorder=zorder)
 
         else:
             assert False, 'unsupported plot type. Must be rect or scatter'
 
         # plot colorbar
         if colorbar:
-            self.addColorbar(d, scalarMap, cbaxis, cborientation, self.figCarte, cblabel=cblabel) 
+            self.addColorbar(d, scalarMap, cbaxis, cborientation, self.fig2D, cblabel=cblabel) 
 
         # All done
         return
@@ -1937,11 +2130,11 @@ class geodeticplot(object):
             x, y, z = zip(v[0],v[1])
             lo,la = fault.xy2ll(np.array(x),np.array(y))
             # Plot
-            if self.faille is not None: self.faille.plot3D(lo, la, z, color=color, linewidth=linewidth, zorder=zorder)
+            if self.ax3D is not None: self.ax3D.plot3D(lo, la, z, color=color, linewidth=linewidth, zorder=zorder)
             # Plot map
-            if self.carte is not None:
-                self.carte.plot(lo,la,color=color, linewidth=linewidth, zorder=zorder)
-                self.carte.plot(lo[0],la[0], '.', color=color, markersize=markersize)
+            if self.ax2D is not None:
+                self.ax2D.plot(lo,la,color=color, linewidth=linewidth, zorder=zorder)
+                self.ax2D.plot(lo[0],la[0], '.', color=color, markersize=markersize)
 
         # All done
         return

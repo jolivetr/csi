@@ -23,15 +23,14 @@ class seismicplot(geodeticplot):
     Kwargs:
         * figure        : Number of the figure.
         * ref           : 'utm' or 'lonlat'.
-        * pbaspect      : XXXXX?????
 
     '''
 
-    def __init__(self, figure=130, ref='utm', pbaspect=None):
+    def __init__(self, figure=130, ref='utm'):
 
         # Base class init
         projection = 'cyl'      
-        super(seismicplot,self).__init__(figure,pbaspect,projection)
+        super(seismicplot,self).__init__(figure, projection)
         
     def faultPatchesGrid(self, fault, slip='strikeslip', norm=None, colorbar=True, 
                          plot_on_2d=False, revmap=False, data=None, plotgrid=True):
@@ -59,20 +58,20 @@ class seismicplot(geodeticplot):
 
         # Plot Hypo
         if fault.hypo_x != None:
-            self.faille.scatter3D(fault.hypo_x,fault.hypo_y,-fault.hypo_z+2.,color='k',
+            self.ax3D.scatter3D(fault.hypo_x,fault.hypo_y,-fault.hypo_z+2.,color='k',
                                   marker=(5,1,0),s=150,zorder=1000)
 
         # Plot Grid
         if plotgrid:
             for p in range(len(fault.patch)):
                 grid = np.array(fault.grid[p])      
-                self.faille.scatter3D(grid[:,0],grid[:,1],-grid[:,2]+1.0,color='w',
+                self.ax3D.scatter3D(grid[:,0],grid[:,1],-grid[:,2]+1.0,color='w',
                                       marker='o',s=10,zorder=1000)
 
 
         if data!=None:
             for x,y in zip(data.x,data.y):
-                self.faille.scatter3D(x,y,0.,color='b',marker='v',s=20,zorder=1000)
+                self.ax3D.scatter3D(x,y,0.,color='b',marker='v',s=20,zorder=1000)
                 Xs = np.append(Xs,x)
                 Ys = np.append(Ys,y)
 
@@ -99,27 +98,27 @@ class seismicplot(geodeticplot):
         # Plot the added faults before
         if add and (self.ref=='utm'):
             for f in fault.addfaultsxy:
-                self.faille.plot(f[0], f[1], '-k')
-                self.carte.plot(f[0], f[1], '-k')
+                self.ax3D.plot(f[0], f[1], '-k')
+                self.ax2D.plot(f[0], f[1], '-k')
         elif add and (self.ref!='utm'):
             for f in fault.addfaults:
-                self.faille.plot(f[0], f[1], '-k')
-                self.carte.plot(f[0], f[1], '-k')
+                self.ax3D.plot(f[0], f[1], '-k')
+                self.ax2D.plot(f[0], f[1], '-k')
 
         # Plot the surface trace
         print(fault.top)
         if self.ref=='utm':
             if fault.xf is None:
                 fault.trace2xy()
-            self.faille.plot3D(fault.xf, fault.yf,-fault.top, '-{}'.format(color), linewidth=2)
-            self.carte.plot(fault.xf, fault.yf, '-{}'.format(color), linewidth=2)
+            self.ax3D.plot3D(fault.xf, fault.yf,-fault.top, '-{}'.format(color), linewidth=2)
+            self.ax2D.plot(fault.xf, fault.yf, '-{}'.format(color), linewidth=2)
         else:
-            self.faille.plot3D(fault.lon, fault.lat,-fault.top, '-{}'.format(color), linewidth=2)
-            self.carte.plot(fault.lon, fault.lat, '-{}'.format(color), linewidth=2)
+            self.ax3D.plot3D(fault.lon, fault.lat,-fault.top, '-{}'.format(color), linewidth=2)
+            self.ax2D.plot(fault.lon, fault.lat, '-{}'.format(color), linewidth=2)
             
             
         if data!=None:
-            self.carte.plot(data.x,data.y,'bv',zorder=1000)
+            self.ax2D.plot(data.x,data.y,'bv',zorder=1000)
 
         # All done
         return

@@ -238,7 +238,7 @@ class Mogi(Pressure):
 
         Args:
             * x, y         : Center of pressure source in lat/lon or utm
-            * z0           : Depth
+            * z0           : Depth (m)
             * a            : Radius (m)
 
         Returns:

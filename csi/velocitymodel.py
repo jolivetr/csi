@@ -810,12 +810,12 @@ class velocitymodel(SourceInv):
 
         # opens a figure
         fig = plt.figure(figure)
-        carte = fig.add_subplot(111,projection='3d')
+        ax2D = fig.add_subplot(111,projection='3d')
 
         # Set the axes
-        carte.set_xlabel('Easting (km)')
-        carte.set_ylabel('Northing (km)')
-        carte.set_zlabel('Depth (km)')
+        ax2D.set_xlabel('Easting (km)')
+        ax2D.set_ylabel('Northing (km)')
+        ax2D.set_zlabel('Depth (km)')
 
         # Get data
         if data=='vp':
@@ -837,7 +837,7 @@ class velocitymodel(SourceInv):
             vmax = norm[1]
 
         # Plot the data
-        sc = carte.scatter3D(self.x[u], self.y[u], -1*self.depth[u], s=markersize, c=d[u], vmin=vmin, vmax=vmax, linewidth=0.01)
+        sc = ax2D.scatter3D(self.x[u], self.y[u], -1*self.depth[u], s=markersize, c=d[u], vmin=vmin, vmax=vmax, linewidth=0.01)
 
         # Colorbar
         fig.colorbar(sc, shrink=0.6, orientation='h')
@@ -847,17 +847,17 @@ class velocitymodel(SourceInv):
             if fault.__class__ is not list:
                 fault = [fault]
             for f in fault:
-                carte.plot(f.xf, f.yf, '-r')
+                ax2D.plot(f.xf, f.yf, '-r')
 
         # Set the z-axis
-        carte.set_zlim3d([-1.0*(depthmax), 0])
+        ax2D.set_zlim3d([-1.0*(depthmax), 0])
         zticks = []
         zticklabels = []
         for z in np.linspace(0,depthmax,5):
             zticks.append(-1.0*z)
             zticklabels.append(z)
-        carte.set_zticks(zticks)
-        carte.set_zticklabels(zticklabels)
+        ax2D.set_zticks(zticks)
+        ax2D.set_zticklabels(zticklabels)
 
         # Show
         plt.show()

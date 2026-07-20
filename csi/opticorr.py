@@ -11,6 +11,7 @@ import os
 import matplotlib.pyplot as plt
 from scipy.linalg import block_diag
 import scipy.spatial.distance as scidis
+import re
 
 # Personals
 from .SourceInv import SourceInv
@@ -20,7 +21,7 @@ from . import csiutils as utils
 class opticorr(SourceInv):
 
     '''
-    A class that handles optical correlation results
+    A class that handles optical correlation results.
 
     Args:
        * name      : Name of the dataset.
@@ -657,14 +658,14 @@ class opticorr(SourceInv):
         # All done
         return
 
-    def setGFsInFault(self, fault, G, vertical=True):
+    def setGFsInSource(self, source, G, vertical=True):
         '''
-        From a dictionary of Green's functions, sets these correctly into the fault
-        object fault for future computation.
+        From a dictionary of Green's functions, sets these correctly into the source 
+        object (fault) for future computation.
 
         Args:
-            * fault     : Instance of Fault
-            * G         : Dictionary with 3 entries 'strikeslip', 'dipslip' and 'tensile'
+            * source    : Instance of Fault
+            * G         : Dictionary with 3 entries 'strikeslip', 'dipslip' and 'tensile'. These can be a matrix or None.
 
         Kwargs:
             * vertical  : Do we use vertical predictions? Default is True
@@ -672,27 +673,33 @@ class opticorr(SourceInv):
         Returns:
             * None
         '''
+        
+        if source.type == 'Fault':
 
-        # Get values
-        try:
-            Gss = G['strikeslip']
-        except:
-            Gss = None
-        try:
-            Gds = G['dipslip']
-        except:
-            Gds = None
-        try:
-            Gts = G['tensile']
-        except:
-            Gts = None
-        try:
-            Gcp = G['coupling']
-        except:
-            Gcp = None
+            # Get values
+            try:
+                Gss = G['strikeslip']
+            except:
+                Gss = None
+            try:
+                Gds = G['dipslip']
+            except:
+                Gds = None
+            try:
+                Gts = G['tensile']
+            except:
+                Gts = None
+            try:
+                Gcp = G['coupling']
+            except:
+                Gcp = None
 
-        # Set these values
-        fault.setGFs(self, strikeslip=[Gss], dipslip=[Gds], tensile=[Gts], coupling=[Gcp], vertical=vertical)
+            # Set these values
+            source.setGFs(self, strikeslip=[Gss], dipslip=[Gds], tensile=[Gts], coupling=[Gcp], vertical=vertical)
+        
+        else:
+            
+            raise NotImplementedError('Only Fault objects are supported.')
 
         # All done
         return
@@ -719,7 +726,6 @@ class opticorr(SourceInv):
         # All done
         return
 
-
     def computeTransformNormalizingFactor(self):
         '''
         Compute orbit normalizing factors and store them in insar object.
@@ -741,49 +747,41 @@ class opticorr(SourceInv):
         # All done
         return
 
-    def getTransformEstimator(self, trans, computeNormFact=True):
+    def getTransformEstimator(self, transformation, computeNormFact=True):
         '''
-        Returns the Estimator for the transformation to estimate in the InSAR data.
+        Returns the estimator for the transformation to estimate in the optical data.
 
         Args:
-            * trans     : Transformation type
-                - 1: constant offset to the data
-                - 3: constant and linear function of x and y
-                - 4: constant, linear term and cross term.
-                - 'strain': estimates an aerial strain tensor
-
-        Kwargs:
-            * computeNormFact   : Recompute the normalization factor
+            * transformation    : Transformation type. It can be
+                - string : polynomial estimator. It is the list of the terms to include in the estimator. Possible values are: '1', 'x', 'y', 'xy', 'x2' and 'y2'. Example: '1,x,y'
+            * computeNormFact   : compute and store the normalizing factor
 
         Returns:
-            * None
+            * Estimator matrix (numpy array)
         '''
 
         # Several cases
-        if type(trans) is int:
-            T = self.getPolyEstimator(trans, computeNormFact=computeNormFact)
+        if type(transformation) is str and all(term in ('1', 'x', 'y', 'xy', 'x2', 'y2') for term in re.split(r'[^A-Za-z0-9]+', transformation)):
+            T = self.getPolyEstimator(transformation, computeNormFact=computeNormFact)
+        
+        # No transformation
+        elif transformation is None:
+            T = None
+        
+        # Unknown
         else:
-            assert False, 'No {} transformation available'.format(trans)
+            raise NotImplementedError('Transformation type {} not recognized.'.format(transformation))
 
         # All done
         return T
 
-    def getPolyEstimator(self, ptype, computeNormFact=True):
+    def getPolyEstimator(self, polycomp, computeNormFact=True):
         '''
-        Returns the Estimator for the polynomial form to estimate in the optical correlation data.
+        Returns the estimator for the polynomial form to estimate in the optical correlation data.
 
         Args:
-            * ptype : Style of polynomial
-
-            +-------+------------------------------------------------------------+
-            | ptype | what it means                                              |
-            +=======+============================================================+
-            |   1   | apply a constant offset to the data (1 parameter)          |
-            +-------+------------------------------------------------------------+
-            |   3   | apply offset and linear function of x and y (3 parameters) |
-            +-------+------------------------------------------------------------+
-            |   4   | apply offset, linear function and cross term (4 parameters)|
-            +-------+------------------------------------------------------------+
+            * polycomp:
+                - str of polynomial components to include in the estimator. Possible values are: '1', 'x', 'y', 'xy', 'x2', 'y2'. Example: '1,x,y'.
 
         Watch out: If vertical is True, you should only estimate polynomials for the horizontals.
 
@@ -794,15 +792,12 @@ class opticorr(SourceInv):
             * 2d array
 
         '''
-
-        # Get the basic size of the polynomial
-        basePoly = int(ptype / self.obs_per_station)
-        assert basePoly >= 3 or basePoly == 1, """
-            only support 0th, 1st and 2nd order polynomials, here {} asked
-            """.format(basePoly)
-
-        # Get number of points
+        
+        # Get number of data points
         nd = self.east.shape[0]
+        
+        # Extract polynomial components
+        polycomp = re.split(r'[^A-Za-z0-9]+', polycomp)
 
 		# Compute normalizing factors
         if computeNormFact:
@@ -813,31 +808,49 @@ class opticorr(SourceInv):
         normX = self.TransformNormalizingFactor['x']
         normY = self.TransformNormalizingFactor['y']
         x0, y0 = self.TransformNormalizingFactor['ref']
+        
+        # Allocate the transform matrix
+        T = np.zeros((nd, len(polycomp)))
+        i = 0
+        
+        # Fill in the estimator
+        if '1' in polycomp:
+            T[:, i] = 1.
+            i += 1
 
-        # Pre-compute position-dependent functional forms
-        f1 = self.factor * np.ones((nd,))
-        f2 = self.factor * (self.x - x0) / normX
-        f3 = self.factor * (self.y - y0) / normY
-        f4 = self.factor * (self.x - x0) * (self.y - y0) / (normX*normY)
-        f5 = self.factor * (self.x - x0)**2 / normX**2
-        f6 = self.factor * (self.y - y0)**2 / normY**2
-        polyFuncs = [f1, f2, f3, f4, f5, f6]
+        if 'x' in polycomp:
+            T[:, i] = (self.x - x0) / normX
+            i += 1
 
-        # Fill in orb matrix given an order
-        orb = np.zeros((nd, basePoly))
-        for ind in range(basePoly):
-            orb[:,ind] = polyFuncs[ind]
+        if 'y' in polycomp:
+            T[:, i] = (self.y - y0) / normY
+            i += 1
 
-        # Block diagonal for both components
+        if 'xy' in polycomp:
+            T[:, i] = (self.x - x0) * (self.y - y0) / (normX * normY)
+            i += 1
+
+        if 'x2' in polycomp:
+            T[:, i] = ((self.x - x0) / normX)**2
+            i += 1
+
+        if 'y2' in polycomp:
+            T[:, i] = ((self.y - y0) / normY)**2
+            i += 1
+        
+        # Scale everything by the data factor
+        T *= self.factor
+
+        # Block diagonal for both components (east and north)
         if self.obs_per_station > 1:
-            orb = block_diag(orb, orb)
+            T = block_diag(T, T)
 
         # Check to see if we're including verticals
         if self.obs_per_station == 3:
-            orb = np.vstack((orb, np.zeros((nd, 2*basePoly))))
+            T = np.vstack((T, np.zeros((nd, T.shape[1]))))
 
         # All done
-        return orb
+        return T
 
     def computePoly(self, fault, computeNormFact=True):
         '''
@@ -854,18 +867,18 @@ class opticorr(SourceInv):
         '''
 
         # Get the polynomial type
-        ptype = fault.poly[self.name]
+        transformation = fault.poly[self.name]
 
         # Get the parameters
         params = fault.polysol[self.name]
         if type(params) is dict:
-            params = params[ptype]
+            params = params[transformation]
 
         # Get the estimator
-        Horb = self.getPolyEstimator(ptype, computeNormFact=computeNormFact)
+        Horb = self.getPolyEstimator(transformation, computeNormFact=computeNormFact)
 
         # Compute the polynomial
-        tmporbit = np.dot(Horb, params)
+        tmporbit = Horb @ params
 
         # Store them
         nd = self.east.shape[0]
@@ -1040,16 +1053,19 @@ class opticorr(SourceInv):
         # Correct
         self.east -= self.east_synth
         self.north -= self.north_synth
+        
+        if vertical:
+            self.up -= self.up_synth
 
         # All done
         return
 
-    def buildsynth(self, faults, direction='sd', poly=None, vertical=False, custom=False,computeNormFact=True):
+    def buildsynth(self, sources, direction='sd', poly=None, vertical=False, custom=False,computeNormFact=True):
         '''
-        Computes the synthetic data using the faults and the associated slip distributions.
+        Computes the synthetic data using the deformation sources.
 
         Args:
-            * faults        : List of faults.
+            * sources        : List of sources (faults, pressure sources ...).
 
         Kwargs:
             * direction     : Direction of slip to use.
@@ -1070,59 +1086,64 @@ class opticorr(SourceInv):
         self.north_synth = np.zeros((Nd,))
         self.up_synth = np.zeros((Nd,))
 
-        # Loop on each fault
-        for fault in faults:
+        # Loop on each source
+        for source in sources:
 
             # Get the good part of G
-            G = fault.G[self.name]
+            G = source.G[self.name]
+            
+            if source.type == 'Fault':
 
-            if ('s' in direction) and ('strikeslip' in G.keys()):
-                Gs = G['strikeslip']
-                Ss = fault.slip[:,0]
-                ss_synth = np.dot(Gs, Ss)
-                self.east_synth += ss_synth[:Nd]
-                self.north_synth += ss_synth[Nd:2*Nd]
-                if vertical:
-                    self.up_synth += ss_synth[2*Nd:]
-            if ('d' in direction) and ('dipslip' in G.keys()):
-                Gd = G['dipslip']
-                Sd = fault.slip[:,1]
-                sd_synth = np.dot(Gd, Sd)
-                self.east_synth += sd_synth[:Nd]
-                self.north_synth += sd_synth[Nd:2*Nd]
-                if vertical:
-                    self.up_synth += sd_synth[2*Nd:]
-            if ('t' in direction) and ('tensile' in G.keys()):
-                Gt = G['tensile']
-                St = fault.slip[:,2]
-                st_synth = np.dot(Gt, St)
-                self.east_synth += st_synth[:Nd]
-                self.north_synth += st_synth[Nd:2*Nd]
-                if vertical:
-                    self.up_synth += st_synth[2*Nd:]
-            if ('c' in direction) and ('coupling' in G.keys()):
-                Gc = G['coupling']
-                Sc = fault.coupling
-                dc_synth = np.dot(Gc, Sc)
-                self.east_synth += dc_synth[:Nd]
-                self.north_synth += dc_synth[Nd:2*Nd]
-                if vertical:
-                    self.up_synth += dc_synth[2*Nd:]
+                if ('s' in direction) and ('strikeslip' in G.keys()):
+                    Gs = G['strikeslip']
+                    Ss = source.slip[:,0]
+                    ss_synth = np.dot(Gs, Ss)
+                    self.east_synth += ss_synth[:Nd]
+                    self.north_synth += ss_synth[Nd:2*Nd]
+                    if vertical:
+                        self.up_synth += ss_synth[2*Nd:]
+                if ('d' in direction) and ('dipslip' in G.keys()):
+                    Gd = G['dipslip']
+                    Sd = source.slip[:,1]
+                    sd_synth = np.dot(Gd, Sd)
+                    self.east_synth += sd_synth[:Nd]
+                    self.north_synth += sd_synth[Nd:2*Nd]
+                    if vertical:
+                        self.up_synth += sd_synth[2*Nd:]
+                if ('t' in direction) and ('tensile' in G.keys()):
+                    Gt = G['tensile']
+                    St = source.slip[:,2]
+                    st_synth = np.dot(Gt, St)
+                    self.east_synth += st_synth[:Nd]
+                    self.north_synth += st_synth[Nd:2*Nd]
+                    if vertical:
+                        self.up_synth += st_synth[2*Nd:]
+                if ('c' in direction) and ('coupling' in G.keys()):
+                    Gc = G['coupling']
+                    Sc = source.coupling
+                    dc_synth = np.dot(Gc, Sc)
+                    self.east_synth += dc_synth[:Nd]
+                    self.north_synth += dc_synth[Nd:2*Nd]
+                    if vertical:
+                        self.up_synth += dc_synth[2*Nd:]
+            
+            # Geometrical transformation
+            elif source.type == 'transformation':
+                
+                self.computePoly(source, computeNormFact=computeNormFact)
+                
+                self.east_synth += self.east_orbit
+                self.north_synth += self.north_orbit
 
+            # If custom
             if custom:
                 Gc = G['custom']
-                Sc = fault.custom[self.name]
+                Sc = source.custom[self.name]
                 dc_synth = np.dot(Gc, Sc)
                 self.east_synth += dc_synth[:Nd]
                 self.north_synth += dc_synth[Nd:2*Nd]
                 if vertical:
                     self.up_synth += dc_synth[2*Nd:]
-
-            if poly is not None:
-                self.computePoly(fault, computeNormFact=computeNormFact)
-                if poly == 'include':
-                    self.east_synth += self.east_orbit
-                    self.north_synth += self.north_orbit
 
         # All done
         return
@@ -1492,7 +1513,7 @@ class opticorr(SourceInv):
                 bb[i,1] = b[i,1]
             bb[-1,0] = bb[0,0]
             bb[-1,1] = bb[0,1]
-            fig.carte.plot(bb[:,0], bb[:,1], '-k', zorder=40)
+            fig.ax2D.plot(bb[:,0], bb[:,1], '-k', zorder=40)
 
         # open a figure
         fig = plt.figure()
@@ -1585,23 +1606,22 @@ class opticorr(SourceInv):
         '''
 
         raise NotImplementedError('do it later')
-        return
 
-#        # Get the number of points
-#        N = self.vel.shape[0]
-#
-#        # RMS of the data
-#        dataRMS = np.sqrt( 1./N * sum(self.vel**2) )
-#
-#        # Synthetics
-#        if self.synth is not None:
-#            synthRMS = np.sqrt( 1./N *sum( (self.vel - self.synth)**2 ) )
-#            return dataRMS, synthRMS
-#        else:
-#            return dataRMS, 0.
-#
-#        # All done
-#        return
+        # Get the number of points
+        N = self.vel.shape[0]
+
+        # RMS of the data
+        dataRMS = np.sqrt( 1./N * sum(self.vel**2) )
+
+        # Synthetics
+        if self.synth is not None:
+            synthRMS = np.sqrt( 1./N *sum( (self.vel - self.synth)**2 ) )
+            return dataRMS, synthRMS
+        else:
+            return dataRMS, 0.
+
+        # All done
+        return
 
     def getVariance(self):
         '''
@@ -1642,20 +1662,19 @@ class opticorr(SourceInv):
         '''
 
         raise NotImplementedError('do it later')
-        return
 
-#        # Misfit of the data
-#        dataMisfit = sum((self.vel))
-#
-#        # Synthetics
-#        if self.synth is not None:
-#            synthMisfit =  sum( (self.vel - self.synth) )
-#            return dataMisfit, synthMisfit
-#        else:
-#            return dataMisfit, 0.
-#
-#        # All done
-#        return
+        # Misfit of the data
+        dataMisfit = sum((self.vel))
+
+        # Synthetics
+        if self.synth is not None:
+            synthMisfit =  sum( (self.vel - self.synth) )
+            return dataMisfit, synthMisfit
+        else:
+            return dataMisfit, 0.
+
+        # All done
+        return
 
     def plot(self, faults=None, figure=None, gps=None, decim=False, norm=None,
              Map=True, Fault=True,

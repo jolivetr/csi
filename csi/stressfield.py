@@ -5,6 +5,7 @@ Written by R. Jolivet, Feb 2014.
 '''
 
 # Externals
+import os
 import sys
 import numpy as np
 import pyproj as pp
@@ -336,29 +337,34 @@ class stressfield(SourceInv):
         # All done
         return
 
-    def fault2Stress(self, fault, s2m=1., p2m=1e3, la=30e9, mu=30e9, nu=0.25, slipdirection='sd', force_dip=None, verbose=False):
+    def fault2Stress(self, fault, s2m=1., p2m=1e3, la=30e9, mu=30e9, nu=0.25, slipdirection='sd', force_dip=None, verbose=True, Nworkers=None):
         '''
         Takes a fault, or a list of faults, and computes the stress change associated with the slip on the fault.
 
-        Args:   
+        Args:
             * fault             : Fault object (RectangularFault).
 
         Kwargs:
             * s2m               : Conversion factor for the slip units. Factor is to put everything in meters.
             * p2m               : Conversion factor for the distance units. Factor is to put everything in meters.
             * slipdirection     : any combination of s, d, and t.
-            * la                : Lamé parameter (default is 30GPa)
+            * la                : Lamé parameter (default is 30GPa).
             * mu                : Shear Modulus (default is 30GPa).
             * nu                : Poisson's ratio (default is 0.25).
-            * force_dip         : Specify the dip angle of the patches
-            * verbos            : talk to me
+            * force_dip         : Specify the dip angle of the patches.
+            * verbose           : talk to me.
+            * Nworkers          : number of workers to use for the parallel computation (default is None, which means the number of available cores).
 
         Returns:
             * None
         '''
+        
+        import multiprocessing as mp
+        from functools import partial
 
         # Verbose?
-        if verbose: print('Computing stress changes from fault {}'.format(fault.name))
+        if verbose:
+            print('Computing stress changes from fault {}'.format(fault.name))
 
         # Check if fault type corresponds
         if fault.patchType=='rectangle':
@@ -378,7 +384,7 @@ class stressfield(SourceInv):
             # Build the arrays for okada
             for ii in range(len(fault.patch)):
                 if verbose:
-                    sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
+                    sys.stdout.write('\r Patch {} / {}'.format(ii+1, len(fault.patch)))
                     sys.stdout.flush()
                 xc[ii], yc[ii], zc[ii], width[ii], length[ii], strike[ii], dip[ii] = fault.getpatchgeometry(fault.patch[ii], center=True)
 
@@ -393,12 +399,16 @@ class stressfield(SourceInv):
             strikeslip = np.zeros((nPatch,))
             dipslip = np.zeros((nPatch,))
             tensileslip = np.zeros((nPatch,))
-            if 's' in slipdirection: strikeslip = fault.slip[:,0]*s2m
-            if 'd' in slipdirection: dipslip = fault.slip[:,1]*s2m
-            if 't' in slipdirection: tensileslip = fault.slip[:,2]*s2m
+            if 's' in slipdirection:
+                strikeslip = fault.slip[:,0]*s2m
+            if 'd' in slipdirection:
+                dipslip = fault.slip[:,1]*s2m
+            if 't' in slipdirection:
+                tensileslip = fault.slip[:,2]*s2m
 
             # If force dip
-            if force_dip is not None: dip[:] = force_dip
+            if force_dip is not None:
+                dip[:] = force_dip
 
             # Get the Stress
             self.stresstype = 'total'
@@ -420,24 +430,58 @@ class stressfield(SourceInv):
             strikeslip = np.zeros_like(fault.slip[:,0])
             dipslip = np.zeros_like(fault.slip[:,1])
             tensileslip = np.zeros_like(fault.slip[:,2])
-            if 's' in slipdirection: strikeslip = fault.slip[:,0]*s2m
-            if 'd' in slipdirection: dipslip = fault.slip[:,1]*s2m
-            if 't' in slipdirection: tensileslip = fault.slip[:,2]*s2m
+            
+            if 's' in slipdirection:
+                strikeslip = fault.slip[:,0]*s2m
+            if 'd' in slipdirection:
+                dipslip = fault.slip[:,1]*s2m
+            if 't' in slipdirection:
+                tensileslip = fault.slip[:,2]*s2m
 
             # Create holder
             Strain = np.zeros((3,3,self.x.shape[0]))
+            
+            # how many workers
+            if Nworkers is not None:
+                nworkers = Nworkers
+            else:
+                try:
+                    nworkers = int(os.environ['OMP_NUM_THREADS'])
+                except:
+                    nworkers = mp.cpu_count()
+            
+            # Create a pool of workers
+            pool = mp.Pool(nworkers)
+
+            # Create a partial function with fixed arguments
+            func = partial(_calcStrain, self.x, self.y, self.depth, p2m, nu)
+
+            # Iterate over the patches in parallel
+            for res in pool.starmap(func, zip(fault.patch, strikeslip, dipslip, tensileslip)):
+                Strain += res
+            
+            # Close the pool and wait for the work to finish
+            pool.close()
+            pool.join()
+            
+            # Reorganize the results in Strain
+            # Strain = np.array(results).sum(axis=0)
+            # del results
+
+            # Clean up and sort
+            # Strain = np.([r[0] for r in results])
 
             # Iterate
-            for ii, (patch, ss, ds, ts) in enumerate(zip(fault.patch, strikeslip, dipslip, tensileslip)):
-                if verbose:
-                    sys.stdout.write('\r Patch {} / {}'.format(ii, len(fault.patch)))
-                    sys.stdout.flush()
-                Strain[:,:,:] += triDisp.strain(self.x*p2m, self.y*p2m, self.depth*p2m, list(patch*p2m), 
-                                                ss, ds, ts, nu=nu)
+            # for ii, (patch, ss, ds, ts) in enumerate(zip(fault.patch, strikeslip, dipslip, tensileslip)):
+            #     if verbose:
+            #         sys.stdout.write('\r Patch {} / {}'.format(ii+1, len(fault.patch)))
+            #         sys.stdout.flush()
+            #     Strain[:,:,:] += triDisp.strain(self.x*p2m, self.y*p2m, self.depth*p2m, list(patch*p2m), 
+            #                                     ss, ds, ts, nu=nu)
 
             # Clean up
-            sys.stdout.write('\n')
-            sys.stdout.flush()
+            # sys.stdout.write('\n')
+            # sys.stdout.flush()
             
             # Save the strain
             self.Strain = Strain
@@ -456,6 +500,167 @@ class stressfield(SourceInv):
 
         # All done
         return
+
+
+    def writeStress2File(self, filename=None, outDir='.'):
+        '''
+        Writes the stress field to an ascii file.
+        
+        Kwargs:
+            * outDir    : output directory (default is current directory)
+            * filename  : output filename (default is derived from the stress field name)
+
+        Returns:
+            * None
+        '''
+        
+        # Open a file
+        if filename is None:
+            filename = '{}_StressField.txt'.format(self.name.replace(' ', '_'))
+        
+        with open(os.path.join(outDir, filename), 'w') as fout:
+
+            # Write the header
+            fout.write('#---------------------------------------------------\n')
+            fout.write('# StressField \n')
+            fout.write('# Columns: lon lat depth Sxx Sxy Sxz Syx Syy Syz Szx Szy Szz\n')
+
+            # Write the data
+            for i in range(self.x.shape[0]):
+                fout.write('{} {} {} {} {} {} {} {} {} {} {}\n'.format(self.lon[i], self.lat[i], self.depth[i], 
+                                                                        self.Stress[0,0,i], self.Stress[0,1,i], self.Stress[0,2,i],
+                                                                        self.Stress[1,0,i], self.Stress[1,1,i], self.Stress[1,2,i],
+                                                                        self.Stress[2,0,i], self.Stress[2,1,i], self.Stress[2,2,i]))
+
+            fout.close()
+
+        # All done
+        return
+    
+    
+    def writeStrain2File(self, filename=None, outDir='.'):
+        '''
+        Writes the strain field to an ascii file.
+        
+        Kwargs:
+            * outDir    : output directory (default is current directory)
+            * filename  : output filename (default is derived from the stress field name)
+
+        Returns:
+            * None
+        '''
+        
+        # Open a file
+        if filename is None:
+            filename = '{}_StrainField.txt'.format(self.name.replace(' ', '_'))
+        
+        with open(os.path.join(outDir, filename), 'w') as fout:
+
+            # Write the header
+            fout.write('#---------------------------------------------------\n')
+            fout.write('# StrainField \n')
+            fout.write('# Columns: lon lat depth Exx Exy Exz Eyx Eyy Eyz Ezx Ezy Ezz\n')
+
+            # Write the data
+            for i in range(self.x.shape[0]):
+                fout.write('{} {} {} {} {} {} {} {} {} {} {}\n'.format(self.lon[i], self.lat[i], self.depth[i], 
+                                                                        self.Strain[0,0,i], self.Strain[0,1,i], self.Strain[0,2,i],
+                                                                        self.Strain[1,0,i], self.Strain[1,1,i], self.Strain[1,2,i],
+                                                                        self.Strain[2,0,i], self.Strain[2,1,i], self.Strain[2,2,i]))
+
+            fout.close()
+
+        # All done
+        return
+    
+    
+    def readStressFromFile(self, filename=None, inDir='.'):
+        '''
+        Reads the stress field from an ascii file.
+
+        Kwargs:
+            * filename    : name of the file to read (default is derived from the stress field name)
+            * inDir         : input directory (default is current directory)
+
+        Returns:
+            * None
+        '''
+
+        # Read the file
+        if filename is None:
+            filename = '{}_StressField.txt'.format(self.name.replace(' ', '_'))
+        
+        # Read the data
+        data = np.loadtxt(os.path.join(inDir, filename), skiprows=3)
+
+        # Get the number of data points
+        Np = data.shape[0]
+
+        # Get the coordinates
+        self.lon = data[:, 0]
+        self.lat = data[:, 1]
+        self.depth = data[:, 2]
+        
+        x, y = self.ll2xy(self.lon, self.lat)
+        self.x = x
+        self.y = y
+
+        # Get the stress components
+        self.Stress = np.zeros((3, 3, Np))
+        self.Stress[0, 0, :] = data[:, 3]
+        self.Stress[0, 1, :] = data[:, 4]
+        self.Stress[0, 2, :] = data[:, 5]
+        self.Stress[1, 0, :] = data[:, 6]
+        self.Stress[1, 1, :] = data[:, 7]
+        self.Stress[1, 2, :] = data[:, 8]
+        self.Stress[2, 0, :] = data[:, 9]
+        self.Stress[2, 1, :] = data[:, 10]
+        self.Stress[2, 2, :] = data[:, 11]
+    
+    
+    def readStrainFromFile(self, filename=None, inDir='.'):
+        '''
+        Reads the strain field from an ascii file.
+
+        Kwargs:
+            * filename    : name of the file to read (default is derived from the strain field name)
+            * inDir         : input directory (default is current directory)
+
+        Returns:
+            * None
+        '''
+
+        # Read the file
+        if filename is None:
+            filename = '{}_StrainField.txt'.format(self.name.replace(' ', '_'))
+        
+        # Read the data
+        data = np.loadtxt(os.path.join(inDir, filename), skiprows=3)
+
+        # Get the number of data points
+        Np = data.shape[0]
+
+        # Get the coordinates
+        self.lon = data[:, 0]
+        self.lat = data[:, 1]
+        self.depth = data[:, 2]
+        
+        x, y = self.ll2xy(self.lon, self.lat)
+        self.x = x
+        self.y = y
+
+        # Get the strain components
+        self.Strain = np.zeros((3, 3, Np))
+        self.Strain[0, 0, :] = data[:, 3]
+        self.Strain[0, 1, :] = data[:, 4]
+        self.Strain[0, 2, :] = data[:, 5]
+        self.Strain[1, 0, :] = data[:, 6]
+        self.Strain[1, 1, :] = data[:, 7]
+        self.Strain[1, 2, :] = data[:, 8]
+        self.Strain[2, 0, :] = data[:, 9]
+        self.Strain[2, 1, :] = data[:, 10]
+        self.Strain[2, 2, :] = data[:, 11]
+    
 
     def computeTrace(self):
         '''
@@ -732,7 +937,7 @@ class stressfield(SourceInv):
 
         # open a figure
         fig = plt.figure()
-        carte = fig.add_subplot(121)
+        ax2D = fig.add_subplot(121)
         prof = fig.add_subplot(122)
         
         # Get the data we want to plot
@@ -759,7 +964,7 @@ class stressfield(SourceInv):
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
 
         # plot the StressField Points on the Map
-        carte.scatter(x, y, s=20, c=dplot, cmap=cmap, vmin=-1.0*MM, vmax=MM, linewidths=0.0)
+        ax2D.scatter(x, y, s=20, c=dplot, cmap=cmap, vmin=-1.0*MM, vmax=MM, linewidths=0.0)
         scalarMap.set_array(dplot)
         plt.colorbar(scalarMap)
 
@@ -772,8 +977,8 @@ class stressfield(SourceInv):
             bb[i,1] = y
         bb[4,0] = bb[0,0]
         bb[4,1] = bb[0,1]
-        carte.plot(bb[:,0], bb[:,1], '.k')
-        carte.plot(bb[:,0], bb[:,1], '-k')
+        ax2D.plot(bb[:,0], bb[:,1], '.k')
+        ax2D.plot(bb[:,0], bb[:,1], '-k')
 
         # plot the profile
         x = self.profiles[name]['Distance']
@@ -787,7 +992,7 @@ class stressfield(SourceInv):
                 fault = [fault]
             # Loop on the faults
             for f in fault:
-                carte.plot(f.xf, f.yf, '-')
+                ax2D.plot(f.xf, f.yf, '-')
                 # Get the distance
                 d = self.intersectProfileFault(name, f)
                 if d is not None:
@@ -798,7 +1003,7 @@ class stressfield(SourceInv):
         prof.legend()
 
         # axis of the map
-        carte.axis('equal')
+        ax2D.axis('equal')
 
         # Show to screen 
         plt.show()
@@ -1071,5 +1276,12 @@ def _calcDisp(x, y, depth, dx, p2m, nu, patch, ss, ds, ts):
     plusdz = triDisp.displacement(x*p2m, y*p2m, depth*p2m-dx, list(patch*p2m), ss, ds, ts, nu=nu)
     minusdz = triDisp.displacement(x*p2m, y*p2m, depth*p2m+dx, list(patch*p2m), ss, ds, ts, nu=nu)
     return plusdx, minusdx, plusdy, minusdy, plusdz, minusdz
+
+def _calcStrain(x, y, depth, p2m, nu, patch, ss, ds, ts):
+    return triDisp.strain(
+        x*p2m, y*p2m, depth*p2m,
+        list(patch*p2m), ss, ds, ts,
+        nu=nu
+    )
 
 #EOF

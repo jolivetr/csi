@@ -119,10 +119,9 @@ class geodeticplot(object):
             ax2D.set_extent([self.lonmin, self.lonmax, self.latmin, self.latmax], crs=self.projection)
 
             # Gridlines (there is something wrong with the gridlines class...)
-            gl = carte.gridlines(crs=self.projection, draw_labels=True, alpha=0.5, zorder=0)
+            gl = ax2D.gridlines(crs=self.projection, draw_labels=True, alpha=0.5, zorder=0)
             gl.xlabel_style = {'color': 'k', 'weight': 'bold'}
             gl.ylabel_style = {'color': 'k', 'weight': 'bold'}
-            self.cartegl = gl
 
         # Store plots
         if Fault:

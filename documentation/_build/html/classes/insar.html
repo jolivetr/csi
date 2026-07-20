@@ -6,14 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>insar class &#8212; CSI 1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=2c6a083b" />
     <script src="../_static/documentation_options.js?v=f2a433a1"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="opticorr class" href="opticorr.html" />
@@ -39,7 +40,7 @@
 <h1>insar class<a class="headerlink" href="#insar-class" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="csi.insar">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">insar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">insar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar" title="Link to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
 <li><p>name      : Name of the InSAR dataset.</p></li>
@@ -142,16 +143,31 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.buildsynth">
-<span class="sig-name descname"><span class="pre">buildsynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.buildsynth" title="Link to this definition">¶</a></dt>
-<dd><p>Computes the synthetic data using either the faults and the associated slip distributions or the pressure sources.</p>
+<span class="sig-name descname"><span class="pre">buildsynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blockcomponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rot+intra+bound'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.buildsynth" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the synthetic data associated with deformation sources (Fault, Pressure, Block, …) or geometrical transformations.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>faults        : List of faults or pressure sources.</p></li>
+<li><p>sources        : list of sources to include.</p></li>
 </ul>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>direction         : Direction of slip to use or None for pressure sources.</p></li>
-<li><p>poly              : if a polynomial function has been estimated, build and/or include</p></li>
+<li><dl class="simple">
+<dt>blockcomponent<span class="classifier">string or dictionary</span></dt><dd><p>Which block components to consider.</p>
+<ul>
+<li><dl class="simple">
+<dt>If blockcomponent is a string, all blocks will have the same components considered.</dt><dd><p>Options are ‘rotation’, ‘intradef’, ‘boundary’ or any combination (e.g. ‘rotation+intradef’).</p>
+</dd>
+</dl>
+</li>
+<li><p>If blockcomponent is a dictionary, each block can have different components considered (only valid for a multiblock)
+The dictonary should be of the form {csi.Block.name: ‘rotation+intradef+boundary’}
+For example, if you want to consider only rotation for block A and rotation + intradef for block B, you can set
+blockcomponent = {‘A’: ‘rotation’, ‘B’: ‘rotation+intradef’}.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 <li><p>vertical          : always True. Used here for consistency among data types</p></li>
 <li><p>custom            : if True, uses the fault.custom and fault.G[data.name][‘custom’] to correct</p></li>
 <li><p>computeNormFact   : if False, uses TransformNormalizingFactor set with self.setTransformNormalizingFactor</p></li>
@@ -230,31 +246,11 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.computeCustom">
-<span class="sig-name descname"><span class="pre">computeCustom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.computeCustom" title="Link to this definition">¶</a></dt>
-<dd><p>Computes the displacements associated with the custom green’s functions.</p>
+<span class="sig-name descname"><span class="pre">computeCustom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.computeCustom" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the displacements associated with the custom Green’s Functions.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>fault : A fault instance</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>None</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="csi.insar.computePoly">
-<span class="sig-name descname"><span class="pre">computePoly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.computePoly" title="Link to this definition">¶</a></dt>
-<dd><p>Computes the orbital bias estimated in fault</p>
-<dl class="simple">
-<dt>Args:</dt><dd><ul class="simple">
-<li><p>fault : Fault object that has a polysol structure.</p></li>
-</ul>
-</dd>
-<dt>Kwargs:</dt><dd><ul class="simple">
-<li><p>computeNormFact   : Recompute the norm factors</p></li>
+<li><p>source : A deformation source instance.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -269,6 +265,26 @@
 <span class="sig-name descname"><span class="pre">computeTransformNormalizingFactor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.computeTransformNormalizingFactor" title="Link to this definition">¶</a></dt>
 <dd><p>Compute orbit normalizing factors and store them in insar object.</p>
 <dl class="simple">
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.computeTransformation">
+<span class="sig-name descname"><span class="pre">computeTransformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.computeTransformation" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the displacements associated with a geometrical transformation (polynomial or strain).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>source : Source object that has a polysol structure.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>computeNormFact   : Recompute the norm factors</p></li>
+</ul>
+</dd>
 <dt>Returns:</dt><dd><ul class="simple">
 <li><p>None</p></li>
 </ul>
@@ -312,17 +328,54 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="csi.insar.distance2point">
-<span class="sig-name descname"><span class="pre">distance2point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.distance2point" title="Link to this definition">¶</a></dt>
-<dd><p>Returns the distance of all pixels to a point.</p>
+<dt class="sig sig-object py" id="csi.insar.distance2block">
+<span class="sig-name descname"><span class="pre">distance2block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.distance2block" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the distance between the acquisition points and block boundaries.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>lon       : Longitude of a point</p></li>
-<li><p>lat       : Latitude of a point</p></li>
+<li><p>blocks    : list of blocks objects.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>discretized : If True, compute the distance to the discretized boundary.</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>d         : distance</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.distance2fault">
+<span class="sig-name descname"><span class="pre">distance2fault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.distance2fault" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the minimum distance to a list of fault for each pixel.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>faults    : a fault or a list of faults.</p></li>
+<li><p>discretized : if True, uses the discretized fault points.</p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>distance  : array</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.distance2point">
+<span class="sig-name descname"><span class="pre">distance2point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.distance2point" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the distance of all pixels to a point (in km)</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>lon       : Longitude of a point or array of longitudes</p></li>
+<li><p>lat       : Latitude of a point or array of latitudes</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>array</p></li>
+<li><p>array of distances (shape (Npix, Npoints))</p></li>
 </ul>
 </dd>
 </dl>
@@ -388,16 +441,17 @@ Fourth column is the Epsilon_yy component.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="csi.insar.getDistance2Faults">
-<span class="sig-name descname"><span class="pre">getDistance2Faults</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getDistance2Faults" title="Link to this definition">¶</a></dt>
-<dd><p>Returns the minimum distance to a fault for each pixel</p>
+<dt class="sig sig-object py" id="csi.insar.getBlockList">
+<span class="sig-name descname"><span class="pre">getBlockList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getBlockList" title="Link to this definition">¶</a></dt>
+<dd><p>For each point, get the blocks in which it is located.
+Otherwise, set the block to None.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>faults    : a fault or a list of faults.</p></li>
+<li><p>blocks    : list of block objects</p></li>
 </ul>
 </dd>
-<dt>Return:</dt><dd><ul class="simple">
-<li><p>distance  : array</p></li>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
 </ul>
 </dd>
 </dl>
@@ -416,19 +470,44 @@ Fourth column is the Epsilon_yy component.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.getNumberOfTransformParameters">
+<span class="sig-name descname"><span class="pre">getNumberOfTransformParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformation</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getNumberOfTransformParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the number of transform parameters for the given transformation.
+Strain is only computed as an aerial strain (2D).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>transformation<span class="classifier">String. It can be:</span></dt><dd><ul>
+<li><p>‘strain’: Estimates an aerial strain tensor</p></li>
+<li><p>string : polynomial estimator. It is the list of the terms to include in the estimator. Possible values are: ‘1’, ‘x’, ‘y’, ‘xy’, ‘x2’, ‘y2’.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>Integer</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.getOffsetFault">
-<span class="sig-name descname"><span class="pre">getOffsetFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useerrors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getOffsetFault" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getOffsetFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useerrors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synthetic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getOffsetFault" title="Link to this definition">¶</a></dt>
 <dd><p>Computes the offset next to a fault along a profile. This is a copy from 
 a script written by Manon Dalaison during her PhD in 2020 (infamous year).</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>profile   : Name of the profile</p></li>
-<li><p>fault     : fault object</p></li>
-<li><p>distance  : Distance to take on each side of the fault (min, max)</p></li>
+<li><p>profilename  : Name of the profile</p></li>
+<li><p>fault        : fault object</p></li>
+<li><p>distance     : Distance to take on each side of the fault (min, max)</p></li>
 </ul>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>threshold : minimum number of data points on each side to move on</p></li>
+<li><p>synthetic  : use synthetics instead of data</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -440,15 +519,13 @@ a script written by Manon Dalaison during her PhD in 2020 (infamous year).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.getPolyEstimator">
-<span class="sig-name descname"><span class="pre">getPolyEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ptype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getPolyEstimator" title="Link to this definition">¶</a></dt>
-<dd><p>Returns the Estimator for the polynomial form to estimate in the InSAR data.</p>
+<span class="sig-name descname"><span class="pre">getPolyEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">polycomp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getPolyEstimator" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the estimator for the polynomial form to estimate in the InSAR data.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>ptype: integer</dt><dd><ul>
-<li><p>1: constant offset to the data</p></li>
-<li><p>3: constant and linear function of x and y</p></li>
-<li><p>4: constant, linear term and cross term.</p></li>
+<dt>polycomp:</dt><dd><ul>
+<li><p>str of polynomial components to include in the estimator. Possible values are: ‘1’, ‘x’, ‘y’, ‘xy’, ‘x2’, ‘y2’. Example: ‘1,x,y’.</p></li>
 </ul>
 </dd>
 </dl>
@@ -480,13 +557,17 @@ a script written by Manon Dalaison during her PhD in 2020 (infamous year).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.getStepFromProfile">
-<span class="sig-name descname"><span class="pre">getStepFromProfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leftdistance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rightdistance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getStepFromProfile" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getStepFromProfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leftdistance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rightdistance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synthetic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getStepFromProfile" title="Link to this definition">¶</a></dt>
 <dd><p>Returns the offset across a fault from a profile.</p>
 <dl class="simple">
-<dt>Args:</dt><dd><p>profname    : Name of the profile
-fault       : fault object
-leftdistance: tuple of distances between which to average displacement to the left
-rightdistance: tuple of distances between which to average displacement to the right</p>
+<dt>Args:</dt><dd><p>profilename          : Name of the profile
+fault            : fault object
+leftdistance     : tuple of distances between which to average displacement to the left
+rightdistance    : tuple of distances between which to average displacement to the right</p>
+</dd>
+<dt>Kwargs:</dt><dd><p>discretized : use the discretized fault trace
+method      : ‘mean’ or ‘median’ to compute the average displacement on each side of the fault
+synthetic   : use synthetics instead of data</p>
 </dd>
 <dt>Returns:</dt><dd><p>step, std, los</p>
 </dd>
@@ -495,16 +576,14 @@ rightdistance: tuple of distances between which to average displacement to the r
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.getTransformEstimator">
-<span class="sig-name descname"><span class="pre">getTransformEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trans</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getTransformEstimator" title="Link to this definition">¶</a></dt>
-<dd><p>Returns the Estimator for the transformation to estimate in the InSAR data.</p>
+<span class="sig-name descname"><span class="pre">getTransformEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.getTransformEstimator" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the estimator for the transformation to estimate in the InSAR data.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>trans<span class="classifier">Transformation type</span></dt><dd><ul>
-<li><p>1: constant offset to the data</p></li>
-<li><p>3: constant and linear function of x and y</p></li>
-<li><p>4: constant, linear term and cross term.</p></li>
-<li><p>strain: Estimates an aerial strain tensor</p></li>
+<dt>transformation<span class="classifier">Transformation type. It can be:</span></dt><dd><ul>
+<li><p>‘strain’: Estimates an aerial strain tensor</p></li>
+<li><p>string : polynomial estimator. It is the string of the terms to include in the estimator. Possible values are: ‘1’, ‘x’, ‘y’, ‘xy’, ‘x2’, ‘y2’. Example: ‘1,x,y’.</p></li>
 </ul>
 </dd>
 </dl>
@@ -512,11 +591,11 @@ rightdistance: tuple of distances between which to average displacement to the r
 </ul>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
-<li><p>computeNormFact   : Recompute the normalization factor</p></li>
+<li><p>computeNormFact   : compute and store the normalizing factor</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>None</p></li>
+<li><p>Estimator matrix (numpy array)</p></li>
 </ul>
 </dd>
 </dl>
@@ -577,7 +656,7 @@ rightdistance: tuple of distances between which to average displacement to the r
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.incaz2los">
-<span class="sig-name descname"><span class="pre">incaz2los</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin='onefloat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.incaz2los" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">incaz2los</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'onefloat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.incaz2los" title="Link to this definition">¶</a></dt>
 <dd><p>From the incidence and the heading, defines the LOS vector.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -670,6 +749,12 @@ rightdistance: tuple of distances between which to average displacement to the r
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.lonlat2xy">
+<span class="sig-name descname"><span class="pre">lonlat2xy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.lonlat2xy" title="Link to this definition">¶</a></dt>
+<dd><p>Pass the position of the stations into the utm coordinate system.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.mergeInsar">
 <span class="sig-name descname"><span class="pre">mergeInsar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.mergeInsar" title="Link to this definition">¶</a></dt>
 <dd><p>Combine the existing data set with another insar object.</p>
@@ -702,11 +787,13 @@ under the form of a list of python dictionaries</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lognorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawCoastlines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edgewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">markersize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scatter'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">titleyoffset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landcolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lightgrey'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seacolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadedtopo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">los</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.2,</span> <span class="pre">0.1,</span> <span class="pre">0.02]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cborientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cblabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.plot" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surfacemotions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lognorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawCoastlines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edgewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">markersize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scatter'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">titleyoffset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landcolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lightgrey'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seacolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadedtopo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">los</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.2,</span> <span class="pre">0.1,</span> <span class="pre">0.02]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cborientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cblabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.plot" title="Link to this definition">¶</a></dt>
 <dd><p>Plot the data set, together with a fault, if asked.</p>
 <dl class="simple">
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>faults            : list of fault objects.</p></li>
+<li><p>blocks        : list of instances of blocks</p></li>
+<li><p>surfacemotions : list of surface motion objects</p></li>
 <li><p>figure            : number of the figure.</p></li>
 <li><p>gps               : list of gps objects.</p></li>
 <li><p>norm              : colorbar limits</p></li>
@@ -728,8 +815,23 @@ under the form of a list of python dictionaries</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.plotDecimation">
+<span class="sig-name descname"><span class="pre">plotDecimation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edgewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edgecolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lognorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisNames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.plotDecimation" title="Link to this definition">¶</a></dt>
+<dd><p>Show me as many plots of decimated InSAR data as requested in the data Kwargs</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>figure:   Plot things in a pre-existing figure</p></li>
+<li><p>norm  :   Colorbar limits</p></li>
+<li><p>data  :   Any list of attributes that are in self. Default is None and vel will be plotted</p></li>
+<li><p>show  :   Show on screen?</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.plotprofile">
-<span class="sig-name descname"><span class="pre">plotprofile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.1,</span> <span class="pre">0.1,</span> <span class="pre">0.01]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scatter'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawCoastlines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.plotprofile" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">plotprofile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.1,</span> <span class="pre">0.1,</span> <span class="pre">0.01]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scatter'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawCoastlines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.plotprofile" title="Link to this definition">¶</a></dt>
 <dd><p>Plot profile.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -797,7 +899,7 @@ under the form of a list of python dictionaries</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.read_from_binary">
-<span class="sig-name descname"><span class="pre">read_from_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">err=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor=1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incidence=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heading=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">los=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_nan=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_zeros=True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.read_from_binary" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">read_from_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">los</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_zeros</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.read_from_binary" title="Link to this definition">¶</a></dt>
 <dd><p>Read from binary file or from array.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -955,13 +1057,17 @@ under the form of a list of python dictionaries</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="csi.insar.reject_pixels_fault">
-<span class="sig-name descname"><span class="pre">reject_pixels_fault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.reject_pixels_fault" title="Link to this definition">¶</a></dt>
-<dd><p>Rejects the pixels that are {dis} km close to the fault.</p>
+<dt class="sig sig-object py" id="csi.insar.reject_pixels_awayblock">
+<span class="sig-name descname"><span class="pre">reject_pixels_awayblock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.reject_pixels_awayblock" title="Link to this definition">¶</a></dt>
+<dd><p>Rejects the pixels that are {dist} km away from the blocks boundaries.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>dis       : Threshold distance.</p></li>
-<li><p>faults    : list of fault objects.</p></li>
+<li><p>dist      : Threshold distance.</p></li>
+<li><p>blocks    : list of Blocks objects.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>discretized : If True, compute the distance to the discretized boundary.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -972,18 +1078,79 @@ under the form of a list of python dictionaries</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="csi.insar.removePoly">
-<span class="sig-name descname"><span class="pre">removePoly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.removePoly" title="Link to this definition">¶</a></dt>
-<dd><p>Removes a polynomial from the parameters that are in a fault.</p>
+<dt class="sig sig-object py" id="csi.insar.reject_pixels_awayfault">
+<span class="sig-name descname"><span class="pre">reject_pixels_awayfault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.reject_pixels_awayfault" title="Link to this definition">¶</a></dt>
+<dd><p>Rejects the pixels that are {dist} km away from the faults.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>fault     : a fault instance</p></li>
+<li><p>dist       : Threshold distance.</p></li>
+<li><p>faults    : list of fault objects.</p></li>
+<li><p>discretized : if True, uses the discretized fault points.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.reject_pixels_closeblock">
+<span class="sig-name descname"><span class="pre">reject_pixels_closeblock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.reject_pixels_closeblock" title="Link to this definition">¶</a></dt>
+<dd><p>Rejects the pixels that are {dist} km close to the blocks boundaries.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>dist      : Threshold distance.</p></li>
+<li><p>blocks    : list of Blocks objects.</p></li>
 </ul>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
-<li><p>verbose           : Show us stuff</p></li>
-<li><p>custom            : include custom green’s functions</p></li>
-<li><p>computeNormFact   : recompute norm factors</p></li>
+<li><p>discretized : If True, compute the distance to the discretized boundary.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.reject_pixels_closefault">
+<span class="sig-name descname"><span class="pre">reject_pixels_closefault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.reject_pixels_closefault" title="Link to this definition">¶</a></dt>
+<dd><p>Rejects the pixels that are {dist} km close to the faults.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>dist       : Threshold distance.</p></li>
+<li><p>faults    : list of fault objects.</p></li>
+<li><p>discretized : if True, uses the discretized fault points.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.removeAtmosphere">
+<span class="sig-name descname"><span class="pre">removeAtmosphere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elevation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quickPlot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.removeAtmosphere" title="Link to this definition">¶</a></dt>
+<dd><p>Remove an empirical atmospheric phase. The phase is the simply the elevation of the pixel 
+multitplied by a factor. The factor is the best fit between the two determined using standard
+least squares. Correction is performed in place.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>elevation : insar object with elevation as the main data.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>quickPlot<span class="classifier">bool. Plot the data before and after the correction and the relationship</span></dt><dd><p>between the two.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -995,15 +1162,16 @@ under the form of a list of python dictionaries</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.removeSynth">
-<span class="sig-name descname"><span class="pre">removeSynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.removeSynth" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">removeSynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blockcomponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rot+intra+bound'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.removeSynth" title="Link to this definition">¶</a></dt>
 <dd><p>Removes the synthetics using the faults and the slip distributions that are in there.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>faults        : List of faults.</p></li>
+<li><p>sources           : List of sources.</p></li>
 </ul>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>direction         : Direction of slip to use.</p></li>
+<li><p>blockcomponent    : if a block is used, which component to use. Can be any combination of ‘rot’ and ‘intra’ and ‘bound’.</p></li>
 <li><p>poly              : if a polynomial function has been estimated, build and/or include</p></li>
 <li><p>vertical          : always True - used here for consistency among data types</p></li>
 <li><p>custom            : if True, uses the fault.custom and fault.G[data.name][‘custom’] to correct</p></li>
@@ -1019,16 +1187,17 @@ under the form of a list of python dictionaries</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.insar.removeTransformation">
-<span class="sig-name descname"><span class="pre">removeTransformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.removeTransformation" title="Link to this definition">¶</a></dt>
-<dd><p>Wrapper of removePoly to ensure consistency between data sets.</p>
+<span class="sig-name descname"><span class="pre">removeTransformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computeNormFact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.removeTransformation" title="Link to this definition">¶</a></dt>
+<dd><p>Removes a transformation from the parameters that are in a source.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>fault     : a fault instance</p></li>
+<li><p>source     : a source instance</p></li>
 </ul>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
-<li><p>verbose   : talk to us</p></li>
-<li><p>custom    : Remove custom GFs</p></li>
+<li><p>verbose           : Show us stuff</p></li>
+<li><p>custom            : include custom green’s functions</p></li>
+<li><p>computeNormFact   : recompute norm factors</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -1047,7 +1216,7 @@ from a point (lon, lat).</p>
 <dt>Args:</dt><dd><ul class="simple">
 <li><p>lon       : longitude of the point</p></li>
 <li><p>lat       : latitude of the point</p></li>
-<li><p>distance  : distance around the point</p></li>
+<li><p>distance  : distance around the point (in km)</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -1077,18 +1246,21 @@ from a point (lon, lat).</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="csi.insar.setGFsInFault">
-<span class="sig-name descname"><span class="pre">setGFsInFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.setGFsInFault" title="Link to this definition">¶</a></dt>
-<dd><p>From a dictionary of Green’s functions, sets these correctly into the fault
-object fault for future computation.</p>
-<dl class="simple">
+<dt class="sig sig-object py" id="csi.insar.setGFsInSource">
+<span class="sig-name descname"><span class="pre">setGFsInSource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.setGFsInSource" title="Link to this definition">¶</a></dt>
+<dd><p>From a dictionary of Green’s functions, sets these correctly into the source 
+object (fault, pressure, block or multiblock) for future computation.</p>
+<dl>
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>fault     : Instance of Fault</p></li>
-<li><p>G         : Dictionary with 3 entries ‘strikeslip’, ‘dipslip’ and ‘tensile’. These can be a matrix or None.</p></li>
+<li><p>source    : Instance of Fault, Pressure, Block or MultiBlock</p></li>
+<li><p>G         : Dictionary with entries ‘strikeslip’, ‘dipslip’ and ‘tensile’ for a fault,</p></li>
 </ul>
+<p>‘pressure’, ‘pressureDVx’, ‘pressureDVy’, ‘pressureDVz’ for a pressure,
+‘rotation’, ‘intradef’ for a block,
+‘rotation’, ‘intradef’, ‘boundary’ for a multiblock. These can be a matrix or None.</p>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
-<li><p>vertical  : Set here for consistency with other data objects, but will always be set to True, whatever you do.</p></li>
+<li><p>vertical  : Do we set the vertical GFs? default is True</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -1272,6 +1444,12 @@ object fault for future computation.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.insar.xy2lonlat">
+<span class="sig-name descname"><span class="pre">xy2lonlat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#csi.insar.xy2lonlat" title="Link to this definition">¶</a></dt>
+<dd><p>Convert all stations x, y to lon lat using the utm transform.</p>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -1281,7 +1459,7 @@ object fault for future computation.</p>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">CSI</a></h1>
 
@@ -1292,7 +1470,16 @@ object fault for future computation.</p>
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
@@ -1313,16 +1500,6 @@ object fault for future computation.</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -1339,8 +1516,8 @@ object fault for future computation.</p>
       &#169;2024, Romain Jolivet.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/classes/insar.rst.txt"

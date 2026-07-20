@@ -20,6 +20,10 @@ release = '1.0'
 extensions = ['sphinx.ext.autodoc', 'nbsphinx', 'IPython.sphinxext.ipython_console_highlighting']
 #'sphinx_copybutton', 
 
+# Keep notebook execution configurable for local and CI builds.
+nbsphinx_execute = os.environ.get('NBSPHINX_EXECUTE', 'never')
+nbsphinx_allow_errors = False
+
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 copybutton_exclude = ['.linenos, .gp', '.go']

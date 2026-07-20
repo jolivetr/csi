@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>transformation class &#8212; CSI 1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=2c6a083b" />
     <script src="../_static/documentation_options.js?v=f2a433a1"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,10 +38,10 @@
 <h1>transformation class<a class="headerlink" href="#transformation-class" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="csi.transformation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">transformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">transformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation" title="Link to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="csi.transformation.assembleCd">
-<span class="sig-name descname"><span class="pre">assembleCd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_prediction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.assembleCd" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">assembleCd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_prediction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.assembleCd" title="Link to this definition">¶</a></dt>
 <dd><p>Assembles the data covariance matrices that have been built for each 
 data structure.</p>
 <dl class="simple">
@@ -106,13 +107,17 @@ Assembled vector is stored in self.dassembled</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.transformation.buildCm">
-<span class="sig-name descname"><span class="pre">buildCm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.buildCm" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">buildCm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.buildCm" title="Link to this definition">¶</a></dt>
 <dd><p>Builds a model covariance matrix from std deviation values.
 The matrix is diagonal with sigma**2 values.
 Requires an assembled Green’s function matrix.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
 <li><p>sigma         : float, list or array</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>verbose       : Talk to me</p></li>
 </ul>
 </dd>
 </dl>
@@ -142,19 +147,16 @@ of transformations.</p>
 </ul>
 <p>Transformation types can be:</p>
 <blockquote>
-<div><dl>
-<dt>For InSAR, Optical, GPS:</dt><dd><p>1 -&gt; estimate a constant offset
-3 -&gt; estimate z = ax + by + c
-4 -&gt; estimate z = axy + bx + cy + d
-‘strain’              -&gt; Estimates a strain tensor</p>
+<div><dl class="simple">
+<dt>For InSAR, Optical:</dt><dd><p>‘strain’:Estimates a strain tensor
+string of polynomial components to include in the estimator. Possible values are: ‘1’, ‘x’, ‘y’, ‘xy’, ‘x2’, ‘y2’. Example: ‘1,x,y’</p>
 </dd>
-<dt>For GPS only:</dt><dd><dl class="simple">
-<dt>‘full’                -&gt; Estimates a rotation, </dt><dd><p>translation and scaling
-(Helmert transform).</p>
+<dt>For optical correlation:</dt><dd><p>string of polynomial components to include in the estimator. Possible values are: ‘1’, ‘x’, ‘y’, ‘xy’, ‘x2’, ‘y2’. Example: ‘1,x,y’</p>
 </dd>
-</dl>
-<p>‘translation’         -&gt; Estimates a translation
-‘rotation’            -&gt; Estimates a rotation</p>
+<dt>For GPS:</dt><dd><p>‘strain’: Estimates a strain tensor
+‘full’: Estimates a full Helmert
+‘translation’: Estimates a translation
+‘rotation’: Estimates a rotation</p>
 </dd>
 </dl>
 </div></blockquote>
@@ -225,6 +227,91 @@ is stored in the self.m dictionary and corrects the data</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.saveGFs">
+<span class="sig-name descname"><span class="pre">saveGFs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.saveGFs" title="Link to this definition">¶</a></dt>
+<dd><p>Saves the Green’s functions in different files.</p>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>dtype       : Format of the binary data saved. ‘d’ for double. ‘f’ for np.float32</p></li>
+<li><p>outputDir   : Directory to save binary data.</p></li>
+<li><p>suffix      : suffix for GFs name (dictionary)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.setCmFromFile">
+<span class="sig-name descname"><span class="pre">setCmFromFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.setCmFromFile" title="Link to this definition">¶</a></dt>
+<dd><p>Read the model a priori covariance matrix from a binary file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : Name of the file.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>dtype         : Data type to use. Default is double (‘d’). Can be ‘f’ for float32.</p></li>
+<li><p>inDir         : Directory to read the file from.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.setGFsFromFile">
+<span class="sig-name descname"><span class="pre">setGFsFromFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.setGFsFromFile" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the Green’s functions reading binary files. Be carefull, these have to be in the
+good format (i.e. if it is GPS, then GF are E, then N, then U, optional, and
+if insar, GF are projected already). Basically, it will work better if
+you have computed the GFs using csi…</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>data          : Data object</p></li>
+</ul>
+</dd>
+<dt>kwargs:</dt><dd><ul class="simple">
+<li><p>transformation : File or list of files containing the Green’s functions for geometrical transformation(s).</p></li>
+<li><p>vertical       : Deal with the UP component (gps: default is false, insar: it will be true anyway).</p></li>
+<li><p>dtype          : Type of binary data. ‘d’ for double/float64. ‘f’ for np.float32</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.transformation.writeCm2File">
+<span class="sig-name descname"><span class="pre">writeCm2File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.transformation.writeCm2File" title="Link to this definition">¶</a></dt>
+<dd><p>Write the model a priori covariance matrix to a binary file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>filename      : Name of the file.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>dtype         : Data type to use. Default is double (‘d’). Can be ‘f’ for float32.</p></li>
+<li><p>outputDir     : Directory to write the file in.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -234,7 +321,7 @@ is stored in the self.m dictionary and corrects the data</p>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">CSI</a></h1>
 
@@ -245,7 +332,16 @@ is stored in the self.m dictionary and corrects the data</p>
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
@@ -268,16 +364,6 @@ is stored in the self.m dictionary and corrects the data</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -294,8 +380,8 @@ is stored in the self.m dictionary and corrects the data</p>
       &#169;2024, Romain Jolivet.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/classes/transformation.rst.txt"

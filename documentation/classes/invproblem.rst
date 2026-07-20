@@ -9,3 +9,4 @@ These classes can solve inverse problems.
     explorefault
     functionfit
     multifaultsolve
+    multisourcesolve

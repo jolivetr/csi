@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>eulerPoleUtils tools &#8212; CSI 1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=2c6a083b" />
     <script src="../_static/documentation_options.js?v=f2a433a1"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,12 +55,12 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="csi.eulerPoleUtils.gps2euler">
-<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">gps2euler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">se</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.gps2euler" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">gps2euler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">se</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.gps2euler" title="Link to this definition">¶</a></dt>
 <dd><p>Solve for the Euler pole given station positions and velocitites.</p>
 <p>Arguments:
-lat                     array of station latitudes (radians)
-lon                     array of station longitudes (radians)
-elev                    array of station elevations
+lat                     array of station latitudes (degrees)
+lon                     array of station longitudes (degrees)
+elev                    array of station elevations (meters)
 ve                      array of station east velocities/displacements (meters)
 vn                      array of station north velocities/displacements (meters)
 se                      east velocitiy uncertainties (meters)
@@ -72,9 +73,27 @@ omega                   pole rotation angle</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="csi.eulerPoleUtils.llh2xyz">
-<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">llh2xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.llh2xyz" title="Link to this definition">¶</a></dt>
-<dd><p>Convert lat-lon-h to XYZ assuming a spherical Earth with radius equal to
-the local ellipsoid radius.</p>
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">llh2xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">earth_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6378137.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.llh2xyz" title="Link to this definition">¶</a></dt>
+<dd><p>Convert spherical coordinates (lat/lon/height) to ECEF cartesian coordinates (x/y/z)
+assuming a spherical Earth.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>lon           : float/np.ndarray, longitude (degrees)</p></li>
+<li><p>lat           : float/np.ndarray, latitude (degrees)</p></li>
+<li><p>height        : float/np.ndarray, height above the ellipsoid (meters)</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>earth_radius  : float, Earth radius (meters), default is 6378137.0 meters</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>x             : float/np.ndarray, cartesian x-coordinate (meters)</p></li>
+<li><p>y             : float/np.ndarray, cartesian y-coordinate (meters)</p></li>
+<li><p>z             : float/np.ndarray, cartesian z-coordinate (meters)</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -122,8 +141,27 @@ out.shape will be (N,3)</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="csi.eulerPoleUtils.xyz2llh">
-<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">xyz2llh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.xyz2llh" title="Link to this definition">¶</a></dt>
-<dd><p>Convert XYZ coordinates to latitude, longitude, height, assuming a spherical Earth.</p>
+<span class="sig-prename descclassname"><span class="pre">csi.eulerPoleUtils.</span></span><span class="sig-name descname"><span class="pre">xyz2llh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">earth_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6378137.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.eulerPoleUtils.xyz2llh" title="Link to this definition">¶</a></dt>
+<dd><p>Convert ECEF cartesian coordinates (x/y/z) to spherical coordinates (lat/lon/height)
+assuming a spherical Earth.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>x            : float/np.ndarray, x-coordinate (meters)</p></li>
+<li><p>y            : float/np.ndarray, y-coordinate (meters)</p></li>
+<li><p>z            : float/np.ndarray, z-coordinate (meters)</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>earth_radius  : float, Earth radius (meters), default is 6378137.0 meters</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>lon          : float/np.ndarray, longitude (degrees)</p></li>
+<li><p>lat          : float/np.ndarray, latitude (degrees)</p></li>
+<li><p>height       : float/np.ndarray, height above the ellipsoid (meters)</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -133,7 +171,7 @@ out.shape will be (N,3)</p>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">CSI</a></h1>
 
@@ -144,7 +182,16 @@ out.shape will be (N,3)</p>
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
@@ -165,16 +212,6 @@ out.shape will be (N,3)</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -191,8 +228,8 @@ out.shape will be (N,3)</p>
       &#169;2024, Romain Jolivet.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/tools/eulerPoleUtils.rst.txt"

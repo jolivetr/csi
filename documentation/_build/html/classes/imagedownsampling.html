@@ -6,14 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>imagedownsampling class &#8212; CSI 1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=2c6a083b" />
     <script src="../_static/documentation_options.js?v=f2a433a1"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Inverse Problem class" href="invproblem.html" />
@@ -39,7 +40,7 @@
 <h1>imagedownsampling class<a class="headerlink" href="#imagedownsampling-class" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="csi.imagedownsampling">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">imagedownsampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">imagedownsampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling" title="Link to this definition">¶</a></dt>
 <dd><p>A class to downsample images</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -77,14 +78,18 @@
 <dt class="sig sig-object py" id="csi.imagedownsampling.buildDownsampledCd">
 <span class="sig-name descname"><span class="pre">buildDownsampledCd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exp'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.buildDownsampledCd" title="Link to this definition">¶</a></dt>
 <dd><p>Builds the covariance matrix by weihgting following the downsampling scheme</p>
-<dl class="simple">
+<dl>
 <dt>Args:</dt><dd><ul class="simple">
 <li><p>mu        : Autocovariance</p></li>
 <li><p>lam       : Characteristic distance</p></li>
 </ul>
 </dd>
-<dt>Kwargs:</dt><dd><ul class="simple">
-<li><p>function  : ‘exp’ (<span class="math notranslate nohighlight">\(C = \mu^2 e^{\frac{-d}{\lambda}}\)</span>) or ‘gauss’ (<span class="math notranslate nohighlight">\(C = \mu^2 e^{\frac{-d^2}{2\lambda^2}}\)</span>)</p></li>
+<dt>Kwargs:</dt><dd><ul>
+<li><dl>
+<dt>function<span class="classifier">‘exp’ (<span class="math notranslate nohighlight">\(C = \mu^2 e^{\frac{-d}{\lambda}}\)</span>) or </span></dt><dd><p>‘gauss’ (<span class="math notranslate nohighlight">\(C = \mu^2 e^{\frac{-d^2}{2\lambda^2}}\)</span>)</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -166,7 +171,7 @@ T.L. Shreve, January 2018</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.imagedownsampling.dataBased">
-<span class="sig-name descname"><span class="pre">dataBased</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verboseLevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'minimum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'curvature'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.dataBased" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">dataBased</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verboseLevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'minimum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'curvature'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.dataBased" title="Link to this definition">¶</a></dt>
 <dd><p>Iteratively downsamples the dataset until value compute inside each block is lower than the threshold.
 Threshold is based on the gradient or curvature of the phase field inside the block.
 The algorithm is based on the varres downsampler. Please check at <a class="reference external" href="http://earthdef.caltech.edu">http://earthdef.caltech.edu</a></p>
@@ -181,6 +186,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 <li><p>quantity      : curvature or gradient</p></li>
 <li><p>smooth        : Smooth the {quantity} spatial with a filter of kernel size of {smooth} km</p></li>
 <li><p>itmax         : Maximum number of iterations</p></li>
+<li><p>Nworkers      : Number of workers for parallel processing</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -192,11 +198,17 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.imagedownsampling.distToFault">
-<span class="sig-name descname"><span class="pre">distToFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.distToFault" title="Link to this definition">¶</a></dt>
-<dd><p>Returns distance from block to fault. The distance is here defined as the minimum distance from any of the four block corners to the fault. (R.Grandin, April 2015)</p>
+<span class="sig-name descname"><span class="pre">distToFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.distToFault" title="Link to this definition">¶</a></dt>
+<dd><p>Returns distance from block to faults.
+The distance is here defined as the minimum distance from any of the four block corners to the fault. (R.Grandin, April 2015)</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
 <li><p>block     : Block instance of the imagedownsampling class.</p></li>
+<li><p>fault     : Fault instance to compute distance to.</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>discretized : Boolean, if True, use the discretized fault points to compute distance</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -208,14 +220,16 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.imagedownsampling.distanceBased">
-<span class="sig-name descname"><span class="pre">distanceBased</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chardist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expodist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.distanceBased" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">distanceBased</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chardist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expodist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.distanceBased" title="Link to this definition">¶</a></dt>
 <dd><p>Downsamples the dataset depending on the distance from the fault R.Grandin, April 2015</p>
 <dl class="simple">
 <dt>Kwargs:</dt><dd><ul class="simple">
-<li><p>chardist      : Characteristic distance of downsampling.</p></li>
-<li><p>expodist      : Exponent of the distance-based downsampling criterion.</p></li>
+<li><p>chardist      : Characteristic distance of downsampling. Can be a float (same for all faults) or a list of distances (one per fault).</p></li>
+<li><p>expodist      : Exponent of the distance-based downsampling criterion. Can be a float (same for all faults) or a list of exponents (one per fault).</p></li>
 <li><p>plot          : True/False</p></li>
 <li><p>Norm          : colorlimits for plotting</p></li>
+<li><p>discretized   : If True, uses the discretized fault</p></li>
+<li><p>Nworkers      : Number of workers for parallel processing</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -227,12 +241,13 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.imagedownsampling.downsample">
-<span class="sig-name descname"><span class="pre">downsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.downsample" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">downsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.downsample" title="Link to this definition">¶</a></dt>
 <dd><p>From the saved list of blocks, computes the downsampled data set and the informations that come along.</p>
 <dl class="simple">
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>plot      : True/False</p></li>
 <li><p>Norm      : colorlimits for plotting</p></li>
+<li><p>Nworkers  : Number of workers for parallel processing</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -244,7 +259,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.imagedownsampling.downsampleFromRspFile">
-<span class="sig-name descname"><span class="pre">downsampleFromRspFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.downsampleFromRspFile" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">downsampleFromRspFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.downsampleFromRspFile" title="Link to this definition">¶</a></dt>
 <dd><p>From the downsampling scheme saved in a .rsp file, downsamples the image.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -254,6 +269,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>tolerance     : Minimum surface covered in a patch to be kept.</p></li>
 <li><p>plot          : Plot the downsampled data (True/False)</p></li>
+<li><p>Nworkers      : Number of workers for parallel processing</p></li>
 </ul>
 </dd>
 <dt>Returns:    </dt><dd><ul class="simple">
@@ -265,7 +281,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.imagedownsampling.downsampleFromSampler">
-<span class="sig-name descname"><span class="pre">downsampleFromSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.downsampleFromSampler" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">downsampleFromSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.downsampleFromSampler" title="Link to this definition">¶</a></dt>
 <dd><p>From the downsampling scheme in a previous sampler, downsamples the image.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -274,6 +290,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>plot          : Plot the downsampled data (True/False)</p></li>
+<li><p>Nworkers      : Number of workers for parallel processing</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -317,7 +334,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.imagedownsampling.initialstate">
-<span class="sig-name descname"><span class="pre">initialstate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">startingsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimumsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.initialstate" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">initialstate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">startingsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimumsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.initialstate" title="Link to this definition">¶</a></dt>
 <dd><p>Does the first cut onto the data.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -328,6 +345,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>tolerance     : Between 0 and 1. If 1, all the pixels must have a value so that the box is kept. If 0, no pixels are needed… Default is 0.5</p></li>
 <li><p>plot          : True/False</p></li>
+<li><p>Nworkers      : Number of workers for parallel processing</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -375,13 +393,18 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="csi.imagedownsampling.reject_pixels_fault">
-<span class="sig-name descname"><span class="pre">reject_pixels_fault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.reject_pixels_fault" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="csi.imagedownsampling.reject_pixels_closefault">
+<span class="sig-name descname"><span class="pre">reject_pixels_closefault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fault</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discretized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newimage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.reject_pixels_closefault" title="Link to this definition">¶</a></dt>
 <dd><p>Removes pixels that are too close to the fault in the downsampled image.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
-<li><p>distance      : Distance between pixels and fault (scalar)</p></li>
-<li><p>fault         : fault object</p></li>
+<li><p>fault    : fault instance</p></li>
+<li><p>dist      : Distance between pixels and fault (scalar)</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>discretized   : If True, uses the discretized fault to compute distances.</p></li>
+<li><p>newimage      : If True, applies the rejection to self.newimage. If False, applies it to self.image.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -393,7 +416,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.imagedownsampling.resolutionBased">
-<span class="sig-name descname"><span class="pre">resolutionBased</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slipdirection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verboseLevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'minimum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.resolutionBased" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">resolutionBased</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slipdirection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verboseLevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'minimum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nworkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.resolutionBased" title="Link to this definition">¶</a></dt>
 <dd><p>Iteratively downsamples the dataset until value compute inside each block is lower than the threshold.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -406,6 +429,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 <li><p>plot          : False/True</p></li>
 <li><p>verboseLevel  : talk to me</p></li>
 <li><p>vertical      : Use vertical green’s functions.</p></li>
+<li><p>Nworkers      : Number of workers for parallel processing</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -438,6 +462,22 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
 <li><p>sampler      : imagedownsampling instance</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.imagedownsampling.setFaults">
+<span class="sig-name descname"><span class="pre">setFaults</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.imagedownsampling.setFaults" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the faults to be used in the downsampling (only for distance-based method).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>faults    : List of faults.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -508,7 +548,7 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">CSI</a></h1>
 
@@ -519,7 +559,16 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
@@ -542,16 +591,6 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -568,8 +607,8 @@ The algorithm is based on the varres downsampler. Please check at <a class="refe
       &#169;2024, Romain Jolivet.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/classes/imagedownsampling.rst.txt"

@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>seismiclocations class &#8212; CSI 1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=62c01f10" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=2c6a083b" />
     <script src="../_static/documentation_options.js?v=f2a433a1"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,7 +38,7 @@
 <h1>seismiclocations class<a class="headerlink" href="#seismiclocations-class" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="csi.seismiclocations">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">seismiclocations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">csi.</span></span><span class="sig-name descname"><span class="pre">seismiclocations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utmzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ellps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WGS84'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations" title="Link to this definition">¶</a></dt>
 <dd><p>A class that handles a simple earthquake catalog</p>
 <dl class="simple">
 <dt>Args:</dt><dd><ul class="simple">
@@ -151,6 +152,27 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.autoCSVread">
+<span class="sig-name descname"><span class="pre">autoCSVread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timekey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depthkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magkey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeformat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%Y-%m-%dT%H:%M:%S.%f'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.autoCSVread" title="Link to this definition">¶</a></dt>
+<dd><p>Attempts a direct read at a CSV file. Should work if the CSV file has a generic format that can be read 
+with pandas. Then the code tries to find the longitude, latitude, depth, magnitude and time columns.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>infile    : input file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>header    : length of the header</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="csi.seismiclocations.computeGR">
 <span class="sig-name descname"><span class="pre">computeGR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.computeGR" title="Link to this definition">¶</a></dt>
 <dd><p>Plots the Gutemberg-Richter distribution.</p>
@@ -227,6 +249,27 @@
 </ul>
 </dd>
 <dt>Returns:   </dt><dd><ul class="simple">
+<li><p>None. Selected events are kept. Others are deleted.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.distance2point">
+<span class="sig-name descname"><span class="pre">distance2point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dstyle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.distance2point" title="Link to this definition">¶</a></dt>
+<dd><p>Selects the earthquakes that are located less than {distance} away from the given point.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>point     : Tuple of (lon, lat, depth)</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>distance  : Threshold (km)</p></li>
+<li><p>dstyle    : horizontal or 3d</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
 <li><p>None. Selected events are kept. Others are deleted.</p></li>
 </ul>
 </dd>
@@ -410,7 +453,7 @@ option: if b is provided, then the fit is forced to have a slope b.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="csi.seismiclocations.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mag'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawCoastlines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">markersize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">titleyoffset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadedtopo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landcolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lightgrey'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seacolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.2,</span> <span class="pre">0.1,</span> <span class="pre">0.02]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cborientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cblabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.plot" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mag'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drawCoastlines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'10m'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">markersize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">titleyoffset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadedtopo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">landcolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lightgrey'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seacolor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbaxis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.2,</span> <span class="pre">0.1,</span> <span class="pre">0.02]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cborientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cblabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.plot" title="Link to this definition">¶</a></dt>
 <dd><p>Plot the data set, together with a fault, if asked.</p>
 <dl class="simple">
 <dt>Kwargs:</dt><dd><ul class="simple">
@@ -524,6 +567,55 @@ option: if b is provided, then the fit is forced to have a slope b.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.read_fromGCMT">
+<span class="sig-name descname"><span class="pre">read_fromGCMT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.read_fromGCMT" title="Link to this definition">¶</a></dt>
+<dd><p>Reads data from a file from GCMT catalog.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>infile    : input file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.read_from_AFAD_focal_mechanisms">
+<span class="sig-name descname"><span class="pre">read_from_AFAD_focal_mechanisms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.read_from_AFAD_focal_mechanisms" title="Link to this definition">¶</a></dt>
+<dd><p>Reads data from a file from an AFAD focal mechanism file.
+(written in 2026)</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>infile    : input file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.read_from_AfadCsv">
+<span class="sig-name descname"><span class="pre">read_from_AfadCsv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.read_from_AfadCsv" title="Link to this definition">¶</a></dt>
+<dd><p>Reads data from a file from Afad CSV file</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>infile    : input file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="csi.seismiclocations.read_from_AyitiSeisme_csv">
 <span class="sig-name descname"><span class="pre">read_from_AyitiSeisme_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.read_from_AyitiSeisme_csv" title="Link to this definition">¶</a></dt>
 <dd><p>Read a catalog from the AyitiSeisme CSV files</p>
@@ -576,6 +668,59 @@ option: if b is provided, then the fit is forced to have a slope b.</p>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>header        : Size of the header.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.read_from_HypoDD">
+<span class="sig-name descname"><span class="pre">read_from_HypoDD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\\s+'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.read_from_HypoDD" title="Link to this definition">¶</a></dt>
+<dd><p>Reads data from a file from HypoDD (as given by to me by Dirk Beker).</p>
+<p>Format: event no, lat, lon, depth, internal_x, internal_y, internal_z, err_x, err_y, err_z, year, month, day, hour, minute, second, magnitude, no CC P-times, no CC S-times, no CT P-times, no CT S-times, rms value CC data, rms value CT data, cluster ID</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>infile    : input file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>header    : length of the header</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.read_from_KOERI">
+<span class="sig-name descname"><span class="pre">read_from_KOERI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.read_from_KOERI" title="Link to this definition">¶</a></dt>
+<dd><p>Reads data from a file from KOER.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>infile    : input file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.read_from_Lomax">
+<span class="sig-name descname"><span class="pre">read_from_Lomax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.read_from_Lomax" title="Link to this definition">¶</a></dt>
+<dd><p>Reads data from a file from NonNinLoc as given by Anthony Lomax</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>infile    : input file</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -715,6 +860,47 @@ The rest reads as</p>
 </dd>
 <dt>Kwargs:</dt><dd><ul class="simple">
 <li><p>header        : Size of the header.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.read_from_csv">
+<span class="sig-name descname"><span class="pre">read_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ilon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ilat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idepth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iyr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ida</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ihr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ierr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\\s+'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.read_from_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Reads data from a csv file. User must provide the column number (starting from 0) for all the fields,</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>infile    : input file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>header    : length of the header</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="csi.seismiclocations.read_from_dirkBecker">
+<span class="sig-name descname"><span class="pre">read_from_dirkBecker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\\s+'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#csi.seismiclocations.read_from_dirkBecker" title="Link to this definition">¶</a></dt>
+<dd><p>Reads data from a file given to me by Dirk Becker.</p>
+<p>Format: year,month,day,hour,minute,second,latitude,longitude,depth,magnitude,length of major error ellipsoid half axis,rms value</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p>infile    : input file</p></li>
+</ul>
+</dd>
+<dt>Kwargs:</dt><dd><ul class="simple">
+<li><p>header    : length of the header</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -880,7 +1066,7 @@ The rest reads as</p>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">CSI</a></h1>
 
@@ -891,7 +1077,16 @@ The rest reads as</p>
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../basictutorials.html">Basic Tutorials</a></li>
@@ -912,16 +1107,6 @@ The rest reads as</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -938,8 +1123,8 @@ The rest reads as</p>
       &#169;2024, Romain Jolivet.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="../_sources/classes/seismiclocations.rst.txt"

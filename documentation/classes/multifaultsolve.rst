@@ -1,6 +1,6 @@
 multifaultsolve class
 ===============================
 
-.. autoclass:: csi.multifaultsolve
+.. autoclass:: csi.multifaultsolve.multifaultsolve
     :members:
 

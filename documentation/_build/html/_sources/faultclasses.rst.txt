@@ -7,6 +7,8 @@ Here are listed all the classes of faults available in csi. These include a gene
     :maxdepth: 1
 
     classes/Fault
+    classes/Block
+    classes/MultiBlock
     classes/fault3D
     classes/RectangularPatches
     classes/RectangularPatchesKin

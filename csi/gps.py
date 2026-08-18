@@ -4410,11 +4410,12 @@ class gps(SourceInv):
         latmax = self.lat.max() + expand
         
         # A dirty Hack
-        if len(data)>1 and scale is None:
+        if len(data) > 1 and scale is None:
             figtmp, ax = plt.subplots(1,1,figsize=figsize)
             p = ax.quiver(self.lon, self.lat, self.vel_enu[:,0], self.vel_enu[:,1])
             figtmp.draw_without_rendering()
             scale = p.scale
+            plt.close(figtmp)
 
         # This gets override if there is a box for plotting
         if box is not None:
@@ -4423,7 +4424,7 @@ class gps(SourceInv):
 
         # Create a figure
         if figsize is not None: 
-            figsize=(figsize,figsize)
+            figsize=(figsize, figsize)
         else:
             figsize=(None, None)
         fig = geoplot(figure=figure, lonmin=lonmin, lonmax=lonmax, 

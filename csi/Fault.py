@@ -901,6 +901,26 @@ class Fault(SourceInv):
         # all done
         return dis
     # ----------------------------------------------------------------------
+    
+    # ----------------------------------------------------------------------
+    def GetCumDis(self, discretized=False, recompute=True):
+        '''
+        Computes the distance between the first point of the fault and every
+        other point. The distance is cumulative along the fault.
+
+        Args:
+            * discretized           : if True, use the discretized fault trace (default False)
+            * recompute             : if False, just returns the attribute cumdis
+
+        Returns:
+            * dis                   : Cumulative distance array
+        '''
+        
+        _ = self.cumdistance(discretized=discretized, recompute=recompute)
+        
+        # All done
+        return
+    # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
     def cumdis2xy(self, distance, recompute=True, mode='lonlat', discretized=False):
@@ -1132,6 +1152,10 @@ class Fault(SourceInv):
         if self.verbose:
             print('Writing Greens functions to file for fault {}'.format(self.name))
 
+        # Check if the output directory exists, if not create it
+        if not os.path.exists(outputDir):
+            os.makedirs(outputDir)
+        
         # Loop over the keys in self.G
         for data in self.G.keys():
 

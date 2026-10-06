@@ -724,6 +724,10 @@ class Block(SourceInv):
         # Print stuff
         if self.verbose:
             print('Writing Greens functions to file for block {}'.format(self.name))
+        
+        # Check if the output directory exists, if not create it
+        if not os.path.exists(outputDir):
+            os.makedirs(outputDir)
 
         # Loop over the keys in self.G
         for data in self.G.keys():

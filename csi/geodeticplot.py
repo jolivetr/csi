@@ -892,10 +892,6 @@ class geodeticplot(object):
             vmin = norm[0]
             vmax = norm[1]
         
-        if revmap:
-            cmap = plt.get_cmap(cmap)
-        else:
-            cmap = plt.get_cmap(cmap)
         if colorscale in ('normal', 'n'):
             cNorm  = colors.Normalize(vmin=vmin, vmax=vmax)
         elif colorscale in ('log', 'l', 'lognormal'):

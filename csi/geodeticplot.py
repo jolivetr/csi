@@ -122,6 +122,7 @@ class geodeticplot(object):
             gl = ax2D.gridlines(crs=self.projection, draw_labels=True, alpha=0.5, zorder=0)
             gl.xlabel_style = {'color': 'k', 'weight': 'bold'}
             gl.ylabel_style = {'color': 'k', 'weight': 'bold'}
+            fig2D.gl = gl
 
         # Store plots
         if Fault:

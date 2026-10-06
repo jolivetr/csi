@@ -3014,10 +3014,9 @@ class TriangularPatches(Fault):
 
         # Draw the fault
         if Fault:
-            fig.faultpatches(self, slip=slip, norm=norm, colorbar=colorbar, alpha=alpha,
+            fig.faultpatches(self, slip=slip, norm=norm, colorbar=colorbar, alpha=alpha, cmap=cmap,
                              cbaxis=cbaxis, cborientation=cborientation, cblabel=cblabel,
-                             plot_on_2d=plot_on_2d, linewidth=elinewidth, edgecolor=edgecolor,
-                             cmap=cmap)
+                             plot_on_2d=plot_on_2d, linewidth=elinewidth, edgecolor=edgecolor)
 
         # Savefigs?
         if savefig:

@@ -1,0 +1,41 @@
+\chapter{Current API and Workflows}
+\label{chap:current-api}
+
+This chapter records selected API changes in the current CSI code. For the complete class and method reference, see the Sphinx documentation shipped with CSI and the docstrings in the installed version.
+
+\section{Cumulative Distance Along a Fault}
+\label{sec:fault-cumulative-distance}
+
+The \texttt{Fault} class provides \texttt{GetCumDis} to calculate cumulative distance along the fault trace, measured from its first point. By default, the method uses the original trace; set \texttt{discretized=True} to use the discretized trace. The returned array contains one cumulative distance per trace point.
+
+\begin{verbatim}
+cumulative_distance = fault.GetCumDis(discretized=True)
+\end{verbatim}
+
+The \texttt{recompute} argument defaults to \texttt{True}. Set \texttt{recompute=False} to return the cached \texttt{cumdis} values instead of recalculating them.
+
+\section{Saving Green's Functions}
+\label{sec:saving-greens-functions}
+
+The \texttt{saveGFs} methods on \texttt{Fault}, \texttt{Block}, \texttt{MultiBlock}, and \texttt{Pressure} create the requested \texttt{outputDir} if it does not already exist. The Green's-function writer on \texttt{transformation} follows the same behavior. For example:
+
+\begin{verbatim}
+fault.saveGFs(outputDir="results/greens-functions")
+\end{verbatim}
+
+\section{Multi-Source Inversion}
+\label{sec:multi-source-inversion}
+
+Use \texttt{multisourcesolve} for current multi-source inversion workflows. It supports combinations of fault sources, pressure sources, and block models. The older \texttt{multifaultsolve} class is not part of the current CSI package; existing references to it should be replaced with the applicable \texttt{multisourcesolve} workflow.
+
+\section{Recent Tutorials}
+\label{sec:recent-tutorials}
+
+The repository includes tutorials for the newer block-model and mesh-generation workflows:
+
+\begin{itemize}
+  \item Block modeling: \url{https://github.com/jolivetr/csi/blob/master/notebooks/tutoBlockModel.ipynb}
+  \item Fault meshing with Gmsh: \url{https://github.com/jolivetr/csi/blob/master/notebooks/tutoFaultMeshing_gmsh.ipynb}
+\end{itemize}
+
+The existing InSAR, creep inversion, coupling inversion, fault meshing, and pressure-source notebooks are also available in the repository's \texttt{notebooks} directory.

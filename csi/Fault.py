@@ -916,10 +916,8 @@ class Fault(SourceInv):
             * dis                   : Cumulative distance array
         '''
         
-        _ = self.cumdistance(discretized=discretized, recompute=recompute)
+        return self.cumdistance(discretized=discretized, recompute=recompute)
         
-        # All done
-        return
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------

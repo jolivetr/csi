@@ -1,0 +1,16 @@
+# TODO for CSI 1.0
+
+# Technical points: 
+. Do we include the calculation of EDKS kernels in CSI? (Zach)
+. Add a case for slip='somethingunknown' where the method picks is using getattr (Romain)
+. Implement a multiprocessing acceleration for the homogeneousGFs method (Romain with Copilot)
+
+# Organisation: 
+. Check help for each method. (Zach)
+. Examples. (Romain)
+. Test on different architectures. (Zach)
+
+# TODO for CSI 2.0
+. Add uncertainties on the covariance plots (standard deviations, for instance)
+. Incorporate EDKS correctly in csi (stop writing stuff to file and start passing arrays)
+. Add prediction uncertainties tools (Thea, almost done)

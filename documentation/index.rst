@@ -58,7 +58,7 @@ To cite CSI, please use the doi of the code provided by Github or see the citati
 
 People involved
 ===============================
-Romain Jolivet, Manon Dalaison (IPGP), Bryan Raimbault (CNES), Emile Denise (ENS)
+Romain Jolivet, Manon Dalaison (IPGP), Bryan Raimbault (CNES)
 
 Contacts
 ===============================

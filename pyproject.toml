@@ -9,7 +9,20 @@ description = "Classic Slip Inversion"
 readme = "README.md"
 requires-python = ">=3.9, <4"
 authors = [{ name = "Romain Jolivet" }]
-dependencies = ["numpy", "scipy", "cartopy", "shapely", "pyproj", "matplotlib"]
+dependencies = [
+	"numpy",
+	"scipy",
+	"matplotlib",
+	"pandas",
+	"cmcrameri",
+	"seaborn",
+	"netcdf4",
+	"cartopy",
+	"ndsplines",
+	"h5py",
+	"shapely",
+	"pyproj",
+]
 
 [project.optional-dependencies]
 docs = [
@@ -18,10 +31,6 @@ docs = [
 	"ipython",
 	"nbconvert",
 	"pypandoc-binary",
-	"netcdf4",
-	"h5py",
-	"ndsplines",
-	"pandas",
 ]
 
 [tool.hatch.version]

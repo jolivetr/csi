@@ -6,6 +6,12 @@
 import os,sys
 sys.path.insert(0, os.path.abspath('../'))
 
+# nbsphinx requires the Pandoc executable on PATH. pypandoc-binary bundles it
+# inside site-packages, so expose that location for the duration of the build.
+import pypandoc
+_pandoc_dir = os.path.dirname(pypandoc.get_pandoc_path())
+os.environ['PATH'] = os.pathsep.join((_pandoc_dir, os.environ.get('PATH', '')))
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 

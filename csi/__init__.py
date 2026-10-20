@@ -28,6 +28,8 @@ from .planarfault import planarfault
 ## Kinematic faults
 from .RectangularPatchesKin import RectangularPatchesKin
 from .planarfaultkinematic import planarfaultkinematic
+from .TriangularPatchesKin import TriangularPatchesKin
+from .pyrockoengine import pyrockoengine
 
 ## Pressure sources
 from .Mogi import Mogi

@@ -2392,6 +2392,12 @@ class TriangularPatches(Fault):
                 D[i,adjacents[0]] = -h13*h14
                 D[i,adjacents[1]] = -h12*h14
                 sumProd = h13*h14 + h12*h14 + h12*h13
+            elif len(hvals) == 1:
+                h12, = hvals
+                # Make two virtual patches, e.g. for a triangle in the corner of a mesh
+                h13 = h14 = h12
+                D[i,adjacents[0]] = -h13*h14
+                sumProd = h13*h14 + h12*h14 + h12*h13
             D[i,i] = sumProd
 
         if verbose:
